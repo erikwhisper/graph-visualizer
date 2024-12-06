@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="stylesheet" href="../styles/style.css" />
+    <title>CausalGraph Visualiser</title>
+  </head>
+
+  <body>
+    <div class="container">
+      <h1>CausalGraph Visualiser</h1>
+
+      <section id="pag-matrix-input-section">
+        <!--<p>PAG Matrix Input</p>-->
+        <input type="file" id="pagMatrixFileInput" accept=".csv" />
+        <textarea
+          id="pagMatrixDisplay"
+          placeholder="Matrix wird hier angezeigt..."
+        ></textarea>
+      </section>
+
+      <section id="pag-json-input-section">
+        <!--<p>PAG JSON Input</p>-->
+        <input type="file" id="pagJsonFileInput" accept=".csv" />
+        <textarea
+          id="pagJsonDisplay"
+          placeholder="JSON-Daten werden hier angezeigt..."
+        ></textarea>
+      </section>
+
+      <section id="pag-dot-input-section">
+        <!--<p>PAG DOT Input</p>-->
+        <input type="file" id="pagDotFileInput" accept=".csv" />
+        <textarea
+          id="pagDotDisplay"
+          placeholder="DOT-Syntax wird hier angezeigt..."
+        ></textarea>
+      </section>
+
+      <section id="conversion-buttons">
+        <button id="pagConvertMatrixToJson">Matrix -> JSON</button>
+        <button id="pagConvertDotToJson">DOT -> JSON</button>
+        <button id="pagConvertJsonToDot">JSON -> DOT</button>
+        <button id="pagConvertJsonToMatrix">JSON -> Matrix</button>
+      </section>
+    </div>
+  </body>
+</html>
