@@ -6,44 +6,47 @@
     <link rel="stylesheet" href="../styles/style.css" />
     <title>CausalGraph Visualiser</title>
   </head>
-
   <body>
     <div class="container">
       <h1>CausalGraph Visualiser</h1>
 
+      <!-- PAG Matrix Input Section -->
       <section id="pag-matrix-input-section">
-        <!--<p>PAG Matrix Input</p>-->
         <input type="file" id="pagMatrixFileInput" accept=".csv" />
         <textarea
           id="pagMatrixDisplay"
           placeholder="Matrix wird hier angezeigt..."
+          rows="10"
+          cols="50"
         ></textarea>
+        <button id="pagMatrixReadButton">Einlesen</button>
       </section>
 
+      <!-- PAG JSON Input Section -->
       <section id="pag-json-input-section">
-        <!--<p>PAG JSON Input</p>-->
         <input type="file" id="pagJsonFileInput" accept=".csv" />
         <textarea
           id="pagJsonDisplay"
           placeholder="JSON-Daten werden hier angezeigt..."
+          rows="10"
+          cols="50"
         ></textarea>
+        <button id="pagJsonReadButton">Einlesen</button>
       </section>
 
+      <!-- PAG DOT Input Section -->
       <section id="pag-dot-input-section">
-        <!--<p>PAG DOT Input</p>-->
         <input type="file" id="pagDotFileInput" accept=".csv" />
         <textarea
           id="pagDotDisplay"
           placeholder="DOT-Syntax wird hier angezeigt..."
+          rows="10"
+          cols="50"
         ></textarea>
-      </section>
-
-      <section id="conversion-buttons">
-        <button id="pagConvertMatrixToJson">Matrix -> JSON</button>
-        <button id="pagConvertDotToJson">DOT -> JSON</button>
-        <button id="pagConvertJsonToDot">JSON -> DOT</button>
-        <button id="pagConvertJsonToMatrix">JSON -> Matrix</button>
+        <button id="pagDotReadButton">Einlesen</button>
       </section>
     </div>
+    <script src = https://cdnjs.cloudflare.com/ajax/libs/d3/7.9.0/d3.min.js></script>
+    <script src="../js/main.js"></script>
   </body>
 </html>
