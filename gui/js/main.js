@@ -420,3 +420,28 @@ function pagDotToJsonConversion(dotSyntax) {
 }
 
 //----------------START: JSON -> DOT (PAG)------------------------//
+
+const convertJsonToDotButton = document.getElementById("convertJsonToDot");
+convertJsonToDotButton.addEventListener("click", () => {
+  const jsonInput = document.getElementById("pagJsonDisplay").value;
+  const jsonData = JSON.parse(jsonInput);
+  const dotSyntax = jsonToDotConversion(jsonData);
+  document.getElementById("pagDotDisplay").value = dotSyntax;
+});
+
+function jsonToDotConversion(jsonData) {
+  let dotOutput = "digraph PAG {\n";
+
+  jsonData.links.forEach((link) => {
+    const source = link.source.id;
+    const target = link.target.id;
+    const arrowhead = link.arrowhead;
+    const arrowtail = link.arrowtail;
+
+    dotOutput += `"${source}" -> "${target}" [dir=both, arrowhead=${arrowhead}, arrowtail=${arrowtail}];\n`;
+  });
+
+  dotOutput += "}";
+
+  return dotOutput;
+}
