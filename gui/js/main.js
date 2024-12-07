@@ -269,3 +269,96 @@ function pagCreateJsonLinks(
 }
 
 //----------------START: JSON -> MATRIX (PAG)------------------------//
+const convertJsonToMatrixButton = document.getElementById(
+  "convertJsonToMatrix"
+);
+convertJsonToMatrixButton.addEventListener("click", () => {
+  const jsonInput = document.getElementById("pagJsonDisplay").value;
+  const jsonData = JSON.parse(jsonInput);
+  const matrixCsv = convertJsonToMatrix(jsonData);
+
+  document.getElementById("pagMatrixDisplay").value = matrixCsv;
+});
+
+//alle mappings der richtung jsonData -> Matrix
+function mapEdgeToType(arrowhead, arrowtail) {
+  const edgeMap = {
+    none: 0,
+    odot: 1,
+    normal: 2,
+    tail: 3,
+  };
+
+  if (arrowhead === "odot" && arrowtail === "odot")
+    return [edgeMap["odot"], edgeMap["odot"]];
+  if (arrowhead === "odot" && arrowtail === "normal")
+    return [edgeMap["odot"], edgeMap["normal"]];
+  if (arrowhead === "odot" && arrowtail === "tail")
+    return [edgeMap["odot"], edgeMap["tail"]];
+  if (arrowhead === "odot" && arrowtail === "none")
+    return [edgeMap["odot"], edgeMap["none"]];
+
+  if (arrowhead === "normal" && arrowtail === "odot")
+    return [edgeMap["normal"], edgeMap["odot"]];
+  if (arrowhead === "normal" && arrowtail === "normal")
+    return [edgeMap["normal"], edgeMap["normal"]];
+  if (arrowhead === "normal" && arrowtail === "tail")
+    return [edgeMap["normal"], edgeMap["tail"]];
+  if (arrowhead === "normal" && arrowtail === "none")
+    return [edgeMap["normal"], edgeMap["none"]];
+
+  if (arrowhead === "tail" && arrowtail === "odot")
+    return [edgeMap["tail"], edgeMap["odot"]];
+  if (arrowhead === "tail" && arrowtail === "normal")
+    return [edgeMap["tail"], edgeMap["normal"]];
+  if (arrowhead === "tail" && arrowtail === "tail")
+    return [edgeMap["tail"], edgeMap["tail"]];
+  if (arrowhead === "tail" && arrowtail === "none")
+    return [edgeMap["tail"], edgeMap["none"]];
+
+  if (arrowhead === "none" && arrowtail === "odot")
+    return [edgeMap["none"], edgeMap["odot"]];
+  if (arrowhead === "none" && arrowtail === "normal")
+    return [edgeMap["none"], edgeMap["normal"]];
+  if (arrowhead === "none" && arrowtail === "tail")
+    return [edgeMap["none"], edgeMap["tail"]];
+
+  return [edgeMap["none"], edgeMap["none"]];
+}
+
+//JSON -> Matrix
+function convertJsonToMatrix(jsonData) {
+  const knoten = jsonData.nodes.map((node) => node.id);
+  const matrixSize = knoten.length;
+
+  //init matirx
+  const matrix = Array.from({ length: matrixSize + 1 }, () =>
+    Array(matrixSize + 1).fill(0)
+  );
+
+  //erstmal leer initialisieren
+  matrix[0][0] = '""'; //ecke hardcoded auf ""
+  knoten.forEach((id, index) => {
+    matrix[0][index + 1] = `"${id}"`;
+    matrix[index + 1][0] = `"${id}"`;
+  });
+
+  //kanten
+  jsonData.links.forEach((link) => {
+    const sourceIndex = knoten.indexOf(link.source.id) + 1;
+    const targetIndex = knoten.indexOf(link.target.id) + 1;
+
+    //vorwärts kanten reinschreiben
+    const [edgeTypeForward, edgeTypeReverse] = mapEdgeToType(
+      link.arrowhead,
+      link.arrowtail
+    );
+    matrix[sourceIndex][targetIndex] = edgeTypeForward;
+
+    //rückwärts kanten reinschreiben
+    matrix[targetIndex][sourceIndex] = edgeTypeReverse;
+  });
+
+  //ausgabe verschoenern
+  return matrix.map((row) => row.join(", ")).join("\n");
+}
