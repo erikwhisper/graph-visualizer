@@ -23,9 +23,9 @@ function readPagMatrix() {
   if (fileInput) {
     const reader = new FileReader();
     reader.onload = function (event) {
-      //const formattedMatrix = pagFormatMatrix(event.target.result);
-      //displayArea.value = formattedMatrix; // Formatierte Matrix anzeigen
-      displayArea.value = event.target.result; //Matrix anzeigen
+      const formattedMatrix = pagFormatMatrix(event.target.result);
+      displayArea.value = formattedMatrix; // Formatierte Matrix anzeigen
+      //displayArea.value = event.target.result; //Matrix anzeigen
     };
     reader.readAsText(fileInput);
   } else {
@@ -140,6 +140,7 @@ function parsePagContent(csvContent) {
     .map((row) => row.split(",").map((cell) => cell.replace(/"/g, "").trim()));
 }
 
+//brauch ich wirklich bei jedem link die koordinaten ne oder?
 function pagCreateJsonLinks(
   quellKnoten,
   zielKnoten,
@@ -269,6 +270,8 @@ function pagCreateJsonLinks(
 }
 
 //----------------START: JSON -> MATRIX (PAG)------------------------//
+
+//der eventlistener geht doch einfache oder?
 const convertJsonToMatrixButton = document.getElementById(
   "convertJsonToMatrix"
 );
@@ -362,3 +365,58 @@ function convertJsonToMatrix(jsonData) {
   //ausgabe verschoenern
   return matrix.map((row) => row.join(", ")).join("\n");
 }
+
+//----------------START: DOT -> JSON (PAG)------------------------//
+
+const convertDotToJsonButton = document.getElementById("convertDotToJson");
+convertDotToJsonButton.addEventListener("click", () => {
+  const dotInput = document.getElementById("pagDotDisplay").value;
+  const jsonData = pagDotToJsonConversion(dotInput);
+
+  document.getElementById("pagJsonDisplay").value = JSON.stringify(
+    jsonData,
+    null,
+    2
+  );
+});
+
+function pagDotToJsonConversion(dotSyntax) {
+  const knoten = new Set();
+  const links = [];
+
+  const edgeRegex =
+    /"([^"]+)"\s*->\s*"([^"]+)"\s*\[dir=both, arrowhead=([^,]+), arrowtail=([^,]+)\];/g;
+  let match;
+
+  while ((match = edgeRegex.exec(dotSyntax)) !== null) {
+    const source = match[1];
+    const target = match[2];
+    const arrowhead = match[3].trim();
+    const arrowtail = match[4].trim();
+
+    knoten.add(source);
+    knoten.add(target);
+
+    links.push({
+      source: { id: source, x: null, y: null },
+      target: { id: target, x: null, y: null },
+      arrowhead: arrowhead,
+      arrowtail: arrowtail,
+    });
+  }
+
+  const nodesArray = Array.from(knoten).map((node) => ({
+    id: node,
+    x: null, //initial null
+    y: null, //initial null
+  }));
+
+  const jsonData = {
+    nodes: nodesArray,
+    links: links,
+  };
+
+  return jsonData;
+}
+
+//----------------START: JSON -> DOT (PAG)------------------------//
