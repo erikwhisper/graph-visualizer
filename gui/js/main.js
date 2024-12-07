@@ -1,6 +1,6 @@
-/****************************************/
-/*********START: Initial readin**********/
-/****************************************/
+/***********************************************************/
+/*********START: Type-Conversion Functions for PAG**********/
+/***********************************************************/
 
 //Listener für PAG matrix
 const pagMatrixReadButton = document.getElementById("pagMatrixReadButton");
@@ -445,3 +445,7 @@ function jsonToDotConversion(jsonData) {
 
   return dotOutput;
 }
+
+/***********************************************************/
+/*********START: Type-Conversion Functions for PAG**********/
+/***********************************************************/
