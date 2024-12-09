@@ -77,12 +77,15 @@ function readPagDot() {
 
 //----------------START: MATRIX -> JSON (PAG)------------------------//
 
-const convertMatrixToJsonButton = document.getElementById(
-  "convertMatrixToJson"
+const pagConvertMatrixToJsonButton = document.getElementById(
+  "pagConvertMatrixToJson"
 );
-convertMatrixToJsonButton.addEventListener("click", pagMatrixToJsonConversion);
+pagConvertMatrixToJsonButton.addEventListener(
+  "click",
+  pagMatrixToJsonConversion
+);
 
-function convertMatrixToJson(parsedPagMatrix) {
+function pagConvertMatrixToJson(parsedPagMatrix) {
   const knotenSet = new Set(); //alle knoten in menge
   const links = []; //alle edges
 
@@ -124,7 +127,7 @@ function convertMatrixToJson(parsedPagMatrix) {
 function pagMatrixToJsonConversion() {
   const currentPagMatrix = document.getElementById("pagMatrixDisplay").value;
   const parsedPagMatrix = parsePagContent(currentPagMatrix);
-  const jsonData = convertMatrixToJson(parsedPagMatrix);
+  const jsonData = pagConvertMatrixToJson(parsedPagMatrix);
 
   document.getElementById("pagJsonDisplay").value = JSON.stringify(
     jsonData,
@@ -141,6 +144,10 @@ function parsePagContent(csvContent) {
 }
 
 //brauch ich wirklich bei jedem link die koordinaten ne oder?
+//das kann man doch auch mit einem edgeMapping machen aber andersrum
+//also wenn ich kantenTypFromTo === 1 hab, dann ist das mit
+//edgeMapping[1] = odot z.B. dann kann ich mir so viel schreiben
+//sparen oder?
 function pagCreateJsonLinks(
   quellKnoten,
   zielKnoten,
@@ -272,13 +279,13 @@ function pagCreateJsonLinks(
 //----------------START: JSON -> MATRIX (PAG)------------------------//
 
 //der eventlistener geht doch einfache oder?
-const convertJsonToMatrixButton = document.getElementById(
-  "convertJsonToMatrix"
+const pagConvertJsonToMatrixButton = document.getElementById(
+  "pagConvertJsonToMatrix"
 );
-convertJsonToMatrixButton.addEventListener("click", () => {
+pagConvertJsonToMatrixButton.addEventListener("click", () => {
   const jsonInput = document.getElementById("pagJsonDisplay").value;
   const jsonData = JSON.parse(jsonInput);
-  const matrixCsv = convertJsonToMatrix(jsonData);
+  const matrixCsv = pagConvertJsonToMatrix(jsonData);
 
   document.getElementById("pagMatrixDisplay").value = matrixCsv;
 });
@@ -330,7 +337,7 @@ function mapEdgeToType(arrowhead, arrowtail) {
 }
 
 //JSON -> Matrix
-function convertJsonToMatrix(jsonData) {
+function pagConvertJsonToMatrix(jsonData) {
   const knoten = jsonData.nodes.map((node) => node.id);
   const matrixSize = knoten.length;
 
@@ -368,8 +375,10 @@ function convertJsonToMatrix(jsonData) {
 
 //----------------START: DOT -> JSON (PAG)------------------------//
 
-const convertDotToJsonButton = document.getElementById("convertDotToJson");
-convertDotToJsonButton.addEventListener("click", () => {
+const pagConvertDotToJsonButton = document.getElementById(
+  "pagConvertDotToJson"
+);
+pagConvertDotToJsonButton.addEventListener("click", () => {
   const dotInput = document.getElementById("pagDotDisplay").value;
   const jsonData = pagDotToJsonConversion(dotInput);
 
@@ -421,8 +430,10 @@ function pagDotToJsonConversion(dotSyntax) {
 
 //----------------START: JSON -> DOT (PAG)------------------------//
 
-const convertJsonToDotButton = document.getElementById("convertJsonToDot");
-convertJsonToDotButton.addEventListener("click", () => {
+const pagConvertJsonToDotButton = document.getElementById(
+  "pagConvertJsonToDot"
+);
+pagConvertJsonToDotButton.addEventListener("click", () => {
   const jsonInput = document.getElementById("pagJsonDisplay").value;
   const jsonData = JSON.parse(jsonInput);
   const dotSyntax = jsonToDotConversion(jsonData);
@@ -447,5 +458,222 @@ function jsonToDotConversion(jsonData) {
 }
 
 /***********************************************************/
-/*********START: Type-Conversion Functions for PAG**********/
+/**********END: Type-Conversion Functions for PAG***********/
 /***********************************************************/
+
+/***********************************************************/
+
+/***********************************************************/
+/***********START: jsonData Visulization for PAG************/
+/***********************************************************/
+
+document
+  .getElementById("pagVisualizeJsonWithD3")
+  .addEventListener("click", () => {
+    const jsonInput = document.getElementById("pagJsonDisplay").value;
+
+    const jsonData = JSON.parse(jsonInput);
+
+    visualizeJsonWithD3(jsonData);
+  });
+
+function visualizeJsonWithD3(jsonData) {
+  const svg = createSvgCanvas();
+
+  // prettier-ignore
+  setupArrowMarker(svg, "normal-head", "path", "black", null, "auto");
+  // prettier-ignore
+  setupArrowMarker(svg, "normal-tail", "path", "red", null, "auto-start-reverse");
+  // prettier-ignore
+  setupArrowMarker(svg, "odot-head", "circle", "rgb(238, 241, 219)", "black", "auto");
+  // prettier-ignore
+  setupArrowMarker(svg, "odot-tail", "circle", "rgb(238, 241, 219)", "red", "auto-start-reverse");
+  // prettier-ignore
+  setupArrowMarker(svg, "tail-head", "rect", "black", null, "auto");
+  // prettier-ignore
+  setupArrowMarker(svg, "tail-tail", "rect", "red", null, "auto-start-reverse");
+
+  //Hier z.B. auch userValue für grid spacing eingeben können
+  //Dann kann der user z.B. das grid spacing anpassen!?
+  initializeNodeCoordinates(jsonData);
+
+  drawLinks(svg, jsonData);
+
+  drawNodes(svg, jsonData);
+
+  updatePagJsonDisplay(jsonData);
+}
+
+function createSvgCanvas() {
+  const containerId = "#graph-container";
+
+  d3.select(containerId).selectAll("*").remove();
+
+  const width = d3.select(containerId).node().offsetWidth;
+  const height = d3.select(containerId).node().offsetHeight;
+
+  const svg = d3
+    .select(containerId)
+    .append("svg")
+    .attr("width", width)
+    .attr("height", height);
+
+  return svg;
+}
+
+function initializeNodeCoordinates(jsonData) {
+  //grid pattern
+  const numColumns = Math.ceil(Math.sqrt(jsonData.nodes.length));
+  const gridSpacing = 100;
+
+  //update nodes
+  jsonData.nodes.forEach((node, index) => {
+    if (node.x === null || node.y === null) {
+      node.x = (index % numColumns) * gridSpacing + gridSpacing / 2;
+      node.y = Math.floor(index / numColumns) * gridSpacing + gridSpacing / 2;
+    }
+  });
+
+  //update links, matchin nodes
+  jsonData.links.forEach((link) => {
+    link.source = jsonData.nodes.find(
+      (node) => node.id === link.source.id || node.id === link.source
+    );
+    link.target = jsonData.nodes.find(
+      (node) => node.id === link.target.id || node.id === link.target
+    );
+  });
+}
+
+function drawLinks(svg, jsonData) {
+  svg
+    .selectAll(".link")
+    .data(jsonData.links)
+    .enter()
+    .append("line")
+    .attr("class", "link")
+    .attr("stroke", "#999")
+    .attr("stroke-width", 2)
+    .attr("marker-end", (d) => {
+      if (d.arrowhead === "normal") return "url(#normal-head)";
+      if (d.arrowhead === "odot") return "url(#odot-head)";
+      if (d.arrowhead === "tail") return "url(#tail-head)";
+      return null;
+    })
+    .attr("marker-start", (d) => {
+      if (d.arrowtail === "normal") return "url(#normal-tail)";
+      if (d.arrowtail === "odot") return "url(#odot-tail)";
+      if (d.arrowtail === "tail") return "url(#tail-tail)";
+      return null;
+    })
+    .attr("x1", (d) => d.source.x)
+    .attr("y1", (d) => d.source.y)
+    .attr("x2", (d) => d.target.x)
+    .attr("y2", (d) => d.target.y);
+}
+
+function drawNodes(svg, jsonData) {
+  svg
+    .selectAll(".node")
+    .data(jsonData.nodes)
+    .enter()
+    .append("circle")
+    .attr("class", "node")
+    .attr("r", 15)
+    .attr("fill", "blue")
+    .attr("cx", (d) => d.x)
+    .attr("cy", (d) => d.y)
+    .call(
+      d3
+        .drag()
+        .on("drag", (event, d) => {
+          d.x = event.x;
+          d.y = event.y;
+          updatePositions();
+          updatePagJsonDisplay(jsonData); //update during dragging?! Geil oder nicht?!
+        })
+        .on("end", (event, d) => {
+          const gridSpacing = 100;
+          d.x =
+            Math.round((d.x - gridSpacing / 2) / gridSpacing) * gridSpacing +
+            gridSpacing / 2;
+          d.y =
+            Math.round((d.y - gridSpacing / 2) / gridSpacing) * gridSpacing +
+            gridSpacing / 2;
+          updatePositions();
+          updatePagJsonDisplay(jsonData);
+        })
+    );
+
+  svg
+    .selectAll(".node-label")
+    .data(jsonData.nodes)
+    .enter()
+    .append("text")
+    .attr("class", "node-label")
+    .attr("x", (d) => d.x)
+    .attr("y", (d) => d.y)
+    .attr("dy", 5)
+    .attr("text-anchor", "middle")
+    .text((d) => d.id)
+    .attr("fill", "white")
+    .style("font-size", "15px");
+}
+
+function updatePositions() {
+  //update node position
+  d3.selectAll(".node")
+    .attr("cx", (d) => d.x)
+    .attr("cy", (d) => d.y);
+
+  //update link position
+  d3.selectAll(".link")
+    .attr("x1", (d) => d.source.x)
+    .attr("y1", (d) => d.source.y)
+    .attr("x2", (d) => d.target.x)
+    .attr("y2", (d) => d.target.y);
+
+  //update label position
+  d3.selectAll(".node-label")
+    .attr("x", (d) => d.x)
+    .attr("y", (d) => d.y);
+}
+
+function updatePagJsonDisplay(jsonData) {
+  const jsonDisplay = document.getElementById("pagJsonDisplay");
+  jsonDisplay.value = JSON.stringify(jsonData, null, 2);
+}
+
+function setupArrowMarker(svg, id, shape, fillColor, strokeColor, orient) {
+  const marker = svg
+    .append("defs")
+    .append("marker")
+    .attr("id", id)
+    .attr("viewBox", "0 -5 10 10")
+    .attr("refX", 22)
+    .attr("refY", 0)
+    .attr("markerWidth", 6)
+    .attr("markerHeight", 6)
+    .attr("orient", orient);
+
+  if (shape === "path") {
+    marker.append("path").attr("d", "M0,-5L10,0L0,5").attr("fill", fillColor);
+  } else if (shape === "circle") {
+    marker
+      .append("circle")
+      .attr("cx", 5)
+      .attr("cy", 0)
+      .attr("r", 4)
+      .attr("fill", fillColor)
+      .attr("stroke", strokeColor)
+      .attr("stroke-width", 2);
+  } else if (shape === "rect") {
+    marker
+      .append("rect")
+      .attr("x", 0)
+      .attr("y", -5)
+      .attr("width", 10)
+      .attr("height", 10)
+      .attr("fill", fillColor);
+  }
+}
