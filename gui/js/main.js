@@ -467,11 +467,8 @@ function jsonToDotConversion(jsonData) {
 /***********START: jsonData Visulization for PAG************/
 /***********************************************************/
 
-//Links referenzieren die nodes aus jsonData, daher steht
-//bei den links auch nochmal die koordinaten.
-//-> Das ist aber kein problem, da nur änderungen an x,y in der
-//node section einen einfluss auf die positionen haben und
-//x,y bei den links wird darauf automatisch angepasst
+//als aller erstes will ich jetzt mein svg cavas in ne jpg speichern
+//können. Danach kann ich mit dem rest weiterspielen.
 
 //die spielerein der professorin hinzuzufügen, also color
 //changable nodes. Label oben, links, rechts, unter dem node
@@ -480,6 +477,8 @@ function jsonToDotConversion(jsonData) {
 //Mir einen titel aus den nippeln saugen
 
 //collision von knoten wenn clipping an (aktuell normal zustand)
+//-> maybe ist das fine? maybe einf knoten färben wenn
+//2 mehrere die selben koordinaten haben oder so
 
 //Dann geht es zu kanten anklicken können und die arrowmarker
 //ändern können
@@ -494,16 +493,24 @@ function jsonToDotConversion(jsonData) {
 
 //Dann geht es um neue knoten zeichnen können
 
-//Dann geht es um einen toggle für grid-clipping
-
 //als user gridgröße einstellen können
 
 //Dann geht es wieder um zoom und movable grid
 
 //-->Dann den ganzen scheiss für den admg auch.
 
+//Links referenzieren die nodes aus jsonData, daher steht
+//bei den links auch nochmal die koordinaten.
+//-> Das ist aber kein problem, da nur änderungen an x,y in der
+//node section einen einfluss auf die positionen haben und
+//x,y bei den links wird darauf automatisch angepasst
+
 //GLOBALE VARIABELN:
 let isGridClippingEnabled = false;
+
+//necessary for the visual grid
+let currentSvg = null;
+let currentGridSpacing = null;
 
 //----------START: BASIC VISUALIZATION + DRAG&DROP --------------//
 
@@ -524,6 +531,14 @@ document
   .getElementById("gridClippingToggle")
   .addEventListener("change", (event) => {
     isGridClippingEnabled = event.target.checked;
+
+    if (currentSvg) {
+      if (isGridClippingEnabled) {
+        drawGrid(currentSvg, currentGridSpacing);
+      } else {
+        currentSvg.selectAll(".grid-line").remove();
+      }
+    }
   });
 
 function resetCheckBoxStates() {
@@ -538,14 +553,13 @@ function resetCheckBoxStates() {
 
 function visualizeJsonWithD3(jsonData) {
   const svg = createSvgCanvas();
+  currentSvg = svg; //currently only for visual grid needed
 
-  //user configured grid spacing would be nice but would need to
-  //always be updated on change
   const gridSpacing = 100;
+  currentGridSpacing = gridSpacing; //currently only for visual grid needed
 
   initializePagArrowMarkers(svg);
-  //Hier z.B. auch userValue für grid spacing eingeben können
-  //Dann kann der user z.B. das grid spacing anpassen!?
+
   initializeNodeCoordinates(jsonData, gridSpacing);
 
   drawLinks(svg, jsonData);
@@ -553,6 +567,10 @@ function visualizeJsonWithD3(jsonData) {
   drawNodes(svg, jsonData, gridSpacing);
 
   updatePagJsonDisplay(jsonData);
+
+  if (isGridClippingEnabled) {
+    drawGrid(svg, gridSpacing);
+  }
 }
 
 function createSvgCanvas() {
@@ -746,38 +764,39 @@ function setupArrowMarker(svg, id, shape, fillColor, strokeColor, orient) {
 
 //----------START: TOGGLE GRID / TOGGLE ZOOM --------------//
 
-/*
 function drawGrid(svg, gridSpacing) {
-  // Clear any existing grid
+  //clear grid, if present
   svg.selectAll(".grid-line").remove();
 
-  //if (isGridClippingEnabled) {
-  const width = parseInt(svg.attr("width"), 10);
-  const height = parseInt(svg.attr("height"), 10);
+  if (isGridClippingEnabled) {
+    const width = parseInt(svg.attr("width"), 10);
+    const height = parseInt(svg.attr("height"), 10);
 
-  // Draw horizontal and vertical grid lines
-  for (let x = 0; x < width; x += gridSpacing) {
-    svg
-      .append("line")
-      .attr("class", "grid-line")
-      .attr("x1", x)
-      .attr("y1", 0)
-      .attr("x2", x)
-      .attr("y2", height)
-      .attr("stroke", "#ccc")
-      .attr("stroke-width", 0.5);
+    const xOffset = gridSpacing / 2;
+    const yOffset = gridSpacing / 2;
+
+    //draw lines
+    for (let x = xOffset; x < width; x += gridSpacing) {
+      svg
+        .append("line")
+        .attr("class", "grid-line")
+        .attr("x1", x)
+        .attr("y1", 0)
+        .attr("x2", x)
+        .attr("y2", height)
+        .attr("stroke", "#ccc")
+        .attr("stroke-width", 0.5);
+    }
+    for (let y = yOffset; y < height; y += gridSpacing) {
+      svg
+        .append("line")
+        .attr("class", "grid-line")
+        .attr("x1", 0)
+        .attr("y1", y)
+        .attr("x2", width)
+        .attr("y2", y)
+        .attr("stroke", "#ccc")
+        .attr("stroke-width", 0.5);
+    }
   }
-  for (let y = 0; y < height; y += gridSpacing) {
-    svg
-      .append("line")
-      .attr("class", "grid-line")
-      .attr("x1", 0)
-      .attr("y1", y)
-      .attr("x2", width)
-      .attr("y2", y)
-      .attr("stroke", "#ccc")
-      .attr("stroke-width", 0.5);
-  }
-  //}
 }
-*/
