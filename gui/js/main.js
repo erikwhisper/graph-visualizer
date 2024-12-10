@@ -467,6 +467,9 @@ function jsonToDotConversion(jsonData) {
 /***********START: jsonData Visulization for PAG************/
 /***********************************************************/
 
+//i need to make the arrowmarkers better so i cant see the
+//edges anymore
+
 //als aller erstes will ich jetzt mein svg cavas in ne jpg speichern
 //können. Danach kann ich mit dem rest weiterspielen.
 
@@ -526,21 +529,6 @@ document
     visualizeJsonWithD3(jsonData);
   });
 
-//Eventlistener for grid clipping
-document
-  .getElementById("gridClippingToggle")
-  .addEventListener("change", (event) => {
-    isGridClippingEnabled = event.target.checked;
-
-    if (currentSvg) {
-      if (isGridClippingEnabled) {
-        drawGrid(currentSvg, currentGridSpacing);
-      } else {
-        currentSvg.selectAll(".grid-line").remove();
-      }
-    }
-  });
-
 function resetCheckBoxStates() {
   //reset grid clipping
   isGridClippingEnabled = false;
@@ -567,10 +555,6 @@ function visualizeJsonWithD3(jsonData) {
   drawNodes(svg, jsonData, gridSpacing);
 
   updatePagJsonDisplay(jsonData);
-
-  if (isGridClippingEnabled) {
-    drawGrid(svg, gridSpacing);
-  }
 }
 
 function createSvgCanvas() {
@@ -762,7 +746,22 @@ function setupArrowMarker(svg, id, shape, fillColor, strokeColor, orient) {
   }
 }
 
-//----------START: TOGGLE GRID / TOGGLE ZOOM --------------//
+//----------START: TOGGLE GRID / (TOGGLE ZOOM)--------------//
+
+//Eventlistener for grid clipping
+document
+  .getElementById("gridClippingToggle")
+  .addEventListener("change", (event) => {
+    isGridClippingEnabled = event.target.checked;
+
+    if (currentSvg) {
+      if (isGridClippingEnabled) {
+        drawGrid(currentSvg, currentGridSpacing);
+      } else {
+        currentSvg.selectAll(".grid-line").remove();
+      }
+    }
+  });
 
 function drawGrid(svg, gridSpacing) {
   //clear grid, if present
@@ -799,4 +798,88 @@ function drawGrid(svg, gridSpacing) {
         .attr("stroke-width", 0.5);
     }
   }
+}
+
+//----------START: EXPORT TO PNG / PDF--------------//
+
+document.getElementById("downloadPngButton").addEventListener("click", () => {
+  downloadSvgAsPng();
+});
+
+function downloadSvgAsPng() {
+  //current svg
+  const svgElement = document.querySelector("#graph-container svg");
+
+  if (!svgElement) {
+    alert("No SVG graph found!");
+    return;
+  }
+
+  //svg to string conversion
+  const svgString = new XMLSerializer().serializeToString(svgElement);
+
+  //create canvas for svg drawing
+  const canvas = document.createElement("canvas");
+  const context = canvas.getContext("2d");
+
+  //dimensions from svg
+  const width = parseInt(svgElement.getAttribute("width"));
+  const height = parseInt(svgElement.getAttribute("height"));
+  canvas.width = width;
+  canvas.height = height;
+
+  //create an imagine
+  const img = new Image();
+  const svgBlob = new Blob([svgString], {
+    type: "image/svg+xml;charset=utf-8",
+  });
+  const url = URL.createObjectURL(svgBlob);
+
+  img.onload = function () {
+    //draw svg onto canvas
+    //context.clearRect(0, 0, width, height);
+    context.fillStyle = "#ffffff";
+    context.fillRect(0, 0, width, height);
+    context.drawImage(img, 0, 0, width, height);
+
+    //start png download
+    const link = document.createElement("a");
+    link.download = "graph.png";
+    link.href = canvas.toDataURL("image/png");
+    link.click();
+
+    //clea up
+    URL.revokeObjectURL(url);
+  };
+
+  img.src = url;
+}
+
+//-----------------------//
+
+document.getElementById("downloadPdfButton").addEventListener("click", () => {
+  downloadSvgAsPdf();
+});
+
+function downloadSvgAsPdf() {
+  //secelt current svg
+  const svgElement = document.querySelector("#graph-container svg");
+
+  if (!svgElement) {
+    alert("No SVG graph found!");
+    return;
+  }
+
+  //object with options for html2pdf
+  const options = {
+    margin: 10,
+    filename: "graph.pdf",
+    image: { type: "jpeg", quality: 0.98 },
+    html2canvas: { scale: 10 },
+    jsPDF: { unit: "mm", format: "a4", orientation: "landscape" },
+    //alternative to landscape would be portrait / make user decide?
+  };
+
+  //svg to pdf with html2pdf
+  html2pdf().from(svgElement).set(options).save();
 }
