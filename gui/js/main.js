@@ -467,39 +467,90 @@ function jsonToDotConversion(jsonData) {
 /***********START: jsonData Visulization for PAG************/
 /***********************************************************/
 
+//Links referenzieren die nodes aus jsonData, daher steht
+//bei den links auch nochmal die koordinaten.
+//-> Das ist aber kein problem, da nur änderungen an x,y in der
+//node section einen einfluss auf die positionen haben und
+//x,y bei den links wird darauf automatisch angepasst
+
+//die spielerein der professorin hinzuzufügen, also color
+//changable nodes. Label oben, links, rechts, unter dem node
+//anzeigen lassen zu können
+
+//Mir einen titel aus den nippeln saugen
+
+//collision von knoten wenn clipping an (aktuell normal zustand)
+
+//Dann geht es zu kanten anklicken können und die arrowmarker
+//ändern können
+
+//Dann geht es um kanten anklicken und ziehen können so das sie bogen
+//förmig werden.
+
+//Dann geht es um kanten zeichnen können zwischen zwei knoten
+
+//Dann geht es um kanten löschen können zwischne zwei knoten
+//+ knoten falls keine kanten mehr vorhanden
+
+//Dann geht es um neue knoten zeichnen können
+
+//Dann geht es um einen toggle für grid-clipping
+
+//als user gridgröße einstellen können
+
+//Dann geht es wieder um zoom und movable grid
+
+//-->Dann den ganzen scheiss für den admg auch.
+
+//GLOBALE VARIABELN:
+let isGridClippingEnabled = false;
+
+//----------START: BASIC VISUALIZATION + DRAG&DROP --------------//
+
+//Eventlistener for basic visualization
 document
   .getElementById("pagVisualizeJsonWithD3")
   .addEventListener("click", () => {
-    const jsonInput = document.getElementById("pagJsonDisplay").value;
+    resetCheckBoxStates();
 
+    const jsonInput = document.getElementById("pagJsonDisplay").value;
     const jsonData = JSON.parse(jsonInput);
 
     visualizeJsonWithD3(jsonData);
   });
 
+//Eventlistener for grid clipping
+document
+  .getElementById("gridClippingToggle")
+  .addEventListener("change", (event) => {
+    isGridClippingEnabled = event.target.checked;
+  });
+
+function resetCheckBoxStates() {
+  //reset grid clipping
+  isGridClippingEnabled = false;
+  document.getElementById("gridClippingToggle").checked = false;
+  const svg = d3.select("svg");
+  svg.selectAll(".grid-line").remove();
+
+  //more checkboxes to be cleared...
+}
+
 function visualizeJsonWithD3(jsonData) {
   const svg = createSvgCanvas();
 
-  // prettier-ignore
-  setupArrowMarker(svg, "normal-head", "path", "black", null, "auto");
-  // prettier-ignore
-  setupArrowMarker(svg, "normal-tail", "path", "red", null, "auto-start-reverse");
-  // prettier-ignore
-  setupArrowMarker(svg, "odot-head", "circle", "rgb(238, 241, 219)", "black", "auto");
-  // prettier-ignore
-  setupArrowMarker(svg, "odot-tail", "circle", "rgb(238, 241, 219)", "red", "auto-start-reverse");
-  // prettier-ignore
-  setupArrowMarker(svg, "tail-head", "rect", "black", null, "auto");
-  // prettier-ignore
-  setupArrowMarker(svg, "tail-tail", "rect", "red", null, "auto-start-reverse");
+  //user configured grid spacing would be nice but would need to
+  //always be updated on change
+  const gridSpacing = 100;
 
+  initializePagArrowMarkers(svg);
   //Hier z.B. auch userValue für grid spacing eingeben können
   //Dann kann der user z.B. das grid spacing anpassen!?
-  initializeNodeCoordinates(jsonData);
+  initializeNodeCoordinates(jsonData, gridSpacing);
 
   drawLinks(svg, jsonData);
 
-  drawNodes(svg, jsonData);
+  drawNodes(svg, jsonData, gridSpacing);
 
   updatePagJsonDisplay(jsonData);
 }
@@ -521,10 +572,24 @@ function createSvgCanvas() {
   return svg;
 }
 
-function initializeNodeCoordinates(jsonData) {
+function initializePagArrowMarkers(svg) {
+  // prettier-ignore
+  setupArrowMarker(svg, "normal-head", "path", "black", null, "auto");
+  // prettier-ignore
+  setupArrowMarker(svg, "normal-tail", "path", "red", null, "auto-start-reverse");
+  // prettier-ignore
+  setupArrowMarker(svg, "odot-head", "circle", "rgb(238, 241, 219)", "black", "auto");
+  // prettier-ignore
+  setupArrowMarker(svg, "odot-tail", "circle", "rgb(238, 241, 219)", "red", "auto-start-reverse");
+  // prettier-ignore
+  setupArrowMarker(svg, "tail-head", "rect", "black", null, "auto");
+  // prettier-ignore
+  setupArrowMarker(svg, "tail-tail", "rect", "red", null, "auto-start-reverse");
+}
+
+function initializeNodeCoordinates(jsonData, gridSpacing) {
   //grid pattern
   const numColumns = Math.ceil(Math.sqrt(jsonData.nodes.length));
-  const gridSpacing = 100;
 
   //update nodes
   jsonData.nodes.forEach((node, index) => {
@@ -572,7 +637,7 @@ function drawLinks(svg, jsonData) {
     .attr("y2", (d) => d.target.y);
 }
 
-function drawNodes(svg, jsonData) {
+function drawNodes(svg, jsonData, gridSpacing) {
   svg
     .selectAll(".node")
     .data(jsonData.nodes)
@@ -593,13 +658,14 @@ function drawNodes(svg, jsonData) {
           updatePagJsonDisplay(jsonData); //update during dragging?! Geil oder nicht?!
         })
         .on("end", (event, d) => {
-          const gridSpacing = 100;
-          d.x =
-            Math.round((d.x - gridSpacing / 2) / gridSpacing) * gridSpacing +
-            gridSpacing / 2;
-          d.y =
-            Math.round((d.y - gridSpacing / 2) / gridSpacing) * gridSpacing +
-            gridSpacing / 2;
+          if (isGridClippingEnabled) {
+            d.x =
+              Math.round((d.x - gridSpacing / 2) / gridSpacing) * gridSpacing +
+              gridSpacing / 2;
+            d.y =
+              Math.round((d.y - gridSpacing / 2) / gridSpacing) * gridSpacing +
+              gridSpacing / 2;
+          }
           updatePositions();
           updatePagJsonDisplay(jsonData);
         })
@@ -677,3 +743,41 @@ function setupArrowMarker(svg, id, shape, fillColor, strokeColor, orient) {
       .attr("fill", fillColor);
   }
 }
+
+//----------START: TOGGLE GRID / TOGGLE ZOOM --------------//
+
+/*
+function drawGrid(svg, gridSpacing) {
+  // Clear any existing grid
+  svg.selectAll(".grid-line").remove();
+
+  //if (isGridClippingEnabled) {
+  const width = parseInt(svg.attr("width"), 10);
+  const height = parseInt(svg.attr("height"), 10);
+
+  // Draw horizontal and vertical grid lines
+  for (let x = 0; x < width; x += gridSpacing) {
+    svg
+      .append("line")
+      .attr("class", "grid-line")
+      .attr("x1", x)
+      .attr("y1", 0)
+      .attr("x2", x)
+      .attr("y2", height)
+      .attr("stroke", "#ccc")
+      .attr("stroke-width", 0.5);
+  }
+  for (let y = 0; y < height; y += gridSpacing) {
+    svg
+      .append("line")
+      .attr("class", "grid-line")
+      .attr("x1", 0)
+      .attr("y1", y)
+      .attr("x2", width)
+      .attr("y2", y)
+      .attr("stroke", "#ccc")
+      .attr("stroke-width", 0.5);
+  }
+  //}
+}
+*/

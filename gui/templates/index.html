@@ -10,6 +10,18 @@
     <div class="container">
       <h1>CausalGraph Visualiser</h1>
 
+      <!-- Grid Toggle -->
+       <!--
+      <label>
+        Grid-Abstand:
+        <input type="number" id="gridSpacingInput" value="100" />
+      </label> 
+      -->     
+      <label>
+        <input type="checkbox" id="gridClippingToggle" unchecked />
+        Grid
+      </label>
+
       <!-- PAG Matrix Input Section -->
       <section id="pag-matrix-input-section">
         <input type="file" id="pagMatrixFileInput" accept=".csv" />
@@ -46,6 +58,7 @@
         <button id="pagDotReadButton">Einlesen</button>
       </section>
 
+      <!-- Conversion Button Section -->
       <section id="conversion-buttons">
         <button id="pagConvertMatrixToJson">Matrix -> JSON</button>
         <button id="pagConvertJsonToMatrix">JSON -> Matrix</button>
@@ -56,6 +69,7 @@
     </section>
     </div>
 
+    <!-- Graph Visualization Section -->
     <div id="graph-container"></div>
 
     <script src = https://cdnjs.cloudflare.com/ajax/libs/d3/7.9.0/d3.min.js></script>
