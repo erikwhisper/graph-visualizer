@@ -119,6 +119,8 @@ function pagConvertMatrixToJson(parsedPagMatrix) {
     id: node,
     x: null,
     y: null,
+    labelOffsetX: 0,
+    labelOffsetY: 0,
   }));
 
   return { nodes, links };
@@ -157,22 +159,58 @@ function pagCreateJsonLinks(
   //alle Fälle mit 1 vorne
   if (kantenTypFromTo === 1 && kantenTypToFrom === 1) {
     return {
-      source: { id: quellKnoten, x: null, y: null },
-      target: { id: zielKnoten, x: null, y: null },
+      source: {
+        id: quellKnoten,
+        x: null,
+        y: null,
+        labelOffsetX: 0,
+        labelOffsetY: 0,
+      },
+      target: {
+        id: zielKnoten,
+        x: null,
+        y: null,
+        labelOffsetX: 0,
+        labelOffsetY: 0,
+      },
       arrowhead: "odot",
       arrowtail: "odot",
     };
   } else if (kantenTypFromTo === 1 && kantenTypToFrom === 2) {
     return {
-      source: { id: quellKnoten, x: null, y: null },
-      target: { id: zielKnoten, x: null, y: null },
+      source: {
+        id: quellKnoten,
+        x: null,
+        y: null,
+        labelOffsetX: 0,
+        labelOffsetY: 0,
+      },
+      target: {
+        id: zielKnoten,
+        x: null,
+        y: null,
+        labelOffsetX: 0,
+        labelOffsetY: 0,
+      },
       arrowhead: "odot",
       arrowtail: "normal",
     };
   } else if (kantenTypFromTo === 1 && kantenTypToFrom === 3) {
     return {
-      source: { id: quellKnoten, x: null, y: null },
-      target: { id: zielKnoten, x: null, y: null },
+      source: {
+        id: quellKnoten,
+        x: null,
+        y: null,
+        labelOffsetX: 0,
+        labelOffsetY: 0,
+      },
+      target: {
+        id: zielKnoten,
+        x: null,
+        y: null,
+        labelOffsetX: 0,
+        labelOffsetY: 0,
+      },
       arrowhead: "odot",
       arrowtail: "tail",
     };
@@ -181,22 +219,58 @@ function pagCreateJsonLinks(
   //alle Fälle mit 2 vorne
   else if (kantenTypFromTo === 2 && kantenTypToFrom === 2) {
     return {
-      source: { id: quellKnoten, x: null, y: null },
-      target: { id: zielKnoten, x: null, y: null },
+      source: {
+        id: quellKnoten,
+        x: null,
+        y: null,
+        labelOffsetX: 0,
+        labelOffsetY: 0,
+      },
+      target: {
+        id: zielKnoten,
+        x: null,
+        y: null,
+        labelOffsetX: 0,
+        labelOffsetY: 0,
+      },
       arrowhead: "normal",
       arrowtail: "normal",
     };
   } else if (kantenTypFromTo === 2 && kantenTypToFrom === 3) {
     return {
-      source: { id: quellKnoten, x: null, y: null },
-      target: { id: zielKnoten, x: null, y: null },
+      source: {
+        id: quellKnoten,
+        x: null,
+        y: null,
+        labelOffsetX: 0,
+        labelOffsetY: 0,
+      },
+      target: {
+        id: zielKnoten,
+        x: null,
+        y: null,
+        labelOffsetX: 0,
+        labelOffsetY: 0,
+      },
       arrowhead: "normal",
       arrowtail: "tail",
     };
   } else if (kantenTypFromTo === 2 && kantenTypToFrom === 1) {
     return {
-      source: { id: quellKnoten, x: null, y: null },
-      target: { id: zielKnoten, x: null, y: null },
+      source: {
+        id: quellKnoten,
+        x: null,
+        y: null,
+        labelOffsetX: 0,
+        labelOffsetY: 0,
+      },
+      target: {
+        id: zielKnoten,
+        x: null,
+        y: null,
+        labelOffsetX: 0,
+        labelOffsetY: 0,
+      },
       arrowhead: "normal",
       arrowtail: "odot",
     };
@@ -205,22 +279,58 @@ function pagCreateJsonLinks(
   //alle Fälle mit 3 vorne
   else if (kantenTypFromTo === 3 && kantenTypToFrom === 2) {
     return {
-      source: { id: quellKnoten, x: null, y: null },
-      target: { id: zielKnoten, x: null, y: null },
+      source: {
+        id: quellKnoten,
+        x: null,
+        y: null,
+        labelOffsetX: 0,
+        labelOffsetY: 0,
+      },
+      target: {
+        id: zielKnoten,
+        x: null,
+        y: null,
+        labelOffsetX: 0,
+        labelOffsetY: 0,
+      },
       arrowhead: "tail",
       arrowtail: "normal",
     };
   } else if (kantenTypFromTo === 3 && kantenTypToFrom === 3) {
     return {
-      source: { id: quellKnoten, x: null, y: null },
-      target: { id: zielKnoten, x: null, y: null },
+      source: {
+        id: quellKnoten,
+        x: null,
+        y: null,
+        labelOffsetX: 0,
+        labelOffsetY: 0,
+      },
+      target: {
+        id: zielKnoten,
+        x: null,
+        y: null,
+        labelOffsetX: 0,
+        labelOffsetY: 0,
+      },
       arrowhead: "tail",
       arrowtail: "tail",
     };
   } else if (kantenTypFromTo === 3 && kantenTypToFrom === 1) {
     return {
-      source: { id: quellKnoten, x: null, y: null },
-      target: { id: zielKnoten, x: null, y: null },
+      source: {
+        id: quellKnoten,
+        x: null,
+        y: null,
+        labelOffsetX: 0,
+        labelOffsetY: 0,
+      },
+      target: {
+        id: zielKnoten,
+        x: null,
+        y: null,
+        labelOffsetX: 0,
+        labelOffsetY: 0,
+      },
       arrowhead: "tail",
       arrowtail: "odot",
     };
@@ -229,22 +339,58 @@ function pagCreateJsonLinks(
   //kantenTypFromTo = 1,2,3 und kantenTypToFrom = 0
   else if (kantenTypFromTo === 2) {
     return {
-      source: { id: quellKnoten, x: null, y: null },
-      target: { id: zielKnoten, x: null, y: null },
+      source: {
+        id: quellKnoten,
+        x: null,
+        y: null,
+        labelOffsetX: 0,
+        labelOffsetY: 0,
+      },
+      target: {
+        id: zielKnoten,
+        x: null,
+        y: null,
+        labelOffsetX: 0,
+        labelOffsetY: 0,
+      },
       arrowhead: "normal",
       arrowtail: "none",
     };
   } else if (kantenTypFromTo === 3) {
     return {
-      source: { id: quellKnoten, x: null, y: null },
-      target: { id: zielKnoten, x: null, y: null },
+      source: {
+        id: quellKnoten,
+        x: null,
+        y: null,
+        labelOffsetX: 0,
+        labelOffsetY: 0,
+      },
+      target: {
+        id: zielKnoten,
+        x: null,
+        y: null,
+        labelOffsetX: 0,
+        labelOffsetY: 0,
+      },
       arrowhead: "tail",
       arrowtail: "none",
     };
   } else if (kantenTypFromTo === 1) {
     return {
-      source: { id: quellKnoten, x: null, y: null },
-      target: { id: zielKnoten, x: null, y: null },
+      source: {
+        id: quellKnoten,
+        x: null,
+        y: null,
+        labelOffsetX: 0,
+        labelOffsetY: 0,
+      },
+      target: {
+        id: zielKnoten,
+        x: null,
+        y: null,
+        labelOffsetX: 0,
+        labelOffsetY: 0,
+      },
       arrowhead: "odot",
       arrowtail: "none",
     };
@@ -253,22 +399,58 @@ function pagCreateJsonLinks(
   //kantenTypToFrom = 1,2,3 und kantenTypFromTo = 0
   else if (kantenTypToFrom === 2) {
     return {
-      source: { id: quellKnoten, x: null, y: null },
-      target: { id: zielKnoten, x: null, y: null },
+      source: {
+        id: quellKnoten,
+        x: null,
+        y: null,
+        labelOffsetX: 0,
+        labelOffsetY: 0,
+      },
+      target: {
+        id: zielKnoten,
+        x: null,
+        y: null,
+        labelOffsetX: 0,
+        labelOffsetY: 0,
+      },
       arrowhead: "none",
       arrowtail: "normal",
     };
   } else if (kantenTypToFrom === 3) {
     return {
-      source: { id: quellKnoten, x: null, y: null },
-      target: { id: zielKnoten, x: null, y: null },
+      source: {
+        id: quellKnoten,
+        x: null,
+        y: null,
+        labelOffsetX: 0,
+        labelOffsetY: 0,
+      },
+      target: {
+        id: zielKnoten,
+        x: null,
+        y: null,
+        labelOffsetX: 0,
+        labelOffsetY: 0,
+      },
       arrowhead: "none",
       arrowtail: "tail",
     };
   } else if (kantenTypToFrom === 1) {
     return {
-      source: { id: quellKnoten, x: null, y: null },
-      target: { id: zielKnoten, x: null, y: null },
+      source: {
+        id: quellKnoten,
+        x: null,
+        y: null,
+        labelOffsetX: 0,
+        labelOffsetY: 0,
+      },
+      target: {
+        id: zielKnoten,
+        x: null,
+        y: null,
+        labelOffsetX: 0,
+        labelOffsetY: 0,
+      },
       arrowhead: "none",
       arrowtail: "odot",
     };
@@ -407,8 +589,20 @@ function pagDotToJsonConversion(dotSyntax) {
     knoten.add(target);
 
     links.push({
-      source: { id: source, x: null, y: null },
-      target: { id: target, x: null, y: null },
+      source: {
+        id: source,
+        x: null,
+        y: null,
+        labelOffsetX: 0,
+        labelOffsetY: 0,
+      },
+      target: {
+        id: target,
+        x: null,
+        y: null,
+        labelOffsetX: 0,
+        labelOffsetY: 0,
+      },
       arrowhead: arrowhead,
       arrowtail: arrowtail,
     });
@@ -418,6 +612,8 @@ function pagDotToJsonConversion(dotSyntax) {
     id: node,
     x: null, //initial null
     y: null, //initial null
+    labelOffsetX: 0,
+    labelOffsetY: 0,
   }));
 
   const jsonData = {
@@ -467,17 +663,16 @@ function jsonToDotConversion(jsonData) {
 /***********START: jsonData Visulization for PAG************/
 /***********************************************************/
 
+//Ich muss den nodes in meiner jsonData auch ein attribut
+//für die label position hinzufügen, also ob diese
+//gerade above oder below-left und so ist.
+
 //i need to make the arrowmarkers better so i cant see the
 //edges anymore
-
-//als aller erstes will ich jetzt mein svg cavas in ne jpg speichern
-//können. Danach kann ich mit dem rest weiterspielen.
 
 //die spielerein der professorin hinzuzufügen, also color
 //changable nodes. Label oben, links, rechts, unter dem node
 //anzeigen lassen zu können
-
-//Mir einen titel aus den nippeln saugen
 
 //collision von knoten wenn clipping an (aktuell normal zustand)
 //-> maybe ist das fine? maybe einf knoten färben wenn
@@ -553,6 +748,8 @@ function visualizeJsonWithD3(jsonData) {
   drawLinks(svg, jsonData);
 
   drawNodes(svg, jsonData, gridSpacing);
+
+  drawLables(svg, jsonData);
 
   updatePagJsonDisplay(jsonData);
 }
@@ -647,7 +844,9 @@ function drawNodes(svg, jsonData, gridSpacing) {
     .append("circle")
     .attr("class", "node")
     .attr("r", 15)
-    .attr("fill", "blue")
+    .attr("fill", "white")
+    .attr("stroke", "black")
+    .attr("stroke-width", 1)
     .attr("cx", (d) => d.x)
     .attr("cy", (d) => d.y)
     .call(
@@ -672,7 +871,9 @@ function drawNodes(svg, jsonData, gridSpacing) {
           updatePagJsonDisplay(jsonData);
         })
     );
+}
 
+function drawLables(svg, jsonData) {
   svg
     .selectAll(".node-label")
     .data(jsonData.nodes)
@@ -684,9 +885,71 @@ function drawNodes(svg, jsonData, gridSpacing) {
     .attr("dy", 5)
     .attr("text-anchor", "middle")
     .text((d) => d.id)
-    .attr("fill", "white")
-    .style("font-size", "15px");
+    .attr("fill", "black")
+    .style("font-size", "15px")
+    .style("pointer-events", "all")
+    .style("user-select", "none");
+
+  svg.selectAll(".node-label").on("contextmenu", function (event, d) {
+    event.preventDefault();
+
+    const menu = document.getElementById("label-context-menu");
+    menu.style.display = "block";
+    menu.style.left = `${event.pageX}px`;
+    menu.style.top = `${event.pageY}px`;
+    menu.setAttribute("data-label-id", d.id);
+  });
+
+  const menuActions = {
+    center: (label) => label.attr("x", (d) => d.x).attr("y", (d) => d.y),
+    above: (label) => label.attr("y", (d) => d.y - 25),
+    below: (label) => label.attr("y", (d) => d.y + 25),
+    left: (label) => label.attr("x", (d) => d.x - 25),
+    right: (label) => label.attr("x", (d) => d.x + 25),
+  };
+
+  Object.entries(menuActions).forEach(([action, handler]) => {
+    document.getElementById(`menu-${action}`).addEventListener("click", () => {
+      const labelId = document
+        .getElementById("label-context-menu")
+        .getAttribute("data-label-id");
+
+      const label = svg
+        .selectAll(".node-label")
+        .filter((d) => d.id === labelId);
+
+      handler(label);
+    });
+  });
+
+  svg.on("click", function () {
+    //close menu if click inside svg
+    const menu = document.getElementById("label-context-menu");
+    menu.style.display = "none";
+  });
+
+  //close menu if clicking somewhere else or menu itself
+  document.addEventListener("click", function (event) {
+    const menu = document.getElementById("label-context-menu");
+    const clickedOnMenu = menu.contains(event.target);
+    const clickedOnLabel = svg.node().contains(event.target);
+
+    //close if cliked anywhere
+    if (!clickedOnMenu && !clickedOnLabel) {
+      menu.style.display = "none";
+    }
+  });
+
+  svg.on("contextmenu", function (event) {
+    event.preventDefault();
+  });
 }
+
+//Ich muss updatePositions() und drawLabels() daran anpassen
+//das sie im jsonData nodes bereich die attribute
+//labelOffetX und labelOffsetY verändern, wenn ich das Label
+//per contextmenu verschiebe
+//-> Checken ob die änderung auch bei den links durchgeführt wird
 
 function updatePositions() {
   //update node position
