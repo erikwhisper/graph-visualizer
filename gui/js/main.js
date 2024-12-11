@@ -663,23 +663,37 @@ function jsonToDotConversion(jsonData) {
 /***********START: jsonData Visulization for PAG************/
 /***********************************************************/
 
-//Ich muss den nodes in meiner jsonData auch ein attribut
-//für die label position hinzufügen, also ob diese
-//gerade above oder below-left und so ist.
+//Wie funktioniert alles wenn ich mit einem leeren canvas 
+//anfangen will und die ersten knoten und kanten zeichne
+//ich muss ja iwie die möglichkeit haben die svg canvas zu starten
+//ohne etwas zum initialen darstellen zu haben.
+
+//4.
+//-> Label Namen ganz oben im contextmenu anzeigen und
+//edititierbar machen, dann jsonDataDisplay aktualisieren
 
 //i need to make the arrowmarkers better so i cant see the
 //edges anymore
 
-//die spielerein der professorin hinzuzufügen, also color
-//changable nodes. Label oben, links, rechts, unter dem node
-//anzeigen lassen zu können
+//knoten namen anpassen können in der visualisierung!
 
-//collision von knoten wenn clipping an (aktuell normal zustand)
-//-> maybe ist das fine? maybe einf knoten färben wenn
-//2 mehrere die selben koordinaten haben oder so
+//Zusätzlich zum rightclick mit dem ich die position ändern kann
+//will ich auch einen rightclick haben der den textinhalt
+//wenn das geht ändern kann. und der muss dann in der jsonData
+//einstellung halt auch überall angepasst werden. so das es nicht
+//zum konflikt kommt, also wir z.B. einen node haben ohne link
+//oder einen link ohne node. Beides führt zu einem Fehler.
+//-> Am besten Kanten mit mind. einem unbekannten knoten
+//ignorieren.
+
+//die spielerein der professorin hinzuzufügen, also color
+//changable nodes.
 
 //Dann geht es zu kanten anklicken können und die arrowmarker
 //ändern können
+
+//knotengröße anpassen können, bedeutet label, arrowmarker
+//alles dynamisch daran anpassen müssen
 
 //Dann geht es um kanten anklicken und ziehen können so das sie bogen
 //förmig werden.
@@ -775,15 +789,49 @@ function initializePagArrowMarkers(svg) {
   // prettier-ignore
   setupArrowMarker(svg, "normal-head", "path", "black", null, "auto");
   // prettier-ignore
-  setupArrowMarker(svg, "normal-tail", "path", "red", null, "auto-start-reverse");
+  setupArrowMarker(svg, "normal-tail", "path", "black", null, "auto-start-reverse"); //fromally red
   // prettier-ignore
-  setupArrowMarker(svg, "odot-head", "circle", "rgb(238, 241, 219)", "black", "auto");
+  setupArrowMarker(svg, "odot-head", "circle", "white", "black", "auto");
   // prettier-ignore
-  setupArrowMarker(svg, "odot-tail", "circle", "rgb(238, 241, 219)", "red", "auto-start-reverse");
+  setupArrowMarker(svg, "odot-tail", "circle", "white", "black", "auto-start-reverse"); //formally red
   // prettier-ignore
   setupArrowMarker(svg, "tail-head", "rect", "black", null, "auto");
   // prettier-ignore
-  setupArrowMarker(svg, "tail-tail", "rect", "red", null, "auto-start-reverse");
+  setupArrowMarker(svg, "tail-tail", "rect", "black", null, "auto-start-reverse"); //formally red
+}
+
+function setupArrowMarker(svg, id, shape, fillColor, strokeColor, orient) {
+  const marker = svg
+    .append("defs")
+    .append("marker")
+    .attr("id", id)
+    .attr("viewBox", "0 -5 10 10")
+    .attr("refX", 21.5)
+    .attr("refY", 0)
+    .attr("markerWidth", 6)
+    .attr("markerHeight", 6)
+    .attr("orient", orient);
+
+  if (shape === "path") {
+    marker.append("path").attr("d", "M0,-5L10,0L0,5").attr("fill", fillColor);
+  } else if (shape === "circle") {
+    marker
+      .append("circle")
+      .attr("cx", 5)
+      .attr("cy", 0)
+      .attr("r", 4)
+      .attr("fill", fillColor)
+      .attr("stroke", strokeColor)
+      .attr("stroke-width", 2);
+  } else if (shape === "rect") {
+    marker
+      .append("rect") //unser arrowmarker für tail
+      .attr("x", 0)
+      .attr("y", -5)
+      .attr("width", 0) //von 10 auf 0, dann ist unsichtbar
+      .attr("height", 0) //von 10 auf 0, dann ist unsichtbar
+      .attr("fill", fillColor);
+  }
 }
 
 function initializeNodeCoordinates(jsonData, gridSpacing) {
@@ -809,6 +857,7 @@ function initializeNodeCoordinates(jsonData, gridSpacing) {
   });
 }
 
+//----------START: DRAW LINKS + HELPER FUNCTIONS --------------//
 function drawLinks(svg, jsonData) {
   svg
     .selectAll(".link")
@@ -816,7 +865,7 @@ function drawLinks(svg, jsonData) {
     .enter()
     .append("line")
     .attr("class", "link")
-    .attr("stroke", "#999")
+    .attr("stroke", "black")
     .attr("stroke-width", 2)
     .attr("marker-end", (d) => {
       if (d.arrowhead === "normal") return "url(#normal-head)";
@@ -836,6 +885,7 @@ function drawLinks(svg, jsonData) {
     .attr("y2", (d) => d.target.y);
 }
 
+//----------START: DRAW NODES + HELPER FUNCTIONS --------------//
 function drawNodes(svg, jsonData, gridSpacing) {
   svg
     .selectAll(".node")
@@ -873,84 +923,6 @@ function drawNodes(svg, jsonData, gridSpacing) {
     );
 }
 
-function drawLables(svg, jsonData) {
-  svg
-    .selectAll(".node-label")
-    .data(jsonData.nodes)
-    .enter()
-    .append("text")
-    .attr("class", "node-label")
-    .attr("x", (d) => d.x)
-    .attr("y", (d) => d.y)
-    .attr("dy", 5)
-    .attr("text-anchor", "middle")
-    .text((d) => d.id)
-    .attr("fill", "black")
-    .style("font-size", "15px")
-    .style("pointer-events", "all")
-    .style("user-select", "none");
-
-  svg.selectAll(".node-label").on("contextmenu", function (event, d) {
-    event.preventDefault();
-
-    const menu = document.getElementById("label-context-menu");
-    menu.style.display = "block";
-    menu.style.left = `${event.pageX}px`;
-    menu.style.top = `${event.pageY}px`;
-    menu.setAttribute("data-label-id", d.id);
-  });
-
-  const menuActions = {
-    center: (label) => label.attr("x", (d) => d.x).attr("y", (d) => d.y),
-    above: (label) => label.attr("y", (d) => d.y - 25),
-    below: (label) => label.attr("y", (d) => d.y + 25),
-    left: (label) => label.attr("x", (d) => d.x - 25),
-    right: (label) => label.attr("x", (d) => d.x + 25),
-  };
-
-  Object.entries(menuActions).forEach(([action, handler]) => {
-    document.getElementById(`menu-${action}`).addEventListener("click", () => {
-      const labelId = document
-        .getElementById("label-context-menu")
-        .getAttribute("data-label-id");
-
-      const label = svg
-        .selectAll(".node-label")
-        .filter((d) => d.id === labelId);
-
-      handler(label);
-    });
-  });
-
-  svg.on("click", function () {
-    //close menu if click inside svg
-    const menu = document.getElementById("label-context-menu");
-    menu.style.display = "none";
-  });
-
-  //close menu if clicking somewhere else or menu itself
-  document.addEventListener("click", function (event) {
-    const menu = document.getElementById("label-context-menu");
-    const clickedOnMenu = menu.contains(event.target);
-    const clickedOnLabel = svg.node().contains(event.target);
-
-    //close if cliked anywhere
-    if (!clickedOnMenu && !clickedOnLabel) {
-      menu.style.display = "none";
-    }
-  });
-
-  svg.on("contextmenu", function (event) {
-    event.preventDefault();
-  });
-}
-
-//Ich muss updatePositions() und drawLabels() daran anpassen
-//das sie im jsonData nodes bereich die attribute
-//labelOffetX und labelOffsetY verändern, wenn ich das Label
-//per contextmenu verschiebe
-//-> Checken ob die änderung auch bei den links durchgeführt wird
-
 function updatePositions() {
   //update node position
   d3.selectAll(".node")
@@ -966,47 +938,123 @@ function updatePositions() {
 
   //update label position
   d3.selectAll(".node-label")
-    .attr("x", (d) => d.x)
-    .attr("y", (d) => d.y);
+    .attr("x", (d) => d.x + d.labelOffsetX)
+    .attr("y", (d) => d.y + d.labelOffsetY);
 }
+
+//----------START: DRAW LABELS + HELPER FUNCTIONS --------------//
+function drawLables(svg, jsonData) {
+  const labels = initializeLabels(svg, jsonData);
+  //labels const noch useless, aber ganz nett, falls man später
+  //den user etwas am label ändern lassen will.
+  setupContextMenu(svg, jsonData);
+  setupMenuActions(svg, jsonData);
+  closeContextMenu(svg);
+}
+
+function initializeLabels(svg, jsonData) {
+  return svg
+    .selectAll(".node-label")
+    .data(jsonData.nodes)
+    .enter()
+    .append("text")
+    .attr("class", "node-label")
+    .attr("x", (d) => d.x + d.labelOffsetX) //idk if needed
+    .attr("y", (d) => d.y + d.labelOffsetY) //idk if needed
+    .attr("dy", 5)
+    .attr("text-anchor", "middle")
+    .text((d) => d.id)
+    .attr("fill", "black")
+    .style("font-size", "15px")
+    .style("pointer-events", "all")
+    .style("user-select", "none");
+}
+
+function setupContextMenu(svg, jsonData) {
+  svg.selectAll(".node-label").on("contextmenu", function (event, d) {
+    event.preventDefault();
+
+    const menu = document.getElementById("label-context-menu");
+    menu.style.display = "block";
+    menu.style.left = `${event.pageX}px`;
+    menu.style.top = `${event.pageY}px`;
+    menu.setAttribute("data-label-id", d.id);
+  });
+}
+
+function setupMenuActions(svg, jsonData) {
+  const menuActions = {
+    center: (label, jsonData, nodeId) => {
+      label.attr("x", (d) => d.x).attr("y", (d) => d.y);
+      const node = jsonData.nodes.find((n) => n.id === nodeId);
+      node.labelOffsetX = 0;
+      node.labelOffsetY = 0;
+    },
+    above: (label, jsonData, nodeId) => {
+      label.attr("y", (d) => d.y - 25);
+      const node = jsonData.nodes.find((n) => n.id === nodeId);
+      node.labelOffsetY = -25;
+    },
+    below: (label, jsonData, nodeId) => {
+      label.attr("y", (d) => d.y + 25);
+      const node = jsonData.nodes.find((n) => n.id === nodeId);
+      node.labelOffsetY = 25;
+    },
+    left: (label, jsonData, nodeId) => {
+      label.attr("x", (d) => d.x - 25);
+      const node = jsonData.nodes.find((n) => n.id === nodeId);
+      node.labelOffsetX = -25;
+    },
+    right: (label, jsonData, nodeId) => {
+      label.attr("x", (d) => d.x + 25);
+      const node = jsonData.nodes.find((n) => n.id === nodeId);
+      node.labelOffsetX = 25;
+    },
+  };
+
+  Object.entries(menuActions).forEach(([action, handler]) => {
+    document.getElementById(`menu-${action}`).addEventListener("click", () => {
+      const labelId = document
+        .getElementById("label-context-menu")
+        .getAttribute("data-label-id");
+
+      const label = svg
+        .selectAll(".node-label")
+        .filter((d) => d.id === labelId);
+
+      handler(label, jsonData, labelId);
+
+      updatePagJsonDisplay(jsonData);
+    });
+  });
+}
+
+function closeContextMenu(svg) {
+  svg.on("click", function () {
+    const menu = document.getElementById("label-context-menu");
+    menu.style.display = "none";
+  });
+
+  document.addEventListener("click", function (event) {
+    const menu = document.getElementById("label-context-menu");
+    const clickedOnMenu = menu.contains(event.target);
+    const clickedOnLabel = svg.node().contains(event.target);
+
+    if (!clickedOnMenu && !clickedOnLabel) {
+      menu.style.display = "none";
+    }
+  });
+
+  svg.on("contextmenu", function (event) {
+    event.preventDefault();
+  });
+}
+
+//----------START: UPDATE JSONDATA TEXTAREA--------------//
 
 function updatePagJsonDisplay(jsonData) {
   const jsonDisplay = document.getElementById("pagJsonDisplay");
   jsonDisplay.value = JSON.stringify(jsonData, null, 2);
-}
-
-function setupArrowMarker(svg, id, shape, fillColor, strokeColor, orient) {
-  const marker = svg
-    .append("defs")
-    .append("marker")
-    .attr("id", id)
-    .attr("viewBox", "0 -5 10 10")
-    .attr("refX", 22)
-    .attr("refY", 0)
-    .attr("markerWidth", 6)
-    .attr("markerHeight", 6)
-    .attr("orient", orient);
-
-  if (shape === "path") {
-    marker.append("path").attr("d", "M0,-5L10,0L0,5").attr("fill", fillColor);
-  } else if (shape === "circle") {
-    marker
-      .append("circle")
-      .attr("cx", 5)
-      .attr("cy", 0)
-      .attr("r", 4)
-      .attr("fill", fillColor)
-      .attr("stroke", strokeColor)
-      .attr("stroke-width", 2);
-  } else if (shape === "rect") {
-    marker
-      .append("rect")
-      .attr("x", 0)
-      .attr("y", -5)
-      .attr("width", 10)
-      .attr("height", 10)
-      .attr("fill", fillColor);
-  }
 }
 
 //----------START: TOGGLE GRID / (TOGGLE ZOOM)--------------//
