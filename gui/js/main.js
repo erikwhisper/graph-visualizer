@@ -663,7 +663,7 @@ function jsonToDotConversion(jsonData) {
 /***********START: jsonData Visulization for PAG************/
 /***********************************************************/
 
-//Wie funktioniert alles wenn ich mit einem leeren canvas 
+//Wie funktioniert alles wenn ich mit einem leeren canvas
 //anfangen will und die ersten knoten und kanten zeichne
 //ich muss ja iwie die möglichkeit haben die svg canvas zu starten
 //ohne etwas zum initialen darstellen zu haben.
@@ -759,6 +759,9 @@ function visualizeJsonWithD3(jsonData) {
 
   initializeNodeCoordinates(jsonData, gridSpacing);
 
+  //drawLink/Nodes/Labels aufrufen durch funktion "drawGraph"
+  //den kann ich dann einf wiederverwenden wenn ich
+  //z.B. neue edges hinzufüge, lösche, welche ändere oder knoten etc.
   drawLinks(svg, jsonData);
 
   drawNodes(svg, jsonData, gridSpacing);
@@ -858,7 +861,39 @@ function initializeNodeCoordinates(jsonData, gridSpacing) {
 }
 
 //----------START: DRAW LINKS + HELPER FUNCTIONS --------------//
+
+//wenn ich eine kante anklicke will ich vielleicht arrowhead
+//und arrowtail farblich unterschiedlich anzeigen?!
+
+//aktueller plan ist "setupLinkMenuActions(svg, jsonData);" zum
+//laufen zu bekommen bzw zu implementieren. also das iwas passiert
+//wenn ich auf die knöpfe im context menu drücke.
+
+//-> So jetzt dem ganzen die funktoon zu setze den arrowhead auf
+// z.B. normal zu setzen halt.
+//json display anzeigen
+//maybe neuzeichnen drawlabel, drawnode, drawlink aufrufen
+
+// "closeLinkContextMenu(svg);" anpassen das wenn ich nen knopf drücke
+//auch das contextmenu geschlossen wird.
+
+//eigentlich sollte ich doch auch wie ich bei den labels einfach
+//labelcoordinateX oder so geändert habe hier
+//arrowhead oder so ändern können und dann wird der halt gezeichnet
+//und am ende ruf ich die funktion auf die diese änderung am
+//jsonObjekt in meine textarea schreibt?
+//oder muss ich wirklich komplett nochmal alle
+//drawNode/label/link() Funktionen aufrufen nach der änderung
+//des arrowmarkers?
+
 function drawLinks(svg, jsonData) {
+  const links = initializeLinks(svg, jsonData);
+  setupLinkContextMenu(svg, jsonData);
+  setupLinkMenuActions(svg, jsonData);
+  closeLinkContextMenu(svg);
+}
+
+function initializeLinks(svg, jsonData) {
   svg
     .selectAll(".link")
     .data(jsonData.links)
@@ -883,6 +918,128 @@ function drawLinks(svg, jsonData) {
     .attr("y1", (d) => d.source.y)
     .attr("x2", (d) => d.target.x)
     .attr("y2", (d) => d.target.y);
+}
+
+function setupLinkContextMenu(svg, jsonData) {
+  svg.selectAll(".link").on("contextmenu", function (event, d) {
+    event.preventDefault();
+
+    const menu = document.getElementById("link-context-menu");
+    menu.style.display = "block";
+    menu.style.left = `${event.pageX}px`;
+    menu.style.top = `${event.pageY}px`;
+    menu.setAttribute("data-link-id", jsonData.links.indexOf(d)); //safe edge index
+  });
+}
+
+function setupLinkMenuActions(svg, jsonData) {
+  //arrowhead-normal
+  document.getElementById("arrowhead-normal").addEventListener("click", () => {
+    const menu = document.getElementById("link-context-menu");
+    const linkIndex = menu.getAttribute("data-link-id");
+    if (linkIndex !== null) {
+      const link = jsonData.links[linkIndex];
+      link.arrowhead = "normal";
+
+      svg
+        .selectAll(".link")
+        .filter((_, i) => i == linkIndex)
+        .attr("marker-end", "url(#normal-head)");
+
+      updatePagJsonDisplay(jsonData);
+      console.log("arrowhead-normal wurde gedrückt und aktualisiert");
+    }
+  });
+
+  //arrowhead-odot
+  document.getElementById("arrowhead-odot").addEventListener("click", () => {
+    const menu = document.getElementById("link-context-menu");
+    const linkIndex = menu.getAttribute("data-link-id");
+    if (linkIndex !== null) {
+      const link = jsonData.links[linkIndex];
+      link.arrowhead = "odot";
+
+      svg
+        .selectAll(".link")
+        .filter((_, i) => i == linkIndex)
+        .attr("marker-end", "url(#odot-head)");
+
+      updatePagJsonDisplay(jsonData);
+      console.log("arrowhead-odot wurde gedrückt und aktualisiert");
+    }
+  });
+
+  //arrowhead-tail
+  document.getElementById("arrowhead-tail").addEventListener("click", () => {
+    const menu = document.getElementById("link-context-menu");
+    const linkIndex = menu.getAttribute("data-link-id");
+    if (linkIndex !== null) {
+      const link = jsonData.links[linkIndex];
+      link.arrowhead = "tail";
+      svg
+        .selectAll(".link")
+        .filter((_, i) => i == linkIndex)
+        .attr("marker-end", "url(#tail-head)");
+      updatePagJsonDisplay(jsonData);
+      console.log("arrowhead-tail wurde gedrückt und aktualisiert");
+    }
+  });
+
+  //arrowtail-normal
+  document.getElementById("arrowtail-normal").addEventListener("click", () => {
+    const menu = document.getElementById("link-context-menu");
+    const linkIndex = menu.getAttribute("data-link-id");
+    if (linkIndex !== null) {
+      const link = jsonData.links[linkIndex];
+      link.arrowtail = "normal";
+      svg
+        .selectAll(".link")
+        .filter((_, i) => i == linkIndex)
+        .attr("marker-start", "url(#normal-tail)");
+      updatePagJsonDisplay(jsonData);
+      console.log("arrowtail-normal wurde gedrückt und aktualisiert");
+    }
+  });
+
+  //arrowtail-odot
+  document.getElementById("arrowtail-odot").addEventListener("click", () => {
+    const menu = document.getElementById("link-context-menu");
+    const linkIndex = menu.getAttribute("data-link-id");
+    if (linkIndex !== null) {
+      const link = jsonData.links[linkIndex];
+      link.arrowtail = "odot";
+      svg
+        .selectAll(".link")
+        .filter((_, i) => i == linkIndex)
+        .attr("marker-start", "url(#odot-tail)");
+      updatePagJsonDisplay(jsonData);
+      console.log("arrowtail-odot wurde gedrückt und aktualisiert");
+    }
+  });
+
+  document.getElementById("arrowtail-tail").addEventListener("click", () => {
+    const menu = document.getElementById("link-context-menu");
+    const linkIndex = menu.getAttribute("data-link-id");
+    if (linkIndex !== null) {
+      const link = jsonData.links[linkIndex];
+      link.arrowtail = "tail";
+      svg
+        .selectAll(".link")
+        .filter((_, i) => i == linkIndex)
+        .attr("marker-start", "url(#tail-tail)");
+      updatePagJsonDisplay(jsonData);
+      console.log("arrowtail-tail wurde gedrückt und aktualisiert");
+    }
+  });
+}
+
+function closeLinkContextMenu(svg) {
+  document.addEventListener("click", (event) => {
+    const menu = document.getElementById("link-context-menu");
+    if (!menu.contains(event.target)) {
+      menu.style.display = "none";
+    }
+  });
 }
 
 //----------START: DRAW NODES + HELPER FUNCTIONS --------------//
@@ -947,9 +1104,9 @@ function drawLables(svg, jsonData) {
   const labels = initializeLabels(svg, jsonData);
   //labels const noch useless, aber ganz nett, falls man später
   //den user etwas am label ändern lassen will.
-  setupContextMenu(svg, jsonData);
-  setupMenuActions(svg, jsonData);
-  closeContextMenu(svg);
+  setupLabelsContextMenu(svg, jsonData);
+  setupLabelsMenuActions(svg, jsonData);
+  closeLabelsContextMenu(svg);
 }
 
 function initializeLabels(svg, jsonData) {
@@ -970,7 +1127,7 @@ function initializeLabels(svg, jsonData) {
     .style("user-select", "none");
 }
 
-function setupContextMenu(svg, jsonData) {
+function setupLabelsContextMenu(svg, jsonData) {
   svg.selectAll(".node-label").on("contextmenu", function (event, d) {
     event.preventDefault();
 
@@ -982,7 +1139,7 @@ function setupContextMenu(svg, jsonData) {
   });
 }
 
-function setupMenuActions(svg, jsonData) {
+function setupLabelsMenuActions(svg, jsonData) {
   const menuActions = {
     center: (label, jsonData, nodeId) => {
       label.attr("x", (d) => d.x).attr("y", (d) => d.y);
@@ -1029,7 +1186,7 @@ function setupMenuActions(svg, jsonData) {
   });
 }
 
-function closeContextMenu(svg) {
+function closeLabelsContextMenu(svg) {
   svg.on("click", function () {
     const menu = document.getElementById("label-context-menu");
     menu.style.display = "none";
