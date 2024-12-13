@@ -156,306 +156,38 @@ function pagCreateJsonLinks(
   kantenTypFromTo,
   kantenTypToFrom
 ) {
-  //alle Fälle mit 1 vorne
-  if (kantenTypFromTo === 1 && kantenTypToFrom === 1) {
-    return {
-      source: {
-        id: quellKnoten,
-        x: null,
-        y: null,
-        labelOffsetX: 0,
-        labelOffsetY: 0,
-      },
-      target: {
-        id: zielKnoten,
-        x: null,
-        y: null,
-        labelOffsetX: 0,
-        labelOffsetY: 0,
-      },
-      arrowhead: "odot",
-      arrowtail: "odot",
-    };
-  } else if (kantenTypFromTo === 1 && kantenTypToFrom === 2) {
-    return {
-      source: {
-        id: quellKnoten,
-        x: null,
-        y: null,
-        labelOffsetX: 0,
-        labelOffsetY: 0,
-      },
-      target: {
-        id: zielKnoten,
-        x: null,
-        y: null,
-        labelOffsetX: 0,
-        labelOffsetY: 0,
-      },
-      arrowhead: "odot",
-      arrowtail: "normal",
-    };
-  } else if (kantenTypFromTo === 1 && kantenTypToFrom === 3) {
-    return {
-      source: {
-        id: quellKnoten,
-        x: null,
-        y: null,
-        labelOffsetX: 0,
-        labelOffsetY: 0,
-      },
-      target: {
-        id: zielKnoten,
-        x: null,
-        y: null,
-        labelOffsetX: 0,
-        labelOffsetY: 0,
-      },
-      arrowhead: "odot",
-      arrowtail: "tail",
-    };
+  const edgeMap = {
+    0: "none",
+    1: "odot",
+    2: "normal",
+    3: "tail",
+  };
+
+  //Wenn beide Edges 0, dann existiert keine Edge
+  if (kantenTypFromTo === 0 && kantenTypToFrom === 0) {
+    return null;
   }
 
-  //alle Fälle mit 2 vorne
-  else if (kantenTypFromTo === 2 && kantenTypToFrom === 2) {
-    return {
-      source: {
-        id: quellKnoten,
-        x: null,
-        y: null,
-        labelOffsetX: 0,
-        labelOffsetY: 0,
-      },
-      target: {
-        id: zielKnoten,
-        x: null,
-        y: null,
-        labelOffsetX: 0,
-        labelOffsetY: 0,
-      },
-      arrowhead: "normal",
-      arrowtail: "normal",
-    };
-  } else if (kantenTypFromTo === 2 && kantenTypToFrom === 3) {
-    return {
-      source: {
-        id: quellKnoten,
-        x: null,
-        y: null,
-        labelOffsetX: 0,
-        labelOffsetY: 0,
-      },
-      target: {
-        id: zielKnoten,
-        x: null,
-        y: null,
-        labelOffsetX: 0,
-        labelOffsetY: 0,
-      },
-      arrowhead: "normal",
-      arrowtail: "tail",
-    };
-  } else if (kantenTypFromTo === 2 && kantenTypToFrom === 1) {
-    return {
-      source: {
-        id: quellKnoten,
-        x: null,
-        y: null,
-        labelOffsetX: 0,
-        labelOffsetY: 0,
-      },
-      target: {
-        id: zielKnoten,
-        x: null,
-        y: null,
-        labelOffsetX: 0,
-        labelOffsetY: 0,
-      },
-      arrowhead: "normal",
-      arrowtail: "odot",
-    };
-  }
-
-  //alle Fälle mit 3 vorne
-  else if (kantenTypFromTo === 3 && kantenTypToFrom === 2) {
-    return {
-      source: {
-        id: quellKnoten,
-        x: null,
-        y: null,
-        labelOffsetX: 0,
-        labelOffsetY: 0,
-      },
-      target: {
-        id: zielKnoten,
-        x: null,
-        y: null,
-        labelOffsetX: 0,
-        labelOffsetY: 0,
-      },
-      arrowhead: "tail",
-      arrowtail: "normal",
-    };
-  } else if (kantenTypFromTo === 3 && kantenTypToFrom === 3) {
-    return {
-      source: {
-        id: quellKnoten,
-        x: null,
-        y: null,
-        labelOffsetX: 0,
-        labelOffsetY: 0,
-      },
-      target: {
-        id: zielKnoten,
-        x: null,
-        y: null,
-        labelOffsetX: 0,
-        labelOffsetY: 0,
-      },
-      arrowhead: "tail",
-      arrowtail: "tail",
-    };
-  } else if (kantenTypFromTo === 3 && kantenTypToFrom === 1) {
-    return {
-      source: {
-        id: quellKnoten,
-        x: null,
-        y: null,
-        labelOffsetX: 0,
-        labelOffsetY: 0,
-      },
-      target: {
-        id: zielKnoten,
-        x: null,
-        y: null,
-        labelOffsetX: 0,
-        labelOffsetY: 0,
-      },
-      arrowhead: "tail",
-      arrowtail: "odot",
-    };
-  }
-
-  //kantenTypFromTo = 1,2,3 und kantenTypToFrom = 0
-  else if (kantenTypFromTo === 2) {
-    return {
-      source: {
-        id: quellKnoten,
-        x: null,
-        y: null,
-        labelOffsetX: 0,
-        labelOffsetY: 0,
-      },
-      target: {
-        id: zielKnoten,
-        x: null,
-        y: null,
-        labelOffsetX: 0,
-        labelOffsetY: 0,
-      },
-      arrowhead: "normal",
-      arrowtail: "none",
-    };
-  } else if (kantenTypFromTo === 3) {
-    return {
-      source: {
-        id: quellKnoten,
-        x: null,
-        y: null,
-        labelOffsetX: 0,
-        labelOffsetY: 0,
-      },
-      target: {
-        id: zielKnoten,
-        x: null,
-        y: null,
-        labelOffsetX: 0,
-        labelOffsetY: 0,
-      },
-      arrowhead: "tail",
-      arrowtail: "none",
-    };
-  } else if (kantenTypFromTo === 1) {
-    return {
-      source: {
-        id: quellKnoten,
-        x: null,
-        y: null,
-        labelOffsetX: 0,
-        labelOffsetY: 0,
-      },
-      target: {
-        id: zielKnoten,
-        x: null,
-        y: null,
-        labelOffsetX: 0,
-        labelOffsetY: 0,
-      },
-      arrowhead: "odot",
-      arrowtail: "none",
-    };
-  }
-
-  //kantenTypToFrom = 1,2,3 und kantenTypFromTo = 0
-  else if (kantenTypToFrom === 2) {
-    return {
-      source: {
-        id: quellKnoten,
-        x: null,
-        y: null,
-        labelOffsetX: 0,
-        labelOffsetY: 0,
-      },
-      target: {
-        id: zielKnoten,
-        x: null,
-        y: null,
-        labelOffsetX: 0,
-        labelOffsetY: 0,
-      },
-      arrowhead: "none",
-      arrowtail: "normal",
-    };
-  } else if (kantenTypToFrom === 3) {
-    return {
-      source: {
-        id: quellKnoten,
-        x: null,
-        y: null,
-        labelOffsetX: 0,
-        labelOffsetY: 0,
-      },
-      target: {
-        id: zielKnoten,
-        x: null,
-        y: null,
-        labelOffsetX: 0,
-        labelOffsetY: 0,
-      },
-      arrowhead: "none",
-      arrowtail: "tail",
-    };
-  } else if (kantenTypToFrom === 1) {
-    return {
-      source: {
-        id: quellKnoten,
-        x: null,
-        y: null,
-        labelOffsetX: 0,
-        labelOffsetY: 0,
-      },
-      target: {
-        id: zielKnoten,
-        x: null,
-        y: null,
-        labelOffsetX: 0,
-        labelOffsetY: 0,
-      },
-      arrowhead: "none",
-      arrowtail: "odot",
-    };
-  }
-  return null;
+  return {
+    source: {
+      id: quellKnoten,
+      x: null,
+      y: null,
+      labelOffsetX: 0,
+      labelOffsetY: 0,
+    },
+    target: {
+      id: zielKnoten,
+      x: null,
+      y: null,
+      labelOffsetX: 0,
+      labelOffsetY: 0,
+    },
+    arrowhead: edgeMap[kantenTypFromTo] || "none", //none falls zahl unbekannt
+    arrowtail: edgeMap[kantenTypToFrom] || "none", //none falls zahl unbekannt
+    linkControlX: 0,
+    linkControlY: 0,
+  };
 }
 
 //----------------START: JSON -> MATRIX (PAG)------------------------//
@@ -605,6 +337,8 @@ function pagDotToJsonConversion(dotSyntax) {
       },
       arrowhead: arrowhead,
       arrowtail: arrowtail,
+      linkControlX: 0,
+      linkControlY: 0,
     });
   }
 
@@ -672,9 +406,6 @@ function jsonToDotConversion(jsonData) {
 //-> Label Namen ganz oben im contextmenu anzeigen und
 //edititierbar machen, dann jsonDataDisplay aktualisieren
 
-//i need to make the arrowmarkers better so i cant see the
-//edges anymore
-
 //knoten namen anpassen können in der visualisierung!
 
 //Zusätzlich zum rightclick mit dem ich die position ändern kann
@@ -688,9 +419,6 @@ function jsonToDotConversion(jsonData) {
 
 //die spielerein der professorin hinzuzufügen, also color
 //changable nodes.
-
-//Dann geht es zu kanten anklicken können und die arrowmarker
-//ändern können
 
 //knotengröße anpassen können, bedeutet label, arrowmarker
 //alles dynamisch daran anpassen müssen
@@ -865,26 +593,20 @@ function initializeNodeCoordinates(jsonData, gridSpacing) {
 //wenn ich eine kante anklicke will ich vielleicht arrowhead
 //und arrowtail farblich unterschiedlich anzeigen?!
 
-//aktueller plan ist "setupLinkMenuActions(svg, jsonData);" zum
-//laufen zu bekommen bzw zu implementieren. also das iwas passiert
-//wenn ich auf die knöpfe im context menu drücke.
+//edges ziehen können wenn man mit linksklick an eine bestimmte stelle klickt
 
-//-> So jetzt dem ganzen die funktoon zu setze den arrowhead auf
-// z.B. normal zu setzen halt.
-//json display anzeigen
-//maybe neuzeichnen drawlabel, drawnode, drawlink aufrufen
+//.txt datein ansatt nur .csv datein einlesen können?
 
-// "closeLinkContextMenu(svg);" anpassen das wenn ich nen knopf drücke
-//auch das contextmenu geschlossen wird.
+//PLAN:
+/*
+//Dann geht es um kanten anklicken und ziehen können so das sie bogen
+//förmig werden.
 
-//eigentlich sollte ich doch auch wie ich bei den labels einfach
-//labelcoordinateX oder so geändert habe hier
-//arrowhead oder so ändern können und dann wird der halt gezeichnet
-//und am ende ruf ich die funktion auf die diese änderung am
-//jsonObjekt in meine textarea schreibt?
-//oder muss ich wirklich komplett nochmal alle
-//drawNode/label/link() Funktionen aufrufen nach der änderung
-//des arrowmarkers?
+//Dann geht es um kanten zeichnen können zwischen zwei knoten
+
+//Dann geht es um kanten löschen können zwischne zwei knoten
+//+ knoten falls keine kanten mehr vorhanden
+*/
 
 function drawLinks(svg, jsonData) {
   const links = initializeLinks(svg, jsonData);
