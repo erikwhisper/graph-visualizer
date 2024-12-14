@@ -187,6 +187,7 @@ function pagCreateJsonLinks(
     arrowtail: edgeMap[kantenTypToFrom] || "none", //none falls zahl unbekannt
     linkControlX: 0,
     linkControlY: 0,
+    isCurved: false,
   };
 }
 
@@ -339,6 +340,7 @@ function pagDotToJsonConversion(dotSyntax) {
       arrowtail: arrowtail,
       linkControlX: 0,
       linkControlY: 0,
+      isCurved: false,
     });
   }
 
@@ -416,6 +418,13 @@ function jsonToDotConversion(jsonData) {
 //oder einen link ohne node. Beides führt zu einem Fehler.
 //-> Am besten Kanten mit mind. einem unbekannten knoten
 //ignorieren.
+
+//lowkey kann ich die "JSON->Matrix" und "JSON->DOT" funktion
+//auch einfach mit in die download funktion des jeweiligen
+//typs packen, also wenn ich dann "Download Matrix Button"
+//drücke, dann führt er erst aus was jetzt unterm "JSON->Matrix"
+//button ist und danach downloaded der mir das einf zu ner .csv
+//fertig
 
 //die spielerein der professorin hinzuzufügen, also color
 //changable nodes.
@@ -599,20 +608,39 @@ function initializeNodeCoordinates(jsonData, gridSpacing) {
 
 //PLAN:
 /*
-//Dann geht es um kanten anklicken und ziehen können so das sie bogen
-//förmig werden.
+//grid clipping für kanten drag and drop?
 
 //Dann geht es um kanten zeichnen können zwischen zwei knoten
 
 //Dann geht es um kanten löschen können zwischne zwei knoten
 //+ knoten falls keine kanten mehr vorhanden
+
+//Für mein Kontextwindow dieses ding von yEd implementieren wo man
+//Dann sieht: <- ---- -o, als darstellung der kante, dann kann man da
+//richtig schön den passenden arrowhead/tail auswählen und die
+//kante dazwischen dashed machen, einf dashed=true/false zu meiner
+//jsonData hinzufügen, dann hab ich auch mit der implementierung
+//von admgs weniger probleme und kann da easy kanten dashed machen
+//wenn ich das will
 */
+
+//was ist überhaupt dieses "d", wegen path ne? und das kann
+//man nicht iwie durch jsonData intern ersetzten ne?
+
+//maybe funktion hinzufügen wo man nicht so frei wie jetzt ziehen kann
+//sondern nur an der mitte der aktuellen kante um schöne
+//symmetrische rundungen hinzubekommen? Weil nach augenmaß sieht
+//halt immer kacke aus, vielleicht kann man sowas im clipping modus
+//einbauen
+
+//TODO: Implement gird-clipping for links.
 
 function drawLinks(svg, jsonData) {
   const links = initializeLinks(svg, jsonData);
   setupLinkContextMenu(svg, jsonData);
   setupLinkMenuActions(svg, jsonData);
   closeLinkContextMenu(svg);
+  setupLinkClick(svg, jsonData);
 }
 
 function initializeLinks(svg, jsonData) {
@@ -620,10 +648,11 @@ function initializeLinks(svg, jsonData) {
     .selectAll(".link")
     .data(jsonData.links)
     .enter()
-    .append("line")
+    .append("path")
     .attr("class", "link")
     .attr("stroke", "black")
     .attr("stroke-width", 2)
+    .attr("fill", "none")
     .attr("marker-end", (d) => {
       if (d.arrowhead === "normal") return "url(#normal-head)";
       if (d.arrowhead === "odot") return "url(#odot-head)";
@@ -636,10 +665,19 @@ function initializeLinks(svg, jsonData) {
       if (d.arrowtail === "tail") return "url(#tail-tail)";
       return null;
     })
-    .attr("x1", (d) => d.source.x)
-    .attr("y1", (d) => d.source.y)
-    .attr("x2", (d) => d.target.x)
-    .attr("y2", (d) => d.target.y);
+    .attr("d", (d) => calculateLinkPath(d));
+}
+
+function calculateLinkPath(d) {
+  const { x: x1, y: y1 } = d.source;
+  const { x: x2, y: y2 } = d.target;
+
+  if (d.linkControlX === 0 && d.linkControlY === 0) {
+    d.linkControlX = (x1 + x2) / 2;
+    d.linkControlY = (y1 + y2) / 2;
+  }
+
+  return `M ${x1},${y1} Q ${d.linkControlX},${d.linkControlY} ${x2},${y2}`;
 }
 
 function setupLinkContextMenu(svg, jsonData) {
@@ -655,104 +693,75 @@ function setupLinkContextMenu(svg, jsonData) {
 }
 
 function setupLinkMenuActions(svg, jsonData) {
-  //arrowhead-normal
-  document.getElementById("arrowhead-normal").addEventListener("click", () => {
+  //buttons to change arrowmarkers
+  const menuActions = [
+    // prettier-ignore
+    { id: "arrowhead-normal", attr: "arrowhead", value: "normal", marker: "url(#normal-head)", position: "marker-end" },
+    // prettier-ignore
+    { id: "arrowhead-odot", attr: "arrowhead", value: "odot", marker: "url(#odot-head)", position: "marker-end" },
+    // prettier-ignore
+    { id: "arrowhead-tail", attr: "arrowhead", value: "tail", marker: "url(#tail-head)", position: "marker-end" },
+    // prettier-ignore
+    { id: "arrowtail-normal", attr: "arrowtail", value: "normal", marker: "url(#normal-tail)", position: "marker-start" },
+    // prettier-ignore
+    { id: "arrowtail-odot", attr: "arrowtail", value: "odot", marker: "url(#odot-tail)", position: "marker-start" },
+    // prettier-ignore
+    { id: "arrowtail-tail", attr: "arrowtail", value: "tail", marker: "url(#tail-tail)", position: "marker-start" },
+  ];
+
+  menuActions.forEach((action) => {
+    document.getElementById(action.id).addEventListener("click", () => {
+      const menu = document.getElementById("link-context-menu");
+      const linkIndex = menu.getAttribute("data-link-id");
+      if (linkIndex !== null) {
+        const link = jsonData.links[linkIndex];
+        link[action.attr] = action.value;
+
+        svg
+          .selectAll(".link")
+          .filter((_, i) => i == linkIndex)
+          .attr(action.position, action.marker);
+
+        updatePagJsonDisplay(jsonData);
+        console.log(`${action.id} button pressed and updated.`);
+      }
+    });
+  });
+
+  //Button to reset link-curve
+  document.getElementById("straighten-link").addEventListener("click", () => {
     const menu = document.getElementById("link-context-menu");
     const linkIndex = menu.getAttribute("data-link-id");
     if (linkIndex !== null) {
       const link = jsonData.links[linkIndex];
-      link.arrowhead = "normal";
-
-      svg
-        .selectAll(".link")
-        .filter((_, i) => i == linkIndex)
-        .attr("marker-end", "url(#normal-head)");
-
+      straightenLink(link, jsonData);
+      console.log("Straighten link button pressed");
       updatePagJsonDisplay(jsonData);
-      console.log("arrowhead-normal wurde gedrückt und aktualisiert");
     }
   });
+}
 
-  //arrowhead-odot
-  document.getElementById("arrowhead-odot").addEventListener("click", () => {
-    const menu = document.getElementById("link-context-menu");
-    const linkIndex = menu.getAttribute("data-link-id");
-    if (linkIndex !== null) {
-      const link = jsonData.links[linkIndex];
-      link.arrowhead = "odot";
+function straightenLink(selectedLink, jsonData) {
+  console.log("straightenLink function called");
 
-      svg
-        .selectAll(".link")
-        .filter((_, i) => i == linkIndex)
-        .attr("marker-end", "url(#odot-head)");
+  const sourceNode = jsonData.nodes.find(
+    (node) => node.id === selectedLink.source.id
+  );
+  const targetNode = jsonData.nodes.find(
+    (node) => node.id === selectedLink.target.id
+  );
 
-      updatePagJsonDisplay(jsonData);
-      console.log("arrowhead-odot wurde gedrückt und aktualisiert");
-    }
-  });
+  const midX = (sourceNode.x + targetNode.x) / 2;
+  const midY = (sourceNode.y + targetNode.y) / 2;
 
-  //arrowhead-tail
-  document.getElementById("arrowhead-tail").addEventListener("click", () => {
-    const menu = document.getElementById("link-context-menu");
-    const linkIndex = menu.getAttribute("data-link-id");
-    if (linkIndex !== null) {
-      const link = jsonData.links[linkIndex];
-      link.arrowhead = "tail";
-      svg
-        .selectAll(".link")
-        .filter((_, i) => i == linkIndex)
-        .attr("marker-end", "url(#tail-head)");
-      updatePagJsonDisplay(jsonData);
-      console.log("arrowhead-tail wurde gedrückt und aktualisiert");
-    }
-  });
+  selectedLink.linkControlX = midX;
+  selectedLink.linkControlY = midY;
 
-  //arrowtail-normal
-  document.getElementById("arrowtail-normal").addEventListener("click", () => {
-    const menu = document.getElementById("link-context-menu");
-    const linkIndex = menu.getAttribute("data-link-id");
-    if (linkIndex !== null) {
-      const link = jsonData.links[linkIndex];
-      link.arrowtail = "normal";
-      svg
-        .selectAll(".link")
-        .filter((_, i) => i == linkIndex)
-        .attr("marker-start", "url(#normal-tail)");
-      updatePagJsonDisplay(jsonData);
-      console.log("arrowtail-normal wurde gedrückt und aktualisiert");
-    }
-  });
+  selectedLink.isCurved = false;
 
-  //arrowtail-odot
-  document.getElementById("arrowtail-odot").addEventListener("click", () => {
-    const menu = document.getElementById("link-context-menu");
-    const linkIndex = menu.getAttribute("data-link-id");
-    if (linkIndex !== null) {
-      const link = jsonData.links[linkIndex];
-      link.arrowtail = "odot";
-      svg
-        .selectAll(".link")
-        .filter((_, i) => i == linkIndex)
-        .attr("marker-start", "url(#odot-tail)");
-      updatePagJsonDisplay(jsonData);
-      console.log("arrowtail-odot wurde gedrückt und aktualisiert");
-    }
-  });
+  console.log("Link straightened:", selectedLink);
 
-  document.getElementById("arrowtail-tail").addEventListener("click", () => {
-    const menu = document.getElementById("link-context-menu");
-    const linkIndex = menu.getAttribute("data-link-id");
-    if (linkIndex !== null) {
-      const link = jsonData.links[linkIndex];
-      link.arrowtail = "tail";
-      svg
-        .selectAll(".link")
-        .filter((_, i) => i == linkIndex)
-        .attr("marker-start", "url(#tail-tail)");
-      updatePagJsonDisplay(jsonData);
-      console.log("arrowtail-tail wurde gedrückt und aktualisiert");
-    }
-  });
+  updatePositions();
 }
 
 function closeLinkContextMenu(svg) {
@@ -762,6 +771,42 @@ function closeLinkContextMenu(svg) {
       menu.style.display = "none";
     }
   });
+}
+
+function setupLinkClick(svg, jsonData) {
+  svg
+    .selectAll(".link")
+    .on("click", function () {
+      console.log("Linksklick auf Kante ausgeführt");
+    })
+    .call(
+      d3
+        .drag()
+        .on("drag", function (event, d) {
+          console.log("Link is being dragged");
+          d.isCurved = true;
+
+          d.linkControlX = event.x;
+          d.linkControlY = event.y;
+
+          const linkIndex = jsonData.links.findIndex(
+            (link) =>
+              link.source.id === d.source.id && link.target.id === d.target.id
+          );
+          if (linkIndex >= 0) {
+            jsonData.links[linkIndex].linkControlX = d.linkControlX;
+            jsonData.links[linkIndex].linkControlY = d.linkControlY;
+            jsonData.links[linkIndex].isCurved = true;
+          }
+
+          d3.select(this).attr("d", (d) => calculateLinkPath(d));
+          updatePagJsonDisplay(jsonData);
+        })
+        .on("end", function () {
+          console.log("Link dragging ended");
+          updatePagJsonDisplay(jsonData);
+        })
+    );
 }
 
 //----------START: DRAW NODES + HELPER FUNCTIONS --------------//
@@ -809,11 +854,17 @@ function updatePositions() {
     .attr("cy", (d) => d.y);
 
   //update link position
-  d3.selectAll(".link")
-    .attr("x1", (d) => d.source.x)
-    .attr("y1", (d) => d.source.y)
-    .attr("x2", (d) => d.target.x)
-    .attr("y2", (d) => d.target.y);
+  d3.selectAll(".link").attr("d", (d) => {
+    const { x: x1, y: y1 } = d.source;
+    const { x: x2, y: y2 } = d.target;
+
+    if (!d.isCurved) {
+      d.linkControlX = (x1 + x2) / 2;
+      d.linkControlY = (y1 + y2) / 2;
+    }
+
+    return `M ${x1},${y1} Q ${d.linkControlX},${d.linkControlY} ${x2},${y2}`;
+  });
 
   //update label position
   d3.selectAll(".node-label")
@@ -996,6 +1047,19 @@ document.getElementById("downloadPngButton").addEventListener("click", () => {
   downloadSvgAsPng();
 });
 
+//User entscheiden lassen ob er einen Transparenten hintergrund will
+//in einem untermenü wo ich diese download dinger hinmoven werde
+//dann kann ich mit checkbox das hinzufügen.
+
+//Mit einem regler maybe die auflösung einstellen können
+
+//ist es möglich nur einen bestimmten bereich iwie auszuwählen
+//oder ist erstmal egal i think, ohne zoom passt ganzes canvas
+
+//dann in dem unterfeld auch die buttons hinzufügen um es als
+//Matrix, Dot-Syntax und jsonData file runterzuladen, keine ahnung
+//was da due passende endung ist für jsonData, bei matrix und dot-syntax
+//ist ja einf .csv
 function downloadSvgAsPng() {
   //current svg
   const svgElement = document.querySelector("#graph-container svg");
