@@ -489,17 +489,18 @@ function visualizeJsonWithD3(jsonData) {
   const svg = createSvgCanvas();
   currentSvg = svg; //currently only for visual grid needed
 
-  const gridSpacing = 100;
+  const gridSpacing = 50;
   currentGridSpacing = gridSpacing; //currently only for visual grid needed
 
   initializePagArrowMarkers(svg);
 
-  initializeNodeCoordinates(jsonData, gridSpacing);
+  //initiales clipping nutz doppelt so breites gridSpacing
+  initializeNodeCoordinates(jsonData, gridSpacing * 2);
 
   //drawLink/Nodes/Labels aufrufen durch funktion "drawGraph"
   //den kann ich dann einf wiederverwenden wenn ich
   //z.B. neue edges hinzufüge, lösche, welche ändere oder knoten etc.
-  drawLinks(svg, jsonData);
+  drawLinks(svg, jsonData, gridSpacing);
 
   drawNodes(svg, jsonData, gridSpacing);
 
@@ -574,6 +575,9 @@ function setupArrowMarker(svg, id, shape, fillColor, strokeColor, orient) {
   }
 }
 
+//"initializeNodeCoordinates" hier irgendwelche geileren algorithmen finden um das ganze
+//darzustellen, die verschiedenen algorithmen könnte ich dann auch auch
+//per button wie bei yEd während der simulation aufrufen.
 function initializeNodeCoordinates(jsonData, gridSpacing) {
   //grid pattern
   const numColumns = Math.ceil(Math.sqrt(jsonData.nodes.length));
@@ -581,8 +585,8 @@ function initializeNodeCoordinates(jsonData, gridSpacing) {
   //update nodes
   jsonData.nodes.forEach((node, index) => {
     if (node.x === null || node.y === null) {
-      node.x = (index % numColumns) * gridSpacing + gridSpacing / 2;
-      node.y = Math.floor(index / numColumns) * gridSpacing + gridSpacing / 2;
+      node.x = (index % numColumns) * gridSpacing + gridSpacing; //removed the "/2" at the end for offset of one gridSpaceing
+      node.y = Math.floor(index / numColumns) * gridSpacing + gridSpacing; //removed the "/2" at the end for offset of one gridSpaceing
     }
   });
 
@@ -624,6 +628,10 @@ function initializeNodeCoordinates(jsonData, gridSpacing) {
 //wenn ich das will
 */
 
+//"initializeNodeCoordinates" hier irgendwelche geileren algorithmen finden um das ganze
+//darzustellen, die verschiedenen algorithmen könnte ich dann auch auch
+//per button wie bei yEd während der simulation aufrufen.
+
 //was ist überhaupt dieses "d", wegen path ne? und das kann
 //man nicht iwie durch jsonData intern ersetzten ne?
 
@@ -634,13 +642,15 @@ function initializeNodeCoordinates(jsonData, gridSpacing) {
 //einbauen
 
 //TODO: Implement gird-clipping for links.
+//-> genauer überlegung in in altesUpdatePosition.csv unter
+// dem Tag //TODO LATER:
 
-function drawLinks(svg, jsonData) {
+function drawLinks(svg, jsonData, gridSpacing) {
   const links = initializeLinks(svg, jsonData);
   setupLinkContextMenu(svg, jsonData);
   setupLinkMenuActions(svg, jsonData);
   closeLinkContextMenu(svg);
-  setupLinkClick(svg, jsonData);
+  setupLinkClick(svg, jsonData, gridSpacing);
 }
 
 function initializeLinks(svg, jsonData) {
@@ -773,7 +783,13 @@ function closeLinkContextMenu(svg) {
   });
 }
 
-function setupLinkClick(svg, jsonData) {
+//Spätere edition zum clipping: Damit wir ALLE edges schön darstellen
+//können darf das grid vom edge-clipping nur halb so groß sein wie
+//das vom node clipping, also am besten in der aufrufenden funktion
+//das edgegrid definieren als "const edgeGrid = normalesGrid/2"
+//damit man auch schöne edges ziehen kann mit clipping wenn
+//knoten z.B. 3 Grid-Felder zwischen sich haben
+function setupLinkClick(svg, jsonData, gridSpacing) {
   svg
     .selectAll(".link")
     .on("click", function () {
@@ -802,8 +818,29 @@ function setupLinkClick(svg, jsonData) {
           d3.select(this).attr("d", (d) => calculateLinkPath(d));
           updatePagJsonDisplay(jsonData);
         })
-        .on("end", function () {
+        .on("end", function (event, d) {
           console.log("Link dragging ended");
+
+          if (isGridClippingEnabled) {
+            const refinedSpacing = gridSpacing / 2;
+
+            d.linkControlX =
+              Math.round(d.linkControlX / refinedSpacing) * refinedSpacing;
+            d.linkControlY =
+              Math.round(d.linkControlY / refinedSpacing) * refinedSpacing;
+          }
+
+          const linkIndex = jsonData.links.findIndex(
+            (link) =>
+              link.source.id === d.source.id && link.target.id === d.target.id
+          );
+          if (linkIndex >= 0) {
+            jsonData.links[linkIndex].linkControlX = d.linkControlX;
+            jsonData.links[linkIndex].linkControlY = d.linkControlY;
+          }
+
+          // Update path and visualization
+          d3.select(this).attr("d", (d) => calculateLinkPath(d));
           updatePagJsonDisplay(jsonData);
         })
     );
@@ -834,15 +871,11 @@ function drawNodes(svg, jsonData, gridSpacing) {
         })
         .on("end", (event, d) => {
           if (isGridClippingEnabled) {
-            d.x =
-              Math.round((d.x - gridSpacing / 2) / gridSpacing) * gridSpacing +
-              gridSpacing / 2;
-            d.y =
-              Math.round((d.y - gridSpacing / 2) / gridSpacing) * gridSpacing +
-              gridSpacing / 2;
+            d.x = Math.round(d.x / gridSpacing) * gridSpacing;
+            d.y = Math.round(d.y / gridSpacing) * gridSpacing;
           }
           updatePositions();
-          updatePagJsonDisplay(jsonData);
+          updatePagJsonDisplay(jsonData); //obsolet
         })
     );
 }
@@ -1012,12 +1045,13 @@ function drawGrid(svg, gridSpacing) {
     const width = parseInt(svg.attr("width"), 10);
     const height = parseInt(svg.attr("height"), 10);
 
-    const xOffset = gridSpacing / 2;
-    const yOffset = gridSpacing / 2;
+    const refinedSpacing = gridSpacing / 2;
+
+    const gridGroup = svg.append("g").attr("class", "grid");
 
     //draw lines
-    for (let x = xOffset; x < width; x += gridSpacing) {
-      svg
+    for (let x = 0; x < width; x += refinedSpacing) {
+      gridGroup
         .append("line")
         .attr("class", "grid-line")
         .attr("x1", x)
@@ -1025,10 +1059,10 @@ function drawGrid(svg, gridSpacing) {
         .attr("x2", x)
         .attr("y2", height)
         .attr("stroke", "#ccc")
-        .attr("stroke-width", 0.5);
+        .attr("stroke-width", x % gridSpacing === 0 ? 1 : 0.5);
     }
-    for (let y = yOffset; y < height; y += gridSpacing) {
-      svg
+    for (let y = 0; y < height; y += refinedSpacing) {
+      gridGroup
         .append("line")
         .attr("class", "grid-line")
         .attr("x1", 0)
@@ -1036,8 +1070,10 @@ function drawGrid(svg, gridSpacing) {
         .attr("x2", width)
         .attr("y2", y)
         .attr("stroke", "#ccc")
-        .attr("stroke-width", 0.5);
+        .attr("stroke-width", y % gridSpacing === 0 ? 1 : 0.5);
     }
+    //eventhough grid is drawn last, put it at the bottom layer
+    gridGroup.lower();
   }
 }
 
