@@ -16,6 +16,9 @@ pagDotReadButton.addEventListener("click", readPagDot);
 
 //--------Diese 3 Functions lassen sich zu einer refactorn------------//
 
+//TODO: wie ich hier schon selber sage, diese 3 Functions zu einer
+//refactorn.
+
 //Fuktion für PAG matrix
 function readPagMatrix() {
   const fileInput = document.getElementById("pagMatrixFileInput").files[0];
@@ -399,6 +402,10 @@ function jsonToDotConversion(jsonData) {
 /***********START: jsonData Visulization for PAG************/
 /***********************************************************/
 
+//funktion die geil wäre, alles auf dem canvas auswählen können
+//also nodes, labels, links so wie sie sind und zsm per
+//drag and drop bewegen, erst frei, dann mit grid
+
 //Wie funktioniert alles wenn ich mit einem leeren canvas
 //anfangen will und die ersten knoten und kanten zeichne
 //ich muss ja iwie die möglichkeit haben die svg canvas zu starten
@@ -467,7 +474,7 @@ let currentGridSpacing = null;
 document
   .getElementById("pagVisualizeJsonWithD3")
   .addEventListener("click", () => {
-    resetCheckBoxStates();
+    resetCheckBoxes();
 
     const jsonInput = document.getElementById("pagJsonDisplay").value;
     const jsonData = JSON.parse(jsonInput);
@@ -475,7 +482,7 @@ document
     visualizeJsonWithD3(jsonData);
   });
 
-function resetCheckBoxStates() {
+function resetCheckBoxes() {
   //reset grid clipping
   isGridClippingEnabled = false;
   document.getElementById("gridClippingToggle").checked = false;
@@ -497,9 +504,6 @@ function visualizeJsonWithD3(jsonData) {
   //initiales clipping nutz doppelt so breites gridSpacing
   initializeNodeCoordinates(jsonData, gridSpacing * 2);
 
-  //drawLink/Nodes/Labels aufrufen durch funktion "drawGraph"
-  //den kann ich dann einf wiederverwenden wenn ich
-  //z.B. neue edges hinzufüge, lösche, welche ändere oder knoten etc.
   drawLinks(svg, jsonData, gridSpacing);
 
   drawNodes(svg, jsonData, gridSpacing);
@@ -507,6 +511,8 @@ function visualizeJsonWithD3(jsonData) {
   drawLables(svg, jsonData);
 
   updatePagJsonDisplay(jsonData);
+
+  //add the new funktion here maybe?
 }
 
 function createSvgCanvas() {
@@ -541,6 +547,14 @@ function initializePagArrowMarkers(svg) {
   setupArrowMarker(svg, "tail-tail", "rect", "black", null, "auto-start-reverse"); //formally red
 }
 
+/* 
+setupArrowMarker():
+there doesnt seem to exist a normal arrowshape in d3,
+creating ur own using paths is the best options ig
+---
+wenn width und height bei rect auf 0, dann ist unsichtbar
+kann aber trotzdem vom user ausgewählt werden, als eigene arrowmarker art.
+*/
 function setupArrowMarker(svg, id, shape, fillColor, strokeColor, orient) {
   const marker = svg
     .append("defs")
@@ -554,7 +568,11 @@ function setupArrowMarker(svg, id, shape, fillColor, strokeColor, orient) {
     .attr("orient", orient);
 
   if (shape === "path") {
-    marker.append("path").attr("d", "M0,-5L10,0L0,5").attr("fill", fillColor);
+    // prettier-ignore
+    marker
+        .append("path")
+        .attr("d", "M0,-5L10,0L0,5")
+        .attr("fill", fillColor);
   } else if (shape === "circle") {
     marker
       .append("circle")
@@ -569,35 +587,40 @@ function setupArrowMarker(svg, id, shape, fillColor, strokeColor, orient) {
       .append("rect") //unser arrowmarker für tail
       .attr("x", 0)
       .attr("y", -5)
-      .attr("width", 0) //von 10 auf 0, dann ist unsichtbar
-      .attr("height", 0) //von 10 auf 0, dann ist unsichtbar
+      .attr("width", 0)
+      .attr("height", 0)
       .attr("fill", fillColor);
   }
 }
 
-//"initializeNodeCoordinates" hier irgendwelche geileren algorithmen finden um das ganze
-//darzustellen, die verschiedenen algorithmen könnte ich dann auch auch
-//per button wie bei yEd während der simulation aufrufen.
+/*
+initializeNodeCoordinates():
+complex formular for amoutOfColumns, to not place all nodes in just one long line
+but nicely fill up the grid with nodes from right-top to bottom-left.
+if amount of nodes > 40, initial gridSpacing gets halved.
+=> TODO: add alternative ways for initial visualization
+=> amoutOfColumns iwie anders berechnen, anstatt am ende noch komisch +1 rechnen zu müssen
+//es funktioniert wenn man keine große anzahl an nodes hat, aber
+//ich brauche doch sehr bald neue initialie visualisierungs
+//funktionen
+*/
 function initializeNodeCoordinates(jsonData, gridSpacing) {
-  //grid pattern
-  const numColumns = Math.ceil(Math.sqrt(jsonData.nodes.length));
+  const amoutOfColumns = Math.ceil(Math.sqrt(jsonData.nodes.length));
 
-  //update nodes
+  if (jsonData.nodes.length > 35) {
+    gridSpacing = gridSpacing / 2;
+  }
+
   jsonData.nodes.forEach((node, index) => {
     if (node.x === null || node.y === null) {
-      node.x = (index % numColumns) * gridSpacing + gridSpacing; //removed the "/2" at the end for offset of one gridSpaceing
-      node.y = Math.floor(index / numColumns) * gridSpacing + gridSpacing; //removed the "/2" at the end for offset of one gridSpaceing
+      node.x = (index % amoutOfColumns) * gridSpacing + gridSpacing;
+      node.y = Math.floor(index / amoutOfColumns) * gridSpacing + gridSpacing;
     }
   });
 
-  //update links, matchin nodes
   jsonData.links.forEach((link) => {
-    link.source = jsonData.nodes.find(
-      (node) => node.id === link.source.id || node.id === link.source
-    );
-    link.target = jsonData.nodes.find(
-      (node) => node.id === link.target.id || node.id === link.target
-    );
+    link.source = jsonData.nodes.find((node) => node.id === link.source.id);
+    link.target = jsonData.nodes.find((node) => node.id === link.target.id);
   });
 }
 
@@ -612,8 +635,6 @@ function initializeNodeCoordinates(jsonData, gridSpacing) {
 
 //PLAN:
 /*
-//grid clipping für kanten drag and drop?
-
 //Dann geht es um kanten zeichnen können zwischen zwei knoten
 
 //Dann geht es um kanten löschen können zwischne zwei knoten
@@ -635,22 +656,13 @@ function initializeNodeCoordinates(jsonData, gridSpacing) {
 //was ist überhaupt dieses "d", wegen path ne? und das kann
 //man nicht iwie durch jsonData intern ersetzten ne?
 
-//maybe funktion hinzufügen wo man nicht so frei wie jetzt ziehen kann
-//sondern nur an der mitte der aktuellen kante um schöne
-//symmetrische rundungen hinzubekommen? Weil nach augenmaß sieht
-//halt immer kacke aus, vielleicht kann man sowas im clipping modus
-//einbauen
-
-//TODO: Implement gird-clipping for links.
-//-> genauer überlegung in in altesUpdatePosition.csv unter
-// dem Tag //TODO LATER:
-
 function drawLinks(svg, jsonData, gridSpacing) {
   const links = initializeLinks(svg, jsonData);
-  setupLinkContextMenu(svg, jsonData);
-  setupLinkMenuActions(svg, jsonData);
-  closeLinkContextMenu(svg);
-  setupLinkClick(svg, jsonData, gridSpacing);
+  setupLinksContextMenu(svg, jsonData);
+  setupLinksContextMenuFunctions(svg, jsonData);
+  closeLinksContextMenu(svg);
+  dragLinksOnLeftClick(svg, jsonData, gridSpacing);
+  //add the new funktion here maybe?
 }
 
 function initializeLinks(svg, jsonData) {
@@ -690,7 +702,7 @@ function calculateLinkPath(d) {
   return `M ${x1},${y1} Q ${d.linkControlX},${d.linkControlY} ${x2},${y2}`;
 }
 
-function setupLinkContextMenu(svg, jsonData) {
+function setupLinksContextMenu(svg, jsonData) {
   svg.selectAll(".link").on("contextmenu", function (event, d) {
     event.preventDefault();
 
@@ -702,7 +714,9 @@ function setupLinkContextMenu(svg, jsonData) {
   });
 }
 
-function setupLinkMenuActions(svg, jsonData) {
+//TODO: Diese menuActions kacke iwie anpassen, auch wenn hier eig geil
+//bei labels anpassen maybe
+function setupLinksContextMenuFunctions(svg, jsonData) {
   //buttons to change arrowmarkers
   const menuActions = [
     // prettier-ignore
@@ -733,7 +747,6 @@ function setupLinkMenuActions(svg, jsonData) {
           .attr(action.position, action.marker);
 
         updatePagJsonDisplay(jsonData);
-        console.log(`${action.id} button pressed and updated.`);
       }
     });
   });
@@ -744,16 +757,15 @@ function setupLinkMenuActions(svg, jsonData) {
     const linkIndex = menu.getAttribute("data-link-id");
     if (linkIndex !== null) {
       const link = jsonData.links[linkIndex];
-      straightenLink(link, jsonData);
+      resetLinkCurve(link, jsonData);
       console.log("Straighten link button pressed");
       updatePagJsonDisplay(jsonData);
     }
   });
 }
 
-function straightenLink(selectedLink, jsonData) {
-  console.log("straightenLink function called");
-
+//kann man die suche nach source/targetNode nicht vereinfachen?
+function resetLinkCurve(selectedLink, jsonData) {
   const sourceNode = jsonData.nodes.find(
     (node) => node.id === selectedLink.source.id
   );
@@ -761,20 +773,14 @@ function straightenLink(selectedLink, jsonData) {
     (node) => node.id === selectedLink.target.id
   );
 
-  const midX = (sourceNode.x + targetNode.x) / 2;
-  const midY = (sourceNode.y + targetNode.y) / 2;
-
-  selectedLink.linkControlX = midX;
-  selectedLink.linkControlY = midY;
-
+  selectedLink.linkControlX = (sourceNode.x + targetNode.x) / 2;
+  selectedLink.linkControlY = (sourceNode.y + targetNode.y) / 2;
   selectedLink.isCurved = false;
-
-  console.log("Link straightened:", selectedLink);
 
   updatePositions();
 }
 
-function closeLinkContextMenu(svg) {
+function closeLinksContextMenu(svg) {
   document.addEventListener("click", (event) => {
     const menu = document.getElementById("link-context-menu");
     if (!menu.contains(event.target)) {
@@ -783,23 +789,26 @@ function closeLinkContextMenu(svg) {
   });
 }
 
-//Spätere edition zum clipping: Damit wir ALLE edges schön darstellen
-//können darf das grid vom edge-clipping nur halb so groß sein wie
-//das vom node clipping, also am besten in der aufrufenden funktion
-//das edgegrid definieren als "const edgeGrid = normalesGrid/2"
-//damit man auch schöne edges ziehen kann mit clipping wenn
-//knoten z.B. 3 Grid-Felder zwischen sich haben
-function setupLinkClick(svg, jsonData, gridSpacing) {
+//TODO:
+//ist
+/*
+.on("click", function () {
+      console.log("Linksklick auf Kante ausgeführt");//not needed after debuggin
+    }) 
+*/
+//überflüssig und kann hier entfernt werden? Ja oder?
+//TODO: Hier ist bestimmt so gottlos viel überflüssig
+//oder kann umstrukturiert werden.
+function dragLinksOnLeftClick(svg, jsonData, gridSpacing) {
   svg
     .selectAll(".link")
     .on("click", function () {
-      console.log("Linksklick auf Kante ausgeführt");
+      //console.log("Linksklick auf Kante ausgeführt"); //not needed after debuggin
     })
     .call(
       d3
         .drag()
         .on("drag", function (event, d) {
-          console.log("Link is being dragged");
           d.isCurved = true;
 
           d.linkControlX = event.x;
@@ -819,8 +828,6 @@ function setupLinkClick(svg, jsonData, gridSpacing) {
           updatePagJsonDisplay(jsonData);
         })
         .on("end", function (event, d) {
-          console.log("Link dragging ended");
-
           if (isGridClippingEnabled) {
             const refinedSpacing = gridSpacing / 2;
 
@@ -839,7 +846,6 @@ function setupLinkClick(svg, jsonData, gridSpacing) {
             jsonData.links[linkIndex].linkControlY = d.linkControlY;
           }
 
-          // Update path and visualization
           d3.select(this).attr("d", (d) => calculateLinkPath(d));
           updatePagJsonDisplay(jsonData);
         })
@@ -847,7 +853,19 @@ function setupLinkClick(svg, jsonData, gridSpacing) {
 }
 
 //----------START: DRAW NODES + HELPER FUNCTIONS --------------//
+
+//Müssen knoten gelöscht werden wenn keine Kante mehr zu ihnen zeigt?
+//nee, das turbo nervig, lieber selber löschen können
+
 function drawNodes(svg, jsonData, gridSpacing) {
+  const nodes = initializeNodes(svg, jsonData, gridSpacing);
+  //add the new funktion here maybe?
+}
+
+//TODO: Diese formel mal etwas genauer untersuchen, wo man die findet
+//return `M ${x1},${y1} Q ${d.linkControlX},${d.linkControlY} ${x2},${y2}`;
+//für die curve erstellung
+function initializeNodes(svg, jsonData, gridSpacing) {
   svg
     .selectAll(".node")
     .data(jsonData.nodes)
@@ -911,7 +929,7 @@ function drawLables(svg, jsonData) {
   //labels const noch useless, aber ganz nett, falls man später
   //den user etwas am label ändern lassen will.
   setupLabelsContextMenu(svg, jsonData);
-  setupLabelsMenuActions(svg, jsonData);
+  setupLabelsContextMenuFunctions(svg, jsonData);
   closeLabelsContextMenu(svg);
 }
 
@@ -945,7 +963,19 @@ function setupLabelsContextMenu(svg, jsonData) {
   });
 }
 
-function setupLabelsMenuActions(svg, jsonData) {
+//TODO: Refactor this, abstract it but keeps its functionality
+//menuActions seems to be horrible practice
+//maybe add a helper function with this:
+/*
+function updateLabelOffset(node, offsetX, offsetY) {
+  node.labelOffsetX = offsetX;
+  node.labelOffsetY = offsetY;
+}
+*/
+//but instead of just setting the offSets, make it add them?
+//because i want to be able to press "up" and "left" and be in
+//the up left corner over the node.
+function setupLabelsContextMenuFunctions(svg, jsonData) {
   const menuActions = {
     center: (label, jsonData, nodeId) => {
       label.attr("x", (d) => d.x).attr("y", (d) => d.y);
@@ -992,6 +1022,7 @@ function setupLabelsMenuActions(svg, jsonData) {
   });
 }
 
+//TODO: Glaub das ding ist highkey overkill.
 function closeLabelsContextMenu(svg) {
   svg.on("click", function () {
     const menu = document.getElementById("label-context-menu");
@@ -1037,6 +1068,9 @@ document
     }
   });
 
+//TODO: maybe sind solche sachen bissl oberkill
+//.attr("stroke-width", x % gridSpacing === 0 ? 1 : 0.5);
+//geht bestimmt auch für normale menschen lesbar in 2 lines
 function drawGrid(svg, gridSpacing) {
   //clear grid, if present
   svg.selectAll(".grid-line").remove();
@@ -1105,20 +1139,16 @@ function downloadSvgAsPng() {
     return;
   }
 
-  //svg to string conversion
   const svgString = new XMLSerializer().serializeToString(svgElement);
 
-  //create canvas for svg drawing
   const canvas = document.createElement("canvas");
   const context = canvas.getContext("2d");
 
-  //dimensions from svg
   const width = parseInt(svgElement.getAttribute("width"));
   const height = parseInt(svgElement.getAttribute("height"));
   canvas.width = width;
   canvas.height = height;
 
-  //create an imagine
   const img = new Image();
   const svgBlob = new Blob([svgString], {
     type: "image/svg+xml;charset=utf-8",
@@ -1126,19 +1156,17 @@ function downloadSvgAsPng() {
   const url = URL.createObjectURL(svgBlob);
 
   img.onload = function () {
-    //draw svg onto canvas
+    //make user decide if he wants a filled or clear background later
     //context.clearRect(0, 0, width, height);
     context.fillStyle = "#ffffff";
     context.fillRect(0, 0, width, height);
     context.drawImage(img, 0, 0, width, height);
 
-    //start png download
     const link = document.createElement("a");
     link.download = "graph.png";
     link.href = canvas.toDataURL("image/png");
     link.click();
 
-    //clea up
     URL.revokeObjectURL(url);
   };
 
