@@ -191,6 +191,7 @@ function pagCreateJsonLinks(
     linkControlX: 0,
     linkControlY: 0,
     isCurved: false,
+    isDashed: false,
   };
 }
 
@@ -312,7 +313,7 @@ function pagDotToJsonConversion(dotSyntax) {
   const links = [];
 
   const edgeRegex =
-    /"([^"]+)"\s*->\s*"([^"]+)"\s*\[dir=both, arrowhead=([^,]+), arrowtail=([^,]+)\];/g;
+    /"([^"]+)"\s*->\s*"([^"]+)"\s*\[dir=both, arrowhead=([^,]+), arrowtail=([^,]+)(?:, style=([^,\]]+))?\];/g;
   let match;
 
   while ((match = edgeRegex.exec(dotSyntax)) !== null) {
@@ -320,6 +321,7 @@ function pagDotToJsonConversion(dotSyntax) {
     const target = match[2];
     const arrowhead = match[3].trim();
     const arrowtail = match[4].trim();
+    const style = match[5]?.trim();
 
     knoten.add(source);
     knoten.add(target);
@@ -344,6 +346,7 @@ function pagDotToJsonConversion(dotSyntax) {
       linkControlX: 0,
       linkControlY: 0,
       isCurved: false,
+      isDashed: style === "dashed",
     });
   }
 
@@ -383,8 +386,9 @@ function jsonToDotConversion(jsonData) {
     const target = link.target.id;
     const arrowhead = link.arrowhead;
     const arrowtail = link.arrowtail;
+    const style = link.isDashed ? ", style=dashed" : "";
 
-    dotOutput += `"${source}" -> "${target}" [dir=both, arrowhead=${arrowhead}, arrowtail=${arrowtail}];\n`;
+    dotOutput += `"${source}" -> "${target}" [dir=both, arrowhead=${arrowhead}, arrowtail=${arrowtail}${style}];\n`;
   });
 
   dotOutput += "}";
@@ -433,14 +437,8 @@ function jsonToDotConversion(jsonData) {
 //button ist und danach downloaded der mir das einf zu ner .csv
 //fertig
 
-//die spielerein der professorin hinzuzufügen, also color
-//changable nodes.
-
 //knotengröße anpassen können, bedeutet label, arrowmarker
 //alles dynamisch daran anpassen müssen
-
-//Dann geht es um kanten anklicken und ziehen können so das sie bogen
-//förmig werden.
 
 //Dann geht es um kanten zeichnen können zwischen zwei knoten
 
@@ -451,8 +449,6 @@ function jsonToDotConversion(jsonData) {
 
 //als user gridgröße einstellen können
 
-//Dann geht es wieder um zoom und movable grid
-
 //-->Dann den ganzen scheiss für den admg auch.
 
 //Links referenzieren die nodes aus jsonData, daher steht
@@ -460,6 +456,11 @@ function jsonToDotConversion(jsonData) {
 //-> Das ist aber kein problem, da nur änderungen an x,y in der
 //node section einen einfluss auf die positionen haben und
 //x,y bei den links wird darauf automatisch angepasst
+
+//add the ability in the link-contextmenu to change the colors and arrowmarkers color
+//-> seperate.
+
+//add the ability in the node-contextmenu to change the color of the node.
 
 //GLOBALE VARIABELN:
 let isGridClippingEnabled = false;
@@ -506,7 +507,7 @@ function visualizeJsonWithD3(jsonData) {
 
   handleAllContextMenus(svg, jsonData, gridSpacing);
 
-  handleAllInteractiveClicks(svg, jsonData, gridSpacing);
+  handleAllInteractiveDrags(svg, jsonData, gridSpacing);
 
   updatePagJsonDisplay(jsonData);
 }
@@ -635,9 +636,9 @@ function handleAllContextMenus(svg, jsonData, gridSpacing) {
 }
 
 //calls the functions that implement the leftclick for the three objects
-function handleAllInteractiveClicks(svg, jsonData, gridSpacing) {
-  linkInteractiveClick(svg, jsonData, gridSpacing);
-  nodeInteractiveClick(svg, jsonData, gridSpacing);
+function handleAllInteractiveDrags(svg, jsonData, gridSpacing) {
+  linkInteractiveDrag(svg, jsonData, gridSpacing);
+  nodeInteractiveDrag(svg, jsonData, gridSpacing);
   //labelInteractiveClick(svg, jsonData, gridSpacing); //maybe implement later
 }
 
@@ -646,6 +647,9 @@ function handleAllInteractiveClicks(svg, jsonData, gridSpacing) {
 //-------------------------------------------------------------------//
 
 //----------START: drawEverything() === DRAW LINKS + DRAW NODES + DRAW LABELS --------------//
+
+//TODO: When i have to edges between two nodes and i ACTIVATE the grid and THEN press
+//visualize the two lines get layer above each other
 
 function drawLinks(svg, jsonData) {
   svg
@@ -657,6 +661,7 @@ function drawLinks(svg, jsonData) {
     .attr("stroke", "black")
     .attr("stroke-width", 2)
     .attr("fill", "none")
+    .attr("stroke-dasharray", (d) => (d.isDashed ? "4 2" : null)) //change, draws dashed line
     .attr("marker-end", (d) => {
       if (d.arrowhead === "normal") return "url(#normal-head)";
       if (d.arrowhead === "odot") return "url(#odot-head)";
@@ -711,6 +716,7 @@ function drawLabels(svg, jsonData) {
 
 //----------START: allContextMenus() === CONTEXTMENU ORGANIZATION--------------//
 
+//TODO: anderes wort für setup finden
 // prettier-ignore
 function linkContextMenu(svg, jsonData) {
   setupContextMenu(svg, ".link", "link-context-menu", "data-link-id", (d) => jsonData.links.indexOf(d));
@@ -718,6 +724,7 @@ function linkContextMenu(svg, jsonData) {
   closeContextMenu(svg, "link-context-menu");
 }
 
+//TODO: anderes wort für setup finden
 // prettier-ignore
 function labelContextMenu(svg, jsonData) {
   setupContextMenu(svg,".node-label","label-context-menu", "data-label-id", (d) => d.id );
@@ -731,6 +738,7 @@ function labelContextMenu(svg, jsonData) {
 
 //----------START: CONTEXTMENU GENERAL FUNCTIONS--------------//
 
+//TODO: brauch ich menu.style.left und menu.sytle.top wirklich?
 // prettier-ignore
 function setupContextMenu(svg, objectType, contextMenuType, attributeID, calculation) {
   //geileren namen finden für "calculation"
@@ -739,7 +747,7 @@ function setupContextMenu(svg, objectType, contextMenuType, attributeID, calcula
 
     const menu = document.getElementById(contextMenuType);
     menu.style.display = "block";
-    menu.style.left = `${event.pageX}px`;
+    menu.style.left = `${event.pageX}px`; 
     menu.style.top = `${event.pageY}px`;
 
     menu.setAttribute(attributeID, calculation(d));
@@ -761,8 +769,7 @@ function closeContextMenu(svg, contextMenuType) {
 
 //----------START: linkContextMenu === CONTEXTMENU LINKS UNIQUE FUNCTIONS--------------//
 
-//TODO: Diese menuActions kacke iwie anpassen, auch wenn hier eig geil
-//bei labels anpassen maybe
+//TODO: Diese menuActions kacke iwie anpassen, auch wenn hier eig geil, lieber bei labels anpassen maybe
 function setupLinksContextMenuFunctions(svg, jsonData) {
   //buttons to change arrowmarkers
   const menuActions = [
@@ -798,7 +805,8 @@ function setupLinksContextMenuFunctions(svg, jsonData) {
     });
   });
 
-  //Button to reset link-curve
+  //TODO: Das kann man doch iwie besser umsetzen oder besser trennen?
+  // Button to reset link-curve
   document.getElementById("straighten-link").addEventListener("click", () => {
     const menu = document.getElementById("link-context-menu");
     const linkIndex = menu.getAttribute("data-link-id");
@@ -809,9 +817,25 @@ function setupLinksContextMenuFunctions(svg, jsonData) {
       updatePagJsonDisplay(jsonData);
     }
   });
+
+  document
+    .getElementById("toggle-dashed-link")
+    .addEventListener("click", () => {
+      const menu = document.getElementById("link-context-menu");
+      const linkIndex = menu.getAttribute("data-link-id");
+      if (linkIndex !== null) {
+        const link = jsonData.links[linkIndex];
+        link.isDashed = !link.isDashed;
+        svg
+          .selectAll(".link")
+          .filter((_, i) => i == linkIndex)
+          .attr("stroke-dasharray", link.isDashed ? "4 2" : null);
+        updatePagJsonDisplay(jsonData);
+      }
+    });
 }
 
-//kann man die suche nach source/targetNode nicht vereinfachen?
+//macht link wieder gerade
 function resetLinkCurve(selectedLink, jsonData) {
   const sourceNode = jsonData.nodes.find(
     (node) => node.id === selectedLink.source.id
@@ -888,7 +912,7 @@ function setupLabelsContextMenuFunctions(svg, jsonData) {
 
 //TODO: Hier ist bestimmt so gottlos viel überflüssig
 //oder kann umstrukturiert werden.
-function linkInteractiveClick(svg, jsonData, gridSpacing) {
+function linkInteractiveDrag(svg, jsonData, gridSpacing) {
   svg.selectAll(".link").call(
     d3
       .drag()
@@ -954,7 +978,7 @@ function calculateLinkPath(d) {
 
 //----------START: allInteractiveClicks === LEFTCLICK NODE UNIQUE FUNCTIONS--------------//
 
-function nodeInteractiveClick(svg, jsonData, gridSpacing) {
+function nodeInteractiveDrag(svg, jsonData, gridSpacing) {
   svg.selectAll(".node").call(
     d3
       .drag()
@@ -1182,38 +1206,42 @@ function downloadSvgAsPdf() {
 }
 
 //----------START: ERERVYTHING CONCERNING THE UI--------------//
+
+// First event listener for menu-toggle
 document.addEventListener("DOMContentLoaded", () => {
   const menuToggle = document.getElementById("menu-toggle");
-  const sideMenu = document.getElementById("side-menu");
+  const sideMenus = document.getElementById("side-menus");
+  const menus = document.querySelectorAll(".side-menu");
 
-  // Toggle Slide Menu
   menuToggle.addEventListener("click", () => {
-    sideMenu.classList.toggle("active");
+    const isActive = sideMenus.classList.contains("active");
+
+    if (isActive) {
+      menus.forEach((menu) => menu.classList.remove("active"));
+    }
+
+    sideMenus.classList.toggle("active");
   });
 });
 
-// Wait for the DOM to load
-document.addEventListener("DOMContentLoaded", function () {
-  const menuContent = document.getElementById("menu-content");
+// Second event listener for menu-buttons (separate logic for buttons)
+document.addEventListener("DOMContentLoaded", () => {
+  const buttons = document.querySelectorAll("#menu-buttons button");
+  const menus = document.querySelectorAll(".side-menu");
 
-  // Buttons
-  const button1 = document.getElementById("menu-button-1");
-  const button2 = document.getElementById("menu-button-2");
-  const button3 = document.getElementById("menu-button-3");
+  buttons.forEach((button, index) => {
+    button.addEventListener("click", () => {
+      const targetMenu = document.getElementById(`menu-content-${index + 1}`);
 
-  // Add click event listeners to each button
-  button1.addEventListener("click", () => {
-    menuContent.innerHTML = "<p>Menu-button-1 was pressed ACTUALLY</p>";
+      if (targetMenu) {
+        const isActive = targetMenu.classList.contains("active");
+
+        menus.forEach((menu) => menu.classList.remove("active"));
+
+        if (!isActive) {
+          targetMenu.classList.add("active");
+        }
+      }
+    });
   });
-
-  button2.addEventListener("click", () => {
-    menuContent.innerHTML = "<p>Menu-button-2 was pressed</p>";
-  });
-
-  button3.addEventListener("click", () => {
-    menuContent.innerHTML = "<p>Menu-button-3 was pressed</p>";
-  });
-
-  // Simulate a click on button1 to display its content by default
-  button1.click();
 });
