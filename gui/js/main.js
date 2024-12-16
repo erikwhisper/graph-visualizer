@@ -495,24 +495,41 @@ function resetCheckBoxes() {
 function visualizeJsonWithD3(jsonData) {
   const svg = createSvgCanvas();
   currentSvg = svg; //currently only for visual grid needed
-
   const gridSpacing = 50;
   currentGridSpacing = gridSpacing; //currently only for visual grid needed
 
   initializePagArrowMarkers(svg);
 
-  //initiales clipping nutz doppelt so breites gridSpacing
-  initializeNodeCoordinates(jsonData, gridSpacing * 2);
+  initializeNodeCoordinates(jsonData, gridSpacing * 2); //initiales clipping nutz doppelt so breites gridSpacing
 
-  drawLinks(svg, jsonData, gridSpacing);
+  drawEverything(svg, jsonData);
 
-  drawNodes(svg, jsonData, gridSpacing);
+  allContextMenus(svg, jsonData, gridSpacing);
 
-  drawLables(svg, jsonData);
+  allInteractiveClicks(svg, jsonData, gridSpacing);
 
   updatePagJsonDisplay(jsonData);
+}
 
-  //add the new funktion here maybe?
+function nodeInteractiveClick(svg, jsonData, gridSpacing) {
+  svg.selectAll(".node").call(
+    d3
+      .drag()
+      .on("drag", (event, d) => {
+        d.x = event.x;
+        d.y = event.y;
+        updatePositions();
+        updatePagJsonDisplay(jsonData);
+      })
+      .on("end", (event, d) => {
+        if (isGridClippingEnabled) {
+          d.x = Math.round(d.x / gridSpacing) * gridSpacing;
+          d.y = Math.round(d.y / gridSpacing) * gridSpacing;
+        }
+        updatePositions();
+        updatePagJsonDisplay(jsonData);
+      })
+  );
 }
 
 function createSvgCanvas() {
@@ -527,7 +544,10 @@ function createSvgCanvas() {
     .select(containerId)
     .append("svg")
     .attr("width", width)
-    .attr("height", height);
+    .attr("height", height)
+    .on("contextmenu", (event) => {
+      event.preventDefault(); //stelle standart contextmenu vom browser aus
+    });
 
   return svg;
 }
@@ -593,17 +613,6 @@ function setupArrowMarker(svg, id, shape, fillColor, strokeColor, orient) {
   }
 }
 
-/*
-initializeNodeCoordinates():
-complex formular for amoutOfColumns, to not place all nodes in just one long line
-but nicely fill up the grid with nodes from right-top to bottom-left.
-if amount of nodes > 40, initial gridSpacing gets halved.
-=> TODO: add alternative ways for initial visualization
-=> amoutOfColumns iwie anders berechnen, anstatt am ende noch komisch +1 rechnen zu müssen
-//es funktioniert wenn man keine große anzahl an nodes hat, aber
-//ich brauche doch sehr bald neue initialie visualisierungs
-//funktionen
-*/
 function initializeNodeCoordinates(jsonData, gridSpacing) {
   const amoutOfColumns = Math.ceil(Math.sqrt(jsonData.nodes.length));
 
@@ -624,48 +633,36 @@ function initializeNodeCoordinates(jsonData, gridSpacing) {
   });
 }
 
-//----------START: DRAW LINKS + HELPER FUNCTIONS --------------//
+//----------START: SETUP DRAWING FUNCTION, CONTEXTMENUS, LEFT-CLICKS --------------//
 
-//wenn ich eine kante anklicke will ich vielleicht arrowhead
-//und arrowtail farblich unterschiedlich anzeigen?!
-
-//edges ziehen können wenn man mit linksklick an eine bestimmte stelle klickt
-
-//.txt datein ansatt nur .csv datein einlesen können?
-
-//PLAN:
-/*
-//Dann geht es um kanten zeichnen können zwischen zwei knoten
-
-//Dann geht es um kanten löschen können zwischne zwei knoten
-//+ knoten falls keine kanten mehr vorhanden
-
-//Für mein Kontextwindow dieses ding von yEd implementieren wo man
-//Dann sieht: <- ---- -o, als darstellung der kante, dann kann man da
-//richtig schön den passenden arrowhead/tail auswählen und die
-//kante dazwischen dashed machen, einf dashed=true/false zu meiner
-//jsonData hinzufügen, dann hab ich auch mit der implementierung
-//von admgs weniger probleme und kann da easy kanten dashed machen
-//wenn ich das will
-*/
-
-//"initializeNodeCoordinates" hier irgendwelche geileren algorithmen finden um das ganze
-//darzustellen, die verschiedenen algorithmen könnte ich dann auch auch
-//per button wie bei yEd während der simulation aufrufen.
-
-//was ist überhaupt dieses "d", wegen path ne? und das kann
-//man nicht iwie durch jsonData intern ersetzten ne?
-
-function drawLinks(svg, jsonData, gridSpacing) {
-  const links = initializeLinks(svg, jsonData);
-  setupLinksContextMenu(svg, jsonData);
-  setupLinksContextMenuFunctions(svg, jsonData);
-  closeLinksContextMenu(svg);
-  dragLinksOnLeftClick(svg, jsonData, gridSpacing);
-  //add the new funktion here maybe?
+//calls the functions that draw the three objects
+function drawEverything(svg, jsonData) {
+  drawLinks(svg, jsonData);
+  drawNodes(svg, jsonData);
+  drawLables(svg, jsonData);
 }
 
-function initializeLinks(svg, jsonData) {
+//calls the functions that implement the contextmenu for the three objects
+function allContextMenus(svg, jsonData, gridSpacing) {
+  linkContextMenu(svg, jsonData);
+  //nodeContextMenu(svg, jsonData);
+  labelContextMenu(svg, jsonData);
+}
+
+//calls the functions that implement the leftclick for the three objects
+function allInteractiveClicks(svg, jsonData, gridSpacing) {
+  linkInteractiveClick(svg, jsonData, gridSpacing);
+  nodeInteractiveClick(svg, jsonData, gridSpacing);
+  //labelInteractiveClick(svg, jsonData, gridSpacing);
+}
+
+//----------END: SETUP DRAWING FUNCTION, CONTEXTMENUS, LEFT-CLICKS --------------//
+
+//----------START: EVERYTHING RELATED TO DRAWING --------------//
+
+//----------START: DRAW LINKS + DRAW NODES + DRAW LABELS --------------//
+
+function drawLinks(svg, jsonData) {
   svg
     .selectAll(".link")
     .data(jsonData.links)
@@ -690,27 +687,78 @@ function initializeLinks(svg, jsonData) {
     .attr("d", (d) => calculateLinkPath(d));
 }
 
-function calculateLinkPath(d) {
-  const { x: x1, y: y1 } = d.source;
-  const { x: x2, y: y2 } = d.target;
-
-  if (d.linkControlX === 0 && d.linkControlY === 0) {
-    d.linkControlX = (x1 + x2) / 2;
-    d.linkControlY = (y1 + y2) / 2;
-  }
-
-  return `M ${x1},${y1} Q ${d.linkControlX},${d.linkControlY} ${x2},${y2}`;
+function drawNodes(svg, jsonData) {
+  svg
+    .selectAll(".node")
+    .data(jsonData.nodes)
+    .enter()
+    .append("circle")
+    .attr("class", "node")
+    .attr("r", 15)
+    .attr("fill", "white")
+    .attr("stroke", "black")
+    .attr("stroke-width", 1)
+    .attr("cx", (d) => d.x)
+    .attr("cy", (d) => d.y);
 }
 
-function setupLinksContextMenu(svg, jsonData) {
-  svg.selectAll(".link").on("contextmenu", function (event, d) {
+function drawLables(svg, jsonData) {
+  svg
+    .selectAll(".node-label")
+    .data(jsonData.nodes)
+    .enter()
+    .append("text")
+    .attr("class", "node-label")
+    .attr("x", (d) => d.x + d.labelOffsetX) //idk if needed
+    .attr("y", (d) => d.y + d.labelOffsetY) //idk if needed
+    .attr("dy", 5)
+    .attr("text-anchor", "middle")
+    .text((d) => d.id)
+    .attr("fill", "black")
+    .style("font-size", "15px")
+    .style("pointer-events", "all")
+    .style("user-select", "none");
+}
+
+//----------END: DRAW LINKS + DRAW NODES + DRAW LABELS --------------//
+
+//----------START: CONTEXTMENUS--------------//
+
+// prettier-ignore
+function linkContextMenu(svg, jsonData) {
+  setupContextMenu(svg, ".link", "link-context-menu", "data-link-id", (d) => jsonData.links.indexOf(d));
+  setupLinksContextMenuFunctions(svg, jsonData);
+  closeContextMenu(svg, "link-context-menu");
+}
+
+// prettier-ignore
+function labelContextMenu(svg, jsonData) {
+  setupContextMenu(svg,".node-label","label-context-menu", "data-label-id", (d) => d.id );
+  setupLabelsContextMenuFunctions(svg, jsonData);
+  closeContextMenu(svg, "label-context-menu");
+}
+
+// prettier-ignore
+function setupContextMenu(svg, objectType, contextMenuType, attributeID, calculation) {
+  //geileren namen finden für "calculation"
+  svg.selectAll(objectType).on("contextmenu", function (event, d) {
     event.preventDefault();
 
-    const menu = document.getElementById("link-context-menu");
+    const menu = document.getElementById(contextMenuType);
     menu.style.display = "block";
     menu.style.left = `${event.pageX}px`;
     menu.style.top = `${event.pageY}px`;
-    menu.setAttribute("data-link-id", jsonData.links.indexOf(d)); //safe edge index
+
+    menu.setAttribute(attributeID, calculation(d));
+  });
+}
+
+function closeContextMenu(svg, contextMenuType) {
+  document.addEventListener("click", (event) => {
+    const menu = document.getElementById(contextMenuType);
+    if (!menu.contains(event.target)) {
+      menu.style.display = "none";
+    }
   });
 }
 
@@ -780,76 +828,69 @@ function resetLinkCurve(selectedLink, jsonData) {
   updatePositions();
 }
 
-function closeLinksContextMenu(svg) {
-  document.addEventListener("click", (event) => {
-    const menu = document.getElementById("link-context-menu");
-    if (!menu.contains(event.target)) {
-      menu.style.display = "none";
-    }
-  });
-}
+//----------END: CONTEXTMENU LINKS--------------//
 
-//TODO:
-//ist
-/*
-.on("click", function () {
-      console.log("Linksklick auf Kante ausgeführt");//not needed after debuggin
-    }) 
-*/
 //überflüssig und kann hier entfernt werden? Ja oder?
 //TODO: Hier ist bestimmt so gottlos viel überflüssig
 //oder kann umstrukturiert werden.
-function dragLinksOnLeftClick(svg, jsonData, gridSpacing) {
-  svg
-    .selectAll(".link")
-    .on("click", function () {
-      //console.log("Linksklick auf Kante ausgeführt"); //not needed after debuggin
-    })
-    .call(
-      d3
-        .drag()
-        .on("drag", function (event, d) {
-          d.isCurved = true;
+function linkInteractiveClick(svg, jsonData, gridSpacing) {
+  svg.selectAll(".link").call(
+    d3
+      .drag()
+      .on("drag", function (event, d) {
+        d.isCurved = true;
 
-          d.linkControlX = event.x;
-          d.linkControlY = event.y;
+        d.linkControlX = event.x;
+        d.linkControlY = event.y;
 
-          const linkIndex = jsonData.links.findIndex(
-            (link) =>
-              link.source.id === d.source.id && link.target.id === d.target.id
-          );
-          if (linkIndex >= 0) {
-            jsonData.links[linkIndex].linkControlX = d.linkControlX;
-            jsonData.links[linkIndex].linkControlY = d.linkControlY;
-            jsonData.links[linkIndex].isCurved = true;
-          }
+        const linkIndex = jsonData.links.findIndex(
+          (link) =>
+            link.source.id === d.source.id && link.target.id === d.target.id
+        );
+        if (linkIndex >= 0) {
+          jsonData.links[linkIndex].linkControlX = d.linkControlX;
+          jsonData.links[linkIndex].linkControlY = d.linkControlY;
+          jsonData.links[linkIndex].isCurved = true;
+        }
 
-          d3.select(this).attr("d", (d) => calculateLinkPath(d));
-          updatePagJsonDisplay(jsonData);
-        })
-        .on("end", function (event, d) {
-          if (isGridClippingEnabled) {
-            const refinedSpacing = gridSpacing / 2;
+        d3.select(this).attr("d", (d) => calculateLinkPath(d));
+        updatePagJsonDisplay(jsonData);
+      })
+      .on("end", function (event, d) {
+        if (isGridClippingEnabled) {
+          const refinedSpacing = gridSpacing / 2;
 
-            d.linkControlX =
-              Math.round(d.linkControlX / refinedSpacing) * refinedSpacing;
-            d.linkControlY =
-              Math.round(d.linkControlY / refinedSpacing) * refinedSpacing;
-          }
+          d.linkControlX =
+            Math.round(d.linkControlX / refinedSpacing) * refinedSpacing;
+          d.linkControlY =
+            Math.round(d.linkControlY / refinedSpacing) * refinedSpacing;
+        }
 
-          const linkIndex = jsonData.links.findIndex(
-            (link) =>
-              link.source.id === d.source.id && link.target.id === d.target.id
-          );
-          if (linkIndex >= 0) {
-            jsonData.links[linkIndex].linkControlX = d.linkControlX;
-            jsonData.links[linkIndex].linkControlY = d.linkControlY;
-          }
+        const linkIndex = jsonData.links.findIndex(
+          (link) =>
+            link.source.id === d.source.id && link.target.id === d.target.id
+        );
+        if (linkIndex >= 0) {
+          jsonData.links[linkIndex].linkControlX = d.linkControlX;
+          jsonData.links[linkIndex].linkControlY = d.linkControlY;
+        }
 
-          d3.select(this).attr("d", (d) => calculateLinkPath(d));
-          updatePagJsonDisplay(jsonData);
-        })
-    );
+        d3.select(this).attr("d", (d) => calculateLinkPath(d));
+        updatePagJsonDisplay(jsonData);
+      })
+  );
+}
+
+function calculateLinkPath(d) {
+  const { x: x1, y: y1 } = d.source;
+  const { x: x2, y: y2 } = d.target;
+
+  if (d.linkControlX === 0 && d.linkControlY === 0) {
+    d.linkControlX = (x1 + x2) / 2;
+    d.linkControlY = (y1 + y2) / 2;
+  }
+
+  return `M ${x1},${y1} Q ${d.linkControlX},${d.linkControlY} ${x2},${y2}`;
 }
 
 //----------START: DRAW NODES + HELPER FUNCTIONS --------------//
@@ -857,46 +898,9 @@ function dragLinksOnLeftClick(svg, jsonData, gridSpacing) {
 //Müssen knoten gelöscht werden wenn keine Kante mehr zu ihnen zeigt?
 //nee, das turbo nervig, lieber selber löschen können
 
-function drawNodes(svg, jsonData, gridSpacing) {
-  const nodes = initializeNodes(svg, jsonData, gridSpacing);
-  //add the new funktion here maybe?
-}
-
 //TODO: Diese formel mal etwas genauer untersuchen, wo man die findet
 //return `M ${x1},${y1} Q ${d.linkControlX},${d.linkControlY} ${x2},${y2}`;
 //für die curve erstellung
-function initializeNodes(svg, jsonData, gridSpacing) {
-  svg
-    .selectAll(".node")
-    .data(jsonData.nodes)
-    .enter()
-    .append("circle")
-    .attr("class", "node")
-    .attr("r", 15)
-    .attr("fill", "white")
-    .attr("stroke", "black")
-    .attr("stroke-width", 1)
-    .attr("cx", (d) => d.x)
-    .attr("cy", (d) => d.y)
-    .call(
-      d3
-        .drag()
-        .on("drag", (event, d) => {
-          d.x = event.x;
-          d.y = event.y;
-          updatePositions();
-          updatePagJsonDisplay(jsonData); //update during dragging?! Geil oder nicht?!
-        })
-        .on("end", (event, d) => {
-          if (isGridClippingEnabled) {
-            d.x = Math.round(d.x / gridSpacing) * gridSpacing;
-            d.y = Math.round(d.y / gridSpacing) * gridSpacing;
-          }
-          updatePositions();
-          updatePagJsonDisplay(jsonData); //obsolet
-        })
-    );
-}
 
 function updatePositions() {
   //update node position
@@ -924,44 +928,6 @@ function updatePositions() {
 }
 
 //----------START: DRAW LABELS + HELPER FUNCTIONS --------------//
-function drawLables(svg, jsonData) {
-  const labels = initializeLabels(svg, jsonData);
-  //labels const noch useless, aber ganz nett, falls man später
-  //den user etwas am label ändern lassen will.
-  setupLabelsContextMenu(svg, jsonData);
-  setupLabelsContextMenuFunctions(svg, jsonData);
-  closeLabelsContextMenu(svg);
-}
-
-function initializeLabels(svg, jsonData) {
-  return svg
-    .selectAll(".node-label")
-    .data(jsonData.nodes)
-    .enter()
-    .append("text")
-    .attr("class", "node-label")
-    .attr("x", (d) => d.x + d.labelOffsetX) //idk if needed
-    .attr("y", (d) => d.y + d.labelOffsetY) //idk if needed
-    .attr("dy", 5)
-    .attr("text-anchor", "middle")
-    .text((d) => d.id)
-    .attr("fill", "black")
-    .style("font-size", "15px")
-    .style("pointer-events", "all")
-    .style("user-select", "none");
-}
-
-function setupLabelsContextMenu(svg, jsonData) {
-  svg.selectAll(".node-label").on("contextmenu", function (event, d) {
-    event.preventDefault();
-
-    const menu = document.getElementById("label-context-menu");
-    menu.style.display = "block";
-    menu.style.left = `${event.pageX}px`;
-    menu.style.top = `${event.pageY}px`;
-    menu.setAttribute("data-label-id", d.id);
-  });
-}
 
 //TODO: Refactor this, abstract it but keeps its functionality
 //menuActions seems to be horrible practice
@@ -1023,26 +989,6 @@ function setupLabelsContextMenuFunctions(svg, jsonData) {
 }
 
 //TODO: Glaub das ding ist highkey overkill.
-function closeLabelsContextMenu(svg) {
-  svg.on("click", function () {
-    const menu = document.getElementById("label-context-menu");
-    menu.style.display = "none";
-  });
-
-  document.addEventListener("click", function (event) {
-    const menu = document.getElementById("label-context-menu");
-    const clickedOnMenu = menu.contains(event.target);
-    const clickedOnLabel = svg.node().contains(event.target);
-
-    if (!clickedOnMenu && !clickedOnLabel) {
-      menu.style.display = "none";
-    }
-  });
-
-  svg.on("contextmenu", function (event) {
-    event.preventDefault();
-  });
-}
 
 //----------START: UPDATE JSONDATA TEXTAREA--------------//
 
@@ -1093,6 +1039,7 @@ function drawGrid(svg, gridSpacing) {
         .attr("x2", x)
         .attr("y2", height)
         .attr("stroke", "#ccc")
+        //refactor this to make it easier
         .attr("stroke-width", x % gridSpacing === 0 ? 1 : 0.5);
     }
     for (let y = 0; y < height; y += refinedSpacing) {
@@ -1104,6 +1051,7 @@ function drawGrid(svg, gridSpacing) {
         .attr("x2", width)
         .attr("y2", y)
         .attr("stroke", "#ccc")
+        //refactor this to make it easier
         .attr("stroke-width", y % gridSpacing === 0 ? 1 : 0.5);
     }
     //eventhough grid is drawn last, put it at the bottom layer
@@ -1112,6 +1060,7 @@ function drawGrid(svg, gridSpacing) {
 }
 
 //----------START: EXPORT TO PNG / PDF--------------//
+//TODO: Look above the svgToPdf function!
 
 document.getElementById("downloadPngButton").addEventListener("click", () => {
   downloadSvgAsPng();
@@ -1175,6 +1124,10 @@ function downloadSvgAsPng() {
 
 //-----------------------//
 
+//TODO: Canvas is too large for pdf to 1:1 downlaod it
+//therefore, if our graph on the canvas is too large we need to
+//downsize our graph to fit on the pdf. It works for the png
+//the png covers the full canvas.
 document.getElementById("downloadPdfButton").addEventListener("click", () => {
   downloadSvgAsPdf();
 });
@@ -1201,3 +1154,40 @@ function downloadSvgAsPdf() {
   //svg to pdf with html2pdf
   html2pdf().from(svgElement).set(options).save();
 }
+
+//----------START: ERERVYTHING CONCERNING THE UI--------------//
+document.addEventListener("DOMContentLoaded", () => {
+  const menuToggle = document.getElementById("menu-toggle");
+  const sideMenu = document.getElementById("side-menu");
+
+  // Toggle Slide Menu
+  menuToggle.addEventListener("click", () => {
+    sideMenu.classList.toggle("active");
+  });
+});
+
+// Wait for the DOM to load
+document.addEventListener("DOMContentLoaded", function () {
+  const menuContent = document.getElementById("menu-content");
+
+  // Buttons
+  const button1 = document.getElementById("menu-button-1");
+  const button2 = document.getElementById("menu-button-2");
+  const button3 = document.getElementById("menu-button-3");
+
+  // Add click event listeners to each button
+  button1.addEventListener("click", () => {
+    menuContent.innerHTML = "<p>Menu-button-1 was pressed ACTUALLY</p>";
+  });
+
+  button2.addEventListener("click", () => {
+    menuContent.innerHTML = "<p>Menu-button-2 was pressed</p>";
+  });
+
+  button3.addEventListener("click", () => {
+    menuContent.innerHTML = "<p>Menu-button-3 was pressed</p>";
+  });
+
+  // Simulate a click on button1 to display its content by default
+  button1.click();
+});
