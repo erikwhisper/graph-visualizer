@@ -504,33 +504,14 @@ function visualizeJsonWithD3(jsonData) {
 
   drawEverything(svg, jsonData);
 
-  allContextMenus(svg, jsonData, gridSpacing);
+  handleAllContextMenus(svg, jsonData, gridSpacing);
 
-  allInteractiveClicks(svg, jsonData, gridSpacing);
+  handleAllInteractiveClicks(svg, jsonData, gridSpacing);
 
   updatePagJsonDisplay(jsonData);
 }
 
-function nodeInteractiveClick(svg, jsonData, gridSpacing) {
-  svg.selectAll(".node").call(
-    d3
-      .drag()
-      .on("drag", (event, d) => {
-        d.x = event.x;
-        d.y = event.y;
-        updatePositions();
-        updatePagJsonDisplay(jsonData);
-      })
-      .on("end", (event, d) => {
-        if (isGridClippingEnabled) {
-          d.x = Math.round(d.x / gridSpacing) * gridSpacing;
-          d.y = Math.round(d.y / gridSpacing) * gridSpacing;
-        }
-        updatePositions();
-        updatePagJsonDisplay(jsonData);
-      })
-  );
-}
+//----------START: NOCH KEINEN NAMEN HIERFUEHR --------------//
 
 function createSvgCanvas() {
   const containerId = "#graph-container";
@@ -633,34 +614,38 @@ function initializeNodeCoordinates(jsonData, gridSpacing) {
   });
 }
 
-//----------START: SETUP DRAWING FUNCTION, CONTEXTMENUS, LEFT-CLICKS --------------//
+//----------END: NOCH KEINEN NAMEN HIERFUEHR --------------//
+
+//-------------------------------------------------------------------//
+
+//----------START: SETUP SUPERIOR DRAWING FUNCTIONS, CONTEXTMENUS, LEFT-CLICKS --------------//
 
 //calls the functions that draw the three objects
 function drawEverything(svg, jsonData) {
   drawLinks(svg, jsonData);
   drawNodes(svg, jsonData);
-  drawLables(svg, jsonData);
+  drawLabels(svg, jsonData);
 }
 
 //calls the functions that implement the contextmenu for the three objects
-function allContextMenus(svg, jsonData, gridSpacing) {
+function handleAllContextMenus(svg, jsonData, gridSpacing) {
   linkContextMenu(svg, jsonData);
-  //nodeContextMenu(svg, jsonData);
+  //nodeContextMenu(svg, jsonData); //maybe implement later
   labelContextMenu(svg, jsonData);
 }
 
 //calls the functions that implement the leftclick for the three objects
-function allInteractiveClicks(svg, jsonData, gridSpacing) {
+function handleAllInteractiveClicks(svg, jsonData, gridSpacing) {
   linkInteractiveClick(svg, jsonData, gridSpacing);
   nodeInteractiveClick(svg, jsonData, gridSpacing);
-  //labelInteractiveClick(svg, jsonData, gridSpacing);
+  //labelInteractiveClick(svg, jsonData, gridSpacing); //maybe implement later
 }
 
 //----------END: SETUP DRAWING FUNCTION, CONTEXTMENUS, LEFT-CLICKS --------------//
 
-//----------START: EVERYTHING RELATED TO DRAWING --------------//
+//-------------------------------------------------------------------//
 
-//----------START: DRAW LINKS + DRAW NODES + DRAW LABELS --------------//
+//----------START: drawEverything() === DRAW LINKS + DRAW NODES + DRAW LABELS --------------//
 
 function drawLinks(svg, jsonData) {
   svg
@@ -702,7 +687,7 @@ function drawNodes(svg, jsonData) {
     .attr("cy", (d) => d.y);
 }
 
-function drawLables(svg, jsonData) {
+function drawLabels(svg, jsonData) {
   svg
     .selectAll(".node-label")
     .data(jsonData.nodes)
@@ -722,7 +707,9 @@ function drawLables(svg, jsonData) {
 
 //----------END: DRAW LINKS + DRAW NODES + DRAW LABELS --------------//
 
-//----------START: CONTEXTMENUS--------------//
+//-------------------------------------------------------------------//
+
+//----------START: allContextMenus() === CONTEXTMENU ORGANIZATION--------------//
 
 // prettier-ignore
 function linkContextMenu(svg, jsonData) {
@@ -737,6 +724,12 @@ function labelContextMenu(svg, jsonData) {
   setupLabelsContextMenuFunctions(svg, jsonData);
   closeContextMenu(svg, "label-context-menu");
 }
+
+//----------END: allContextMenus() === CONTEXTMENU ORGANIZATION--------------//
+
+//-------------------------------------------------------------------//
+
+//----------START: CONTEXTMENU GENERAL FUNCTIONS--------------//
 
 // prettier-ignore
 function setupContextMenu(svg, objectType, contextMenuType, attributeID, calculation) {
@@ -761,6 +754,12 @@ function closeContextMenu(svg, contextMenuType) {
     }
   });
 }
+
+//----------END: CONTEXTMENU GENERAL FUNCTIONS--------------//
+
+//-------------------------------------------------------------------//
+
+//----------START: linkContextMenu === CONTEXTMENU LINKS UNIQUE FUNCTIONS--------------//
 
 //TODO: Diese menuActions kacke iwie anpassen, auch wenn hier eig geil
 //bei labels anpassen maybe
@@ -828,9 +827,65 @@ function resetLinkCurve(selectedLink, jsonData) {
   updatePositions();
 }
 
-//----------END: CONTEXTMENU LINKS--------------//
+//----------END: linkContextMenu === CONTEXTMENU LINKS UNIQUE FUNCTIONS--------------//
 
-//überflüssig und kann hier entfernt werden? Ja oder?
+//-------------------------------------------------------------------//
+
+//----------START: labelContextMenu === CONTEXTMENU LABEL UNIQUE FUNCTIONS--------------//
+
+function setupLabelsContextMenuFunctions(svg, jsonData) {
+  const menuActions = {
+    center: (label, jsonData, nodeId) => {
+      label.attr("x", (d) => d.x).attr("y", (d) => d.y);
+      const node = jsonData.nodes.find((n) => n.id === nodeId);
+      node.labelOffsetX = 0;
+      node.labelOffsetY = 0;
+    },
+    above: (label, jsonData, nodeId) => {
+      label.attr("y", (d) => d.y - 25);
+      const node = jsonData.nodes.find((n) => n.id === nodeId);
+      node.labelOffsetY = -25;
+    },
+    below: (label, jsonData, nodeId) => {
+      label.attr("y", (d) => d.y + 25);
+      const node = jsonData.nodes.find((n) => n.id === nodeId);
+      node.labelOffsetY = 25;
+    },
+    left: (label, jsonData, nodeId) => {
+      label.attr("x", (d) => d.x - 25);
+      const node = jsonData.nodes.find((n) => n.id === nodeId);
+      node.labelOffsetX = -25;
+    },
+    right: (label, jsonData, nodeId) => {
+      label.attr("x", (d) => d.x + 25);
+      const node = jsonData.nodes.find((n) => n.id === nodeId);
+      node.labelOffsetX = 25;
+    },
+  };
+
+  Object.entries(menuActions).forEach(([action, handler]) => {
+    document.getElementById(`menu-${action}`).addEventListener("click", () => {
+      const labelId = document
+        .getElementById("label-context-menu")
+        .getAttribute("data-label-id");
+
+      const label = svg
+        .selectAll(".node-label")
+        .filter((d) => d.id === labelId);
+
+      handler(label, jsonData, labelId);
+
+      updatePagJsonDisplay(jsonData);
+    });
+  });
+}
+
+//----------END: labelContextMenu === CONTEXTMENU LABEL UNIQUE FUNCTIONS--------------//
+
+//-------------------------------------------------------------------//
+
+//----------START: allInteractiveClicks === LEFTCLICK LINK UNIQUE FUNCTIONS--------------//
+
 //TODO: Hier ist bestimmt so gottlos viel überflüssig
 //oder kann umstrukturiert werden.
 function linkInteractiveClick(svg, jsonData, gridSpacing) {
@@ -893,14 +948,32 @@ function calculateLinkPath(d) {
   return `M ${x1},${y1} Q ${d.linkControlX},${d.linkControlY} ${x2},${y2}`;
 }
 
-//----------START: DRAW NODES + HELPER FUNCTIONS --------------//
+//----------END: allInteractiveClicks === LEFTCLICK LINK UNIQUE FUNCTIONS--------------//
 
-//Müssen knoten gelöscht werden wenn keine Kante mehr zu ihnen zeigt?
-//nee, das turbo nervig, lieber selber löschen können
+//-------------------------------------------------------------------//
 
-//TODO: Diese formel mal etwas genauer untersuchen, wo man die findet
-//return `M ${x1},${y1} Q ${d.linkControlX},${d.linkControlY} ${x2},${y2}`;
-//für die curve erstellung
+//----------START: allInteractiveClicks === LEFTCLICK NODE UNIQUE FUNCTIONS--------------//
+
+function nodeInteractiveClick(svg, jsonData, gridSpacing) {
+  svg.selectAll(".node").call(
+    d3
+      .drag()
+      .on("drag", (event, d) => {
+        d.x = event.x;
+        d.y = event.y;
+        updatePositions();
+        updatePagJsonDisplay(jsonData);
+      })
+      .on("end", (event, d) => {
+        if (isGridClippingEnabled) {
+          d.x = Math.round(d.x / gridSpacing) * gridSpacing;
+          d.y = Math.round(d.y / gridSpacing) * gridSpacing;
+        }
+        updatePositions();
+        updatePagJsonDisplay(jsonData);
+      })
+  );
+}
 
 function updatePositions() {
   //update node position
@@ -927,68 +1000,9 @@ function updatePositions() {
     .attr("y", (d) => d.y + d.labelOffsetY);
 }
 
-//----------START: DRAW LABELS + HELPER FUNCTIONS --------------//
+//----------START: allInteractiveClicks === LEFTCLICK NODE UNIQUE FUNCTIONS--------------//
 
-//TODO: Refactor this, abstract it but keeps its functionality
-//menuActions seems to be horrible practice
-//maybe add a helper function with this:
-/*
-function updateLabelOffset(node, offsetX, offsetY) {
-  node.labelOffsetX = offsetX;
-  node.labelOffsetY = offsetY;
-}
-*/
-//but instead of just setting the offSets, make it add them?
-//because i want to be able to press "up" and "left" and be in
-//the up left corner over the node.
-function setupLabelsContextMenuFunctions(svg, jsonData) {
-  const menuActions = {
-    center: (label, jsonData, nodeId) => {
-      label.attr("x", (d) => d.x).attr("y", (d) => d.y);
-      const node = jsonData.nodes.find((n) => n.id === nodeId);
-      node.labelOffsetX = 0;
-      node.labelOffsetY = 0;
-    },
-    above: (label, jsonData, nodeId) => {
-      label.attr("y", (d) => d.y - 25);
-      const node = jsonData.nodes.find((n) => n.id === nodeId);
-      node.labelOffsetY = -25;
-    },
-    below: (label, jsonData, nodeId) => {
-      label.attr("y", (d) => d.y + 25);
-      const node = jsonData.nodes.find((n) => n.id === nodeId);
-      node.labelOffsetY = 25;
-    },
-    left: (label, jsonData, nodeId) => {
-      label.attr("x", (d) => d.x - 25);
-      const node = jsonData.nodes.find((n) => n.id === nodeId);
-      node.labelOffsetX = -25;
-    },
-    right: (label, jsonData, nodeId) => {
-      label.attr("x", (d) => d.x + 25);
-      const node = jsonData.nodes.find((n) => n.id === nodeId);
-      node.labelOffsetX = 25;
-    },
-  };
-
-  Object.entries(menuActions).forEach(([action, handler]) => {
-    document.getElementById(`menu-${action}`).addEventListener("click", () => {
-      const labelId = document
-        .getElementById("label-context-menu")
-        .getAttribute("data-label-id");
-
-      const label = svg
-        .selectAll(".node-label")
-        .filter((d) => d.id === labelId);
-
-      handler(label, jsonData, labelId);
-
-      updatePagJsonDisplay(jsonData);
-    });
-  });
-}
-
-//TODO: Glaub das ding ist highkey overkill.
+//-------------------------------------------------------------------//
 
 //----------START: UPDATE JSONDATA TEXTAREA--------------//
 
@@ -996,6 +1010,18 @@ function updatePagJsonDisplay(jsonData) {
   const jsonDisplay = document.getElementById("pagJsonDisplay");
   jsonDisplay.value = JSON.stringify(jsonData, null, 2);
 }
+
+//----------END: UPDATE JSONDATA TEXTAREA--------------//
+
+//-------------------------------------------------------------------//
+
+//-------------------------------------------------------------------//
+//-------------------------------------------------------------------//
+//-------------------------------------------------------------------//
+//UNORGANIZED BELOW HERE
+//-------------------------------------------------------------------//
+//-------------------------------------------------------------------//
+//-------------------------------------------------------------------//
 
 //----------START: TOGGLE GRID / (TOGGLE ZOOM)--------------//
 
