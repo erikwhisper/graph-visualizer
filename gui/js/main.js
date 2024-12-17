@@ -1,4 +1,22 @@
 /***********************************************************/
+/*********************GLOBAL VARIABLES**********************/
+/***********************************************************/
+
+//Try to get rid of global variables:
+
+//want to replace this over a secure uuid.v4() link id
+let globalLinkI = 0;
+
+//GLOBALE VARIABELN:
+let isGridClippingEnabled = false;
+
+//necessary for the visual grid
+let currentSvg = null;
+let currentGridSpacing = null;
+
+/***********************************************************/
+
+/***********************************************************/
 /*********START: Type-Conversion Functions for PAG**********/
 /***********************************************************/
 
@@ -171,7 +189,11 @@ function pagCreateJsonLinks(
     return null;
   }
 
+  //TODO: remove:
+  //i really dont need to fill the values for source and target here
+  //thats overkill and destroys seperations of concern.
   return {
+    linkId: uuid.v4(),
     source: {
       id: quellKnoten,
       x: null,
@@ -326,7 +348,11 @@ function pagDotToJsonConversion(dotSyntax) {
     knoten.add(source);
     knoten.add(target);
 
+    //TODO: remove:
+    //i really dont need to fill the values for source and target here
+    //thats overkill and destroys seperations of concern.
     links.push({
+      linkId: uuid.v4(),
       source: {
         id: source,
         x: null,
@@ -461,13 +487,6 @@ function jsonToDotConversion(jsonData) {
 //-> seperate.
 
 //add the ability in the node-contextmenu to change the color of the node.
-
-//GLOBALE VARIABELN:
-let isGridClippingEnabled = false;
-
-//necessary for the visual grid
-let currentSvg = null;
-let currentGridSpacing = null;
 
 //----------START: BASIC VISUALIZATION + DRAG&DROP --------------//
 
@@ -648,16 +667,21 @@ function handleAllInteractiveDrags(svg, jsonData, gridSpacing) {
 
 //----------START: drawEverything() === DRAW LINKS + DRAW NODES + DRAW LABELS --------------//
 
+//TODO: Aktuell werden kanten die zwischen den selben knoten sind bei Matrix->Json oder
+//DOT->Json auf dem selben strich initialisiert, überlegnung wäre da ein kleines offset
+//einzuführen damit man dies immer sieht, genauer überlegen wenn admg implementierung.
+
 //TODO: When i have to edges between two nodes and i ACTIVATE the grid and THEN press
 //visualize the two lines get layer above each other
 
 function drawLinks(svg, jsonData) {
   svg
     .selectAll(".link")
-    .data(jsonData.links)
+    .data(jsonData.links, (d) => d.linkId)
     .enter()
     .append("path")
     .attr("class", "link")
+    .attr("id", (d) => `link-${d.linkId}`)
     .attr("stroke", "black")
     .attr("stroke-width", 2)
     .attr("fill", "none")
@@ -811,9 +835,7 @@ function setupLinksContextMenuFunctions(svg, jsonData) {
     const menu = document.getElementById("link-context-menu");
     const linkIndex = menu.getAttribute("data-link-id");
     if (linkIndex !== null) {
-      const link = jsonData.links[linkIndex];
-      resetLinkCurve(link, jsonData);
-      console.log("Straighten link button pressed");
+      resetLinkCurve(jsonData.links[linkIndex]);
       updatePagJsonDisplay(jsonData);
     }
   });
@@ -835,20 +857,18 @@ function setupLinksContextMenuFunctions(svg, jsonData) {
     });
 }
 
-//macht link wieder gerade
-function resetLinkCurve(selectedLink, jsonData) {
-  const sourceNode = jsonData.nodes.find(
-    (node) => node.id === selectedLink.source.id
-  );
-  const targetNode = jsonData.nodes.find(
-    (node) => node.id === selectedLink.target.id
-  );
+function resetLinkCurve(selectedLink) {
+  const sourceNode = selectedLink.source;
+  const targetNode = selectedLink.target;
 
   selectedLink.linkControlX = (sourceNode.x + targetNode.x) / 2;
   selectedLink.linkControlY = (sourceNode.y + targetNode.y) / 2;
   selectedLink.isCurved = false;
 
-  updatePositions();
+  d3.select(`#link-${selectedLink.linkId}`).attr(
+    "d",
+    calculateLinkPath(selectedLink)
+  );
 }
 
 //----------END: linkContextMenu === CONTEXTMENU LINKS UNIQUE FUNCTIONS--------------//
@@ -918,43 +938,34 @@ function linkInteractiveDrag(svg, jsonData, gridSpacing) {
       .drag()
       .on("drag", function (event, d) {
         d.isCurved = true;
-
         d.linkControlX = event.x;
         d.linkControlY = event.y;
 
-        const linkIndex = jsonData.links.findIndex(
-          (link) =>
-            link.source.id === d.source.id && link.target.id === d.target.id
-        );
-        if (linkIndex >= 0) {
-          jsonData.links[linkIndex].linkControlX = d.linkControlX;
-          jsonData.links[linkIndex].linkControlY = d.linkControlY;
-          jsonData.links[linkIndex].isCurved = true;
+        const link = jsonData.links.find((link) => link.linkId === d.linkId);
+        if (link) {
+          link.linkControlX = d.linkControlX;
+          link.linkControlY = d.linkControlY;
         }
 
-        d3.select(this).attr("d", (d) => calculateLinkPath(d));
+        d3.select(this).attr("d", calculateLinkPath(d));
         updatePagJsonDisplay(jsonData);
       })
       .on("end", function (event, d) {
         if (isGridClippingEnabled) {
           const refinedSpacing = gridSpacing / 2;
-
           d.linkControlX =
             Math.round(d.linkControlX / refinedSpacing) * refinedSpacing;
           d.linkControlY =
             Math.round(d.linkControlY / refinedSpacing) * refinedSpacing;
         }
 
-        const linkIndex = jsonData.links.findIndex(
-          (link) =>
-            link.source.id === d.source.id && link.target.id === d.target.id
-        );
-        if (linkIndex >= 0) {
-          jsonData.links[linkIndex].linkControlX = d.linkControlX;
-          jsonData.links[linkIndex].linkControlY = d.linkControlY;
+        const link = jsonData.links.find((link) => link.linkId === d.linkId);
+        if (link) {
+          link.linkControlX = d.linkControlX;
+          link.linkControlY = d.linkControlY;
         }
 
-        d3.select(this).attr("d", (d) => calculateLinkPath(d));
+        d3.select(this).attr("d", calculateLinkPath(d));
         updatePagJsonDisplay(jsonData);
       })
   );
@@ -999,6 +1010,7 @@ function nodeInteractiveDrag(svg, jsonData, gridSpacing) {
   );
 }
 
+//updaed ALLE positionen, sehr unperformant
 function updatePositions() {
   //update node position
   d3.selectAll(".node")
