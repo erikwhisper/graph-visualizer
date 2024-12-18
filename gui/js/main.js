@@ -524,7 +524,7 @@ function visualizeJsonWithD3(jsonData) {
 
   drawEverything(svg, jsonData);
 
-  //handleCreateNewLink(svg, jsonData);
+  handleCreateNewLink(svg, jsonData);
 
   handleAllContextMenus(svg, jsonData, gridSpacing);
 
@@ -1082,7 +1082,7 @@ function updatePositions() {
 //----------START: handleAllEditOperations === ALL ADD NEW LINK UNIQUE FUNCTION--------------//
 
 //TODO: Gucken ob das probleme bereitet, notfalls auskommentieren, andere sachen implementieren
-/*
+
 function handleCreateNewLink(svg, jsonData) {
   let firstNode = null;
 
@@ -1175,7 +1175,7 @@ function drawOnlyNewLink(svg, jsonData, linkId) {
   //monitoren ob das iwie harmful ist
   linkInteractiveDrag(svg, jsonData, currentGridSpacing);
 }
-*/
+
 //----------END: handleAllEditOperations === ALL ADD NEW LINK UNIQUE FUNCTION--------------//
 
 //-------------------------------------------------------------------//
