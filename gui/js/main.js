@@ -524,6 +524,8 @@ function visualizeJsonWithD3(jsonData) {
 
   drawEverything(svg, jsonData);
 
+  //handleCreateNewLink(svg, jsonData);
+
   handleAllContextMenus(svg, jsonData, gridSpacing);
 
   handleAllInteractiveDrags(svg, jsonData, gridSpacing);
@@ -647,16 +649,25 @@ function drawEverything(svg, jsonData) {
   drawLabels(svg, jsonData);
 }
 
+
+//Ich glaube "svg.selectAll(".link").on("contextmenu", null);" ist deadcode und kann weg
+//wenn das link dingen iwo gecleared wird dann in der addNewLink Function
+//die handleAllContextMenus wird doch eh nie wieder aufgerufen 
+
 //calls the functions that implement the contextmenu for the three objects
 function handleAllContextMenus(svg, jsonData, gridSpacing) {
+  svg.selectAll(".link").on("contextmenu", null);
   linkContextMenu(svg, jsonData);
-  //nodeContextMenu(svg, jsonData); //maybe implement later
+  svg.selectAll(".node-label").on("contextmenu", null);
   labelContextMenu(svg, jsonData);
+  //nodeContextMenu(svg, jsonData); //maybe implement later
 }
 
 //calls the functions that implement the leftclick for the three objects
 function handleAllInteractiveDrags(svg, jsonData, gridSpacing) {
+  svg.selectAll(".link").on(".drag", null);
   linkInteractiveDrag(svg, jsonData, gridSpacing);
+  svg.selectAll(".node").on(".drag", null);
   nodeInteractiveDrag(svg, jsonData, gridSpacing);
   //labelInteractiveClick(svg, jsonData, gridSpacing); //maybe implement later
 }
@@ -685,7 +696,7 @@ function drawLinks(svg, jsonData) {
     .attr("stroke", "black")
     .attr("stroke-width", 2)
     .attr("fill", "none")
-    .attr("stroke-dasharray", (d) => (d.isDashed ? "4 2" : null)) //change, draws dashed line
+    .attr("stroke-dasharray", (d) => (d.isDashed ? "4 2" : null))
     .attr("marker-end", (d) => {
       if (d.arrowhead === "normal") return "url(#normal-head)";
       if (d.arrowhead === "odot") return "url(#odot-head)";
@@ -741,17 +752,28 @@ function drawLabels(svg, jsonData) {
 //----------START: allContextMenus() === CONTEXTMENU ORGANIZATION--------------//
 
 //TODO: anderes wort für setup finden
-// prettier-ignore
 function linkContextMenu(svg, jsonData) {
-  setupContextMenu(svg, ".link", "link-context-menu", "data-link-id", (d) => jsonData.links.indexOf(d));
+  setupContextMenu(
+    svg,
+    ".link",
+    "link-context-menu",
+    "data-link-id",
+    (d) => d.linkId // Verwende direkt die linkId
+  );
   setupLinksContextMenuFunctions(svg, jsonData);
   closeContextMenu(svg, "link-context-menu");
 }
 
 //TODO: anderes wort für setup finden
-// prettier-ignore
+//TODO: hier gibts noch keine label id? einführen sinnvoll or nah?
 function labelContextMenu(svg, jsonData) {
-  setupContextMenu(svg,".node-label","label-context-menu", "data-label-id", (d) => d.id );
+  setupContextMenu(
+    svg,
+    ".node-label",
+    "label-context-menu",
+    "data-label-id",
+    (d) => d.id
+  );
   setupLabelsContextMenuFunctions(svg, jsonData);
   closeContextMenu(svg, "label-context-menu");
 }
@@ -794,8 +816,20 @@ function closeContextMenu(svg, contextMenuType) {
 //----------START: linkContextMenu === CONTEXTMENU LINKS UNIQUE FUNCTIONS--------------//
 
 //TODO: Diese menuActions kacke iwie anpassen, auch wenn hier eig geil, lieber bei labels anpassen maybe
+
+//TODO: Alle Contextmenu buttons müssen auch linkId nutzen anstatt nur diese id die wir vorher hatte
+//Problem warum dashed nicht geht, es ist ein switch und er wird wenn man im programm
+//"setupLinksContextMenuFunctions" ein zweites mal aufruft immer doppelt aktiviert und damit ist es so
+//als wäre er nie umgelegt worde. entweder möglichkeit finden neue kante zu einzubauen, das ich diese methode
+//nicht zweimal aufrufen muss oder halt von dieser switch methode auf zwei verschiedene knöpfe ausweichen
+//oder die auswahlmöglichkeit per checkbox oder ähnlichem.
+
+//Eigentlicher Plan
+//Das hier anpassen
+//Das alles linkId nutzt lol
+//OKAY lets go
+
 function setupLinksContextMenuFunctions(svg, jsonData) {
-  //buttons to change arrowmarkers
   const menuActions = [
     // prettier-ignore
     { id: "arrowhead-normal", attr: "arrowhead", value: "normal", marker: "url(#normal-head)", position: "marker-end" },
@@ -814,46 +848,41 @@ function setupLinksContextMenuFunctions(svg, jsonData) {
   menuActions.forEach((action) => {
     document.getElementById(action.id).addEventListener("click", () => {
       const menu = document.getElementById("link-context-menu");
-      const linkIndex = menu.getAttribute("data-link-id");
-      if (linkIndex !== null) {
-        const link = jsonData.links[linkIndex];
-        link[action.attr] = action.value;
+      const linkId = menu.getAttribute("data-link-id");
+      const selectedLink = jsonData.links.find(
+        (link) => link.linkId === linkId
+      );
 
-        svg
-          .selectAll(".link")
-          .filter((_, i) => i == linkIndex)
-          .attr(action.position, action.marker);
-
+      if (selectedLink) {
+        selectedLink[action.attr] = action.value;
+        d3.select(`#link-${selectedLink.linkId}`).attr(
+          action.position,
+          action.marker
+        );
         updatePagJsonDisplay(jsonData);
       }
     });
   });
 
-  //TODO: Das kann man doch iwie besser umsetzen oder besser trennen?
-  // Button to reset link-curve
+  // Additional buttons like reset and toggle dashed
   document.getElementById("straighten-link").addEventListener("click", () => {
     const menu = document.getElementById("link-context-menu");
-    const linkIndex = menu.getAttribute("data-link-id");
-    if (linkIndex !== null) {
-      resetLinkCurve(jsonData.links[linkIndex]);
-      updatePagJsonDisplay(jsonData);
-    }
+    const linkId = menu.getAttribute("data-link-id");
+    const selectedLink = jsonData.links.find((link) => link.linkId === linkId);
+    if (selectedLink) resetLinkCurve(selectedLink);
+    updatePagJsonDisplay(jsonData);
   });
 
   document
     .getElementById("toggle-dashed-link")
     .addEventListener("click", () => {
       const menu = document.getElementById("link-context-menu");
-      const linkIndex = menu.getAttribute("data-link-id");
-      if (linkIndex !== null) {
-        const link = jsonData.links[linkIndex];
-        link.isDashed = !link.isDashed;
-        svg
-          .selectAll(".link")
-          .filter((_, i) => i == linkIndex)
-          .attr("stroke-dasharray", link.isDashed ? "4 2" : null);
-        updatePagJsonDisplay(jsonData);
-      }
+      const linkId = menu.getAttribute("data-link-id");
+      const selectedLink = jsonData.links.find(
+        (link) => link.linkId === linkId
+      );
+      if (selectedLink) toggleDashedState(selectedLink);
+      updatePagJsonDisplay(jsonData);
     });
 }
 
@@ -868,6 +897,15 @@ function resetLinkCurve(selectedLink) {
   d3.select(`#link-${selectedLink.linkId}`).attr(
     "d",
     calculateLinkPath(selectedLink)
+  );
+}
+
+function toggleDashedState(selectedLink) {
+  selectedLink.isDashed = !selectedLink.isDashed;
+
+  //muss hier d.isDashed oder selectedLink.isDashed ??
+  d3.select(`#link-${selectedLink.linkId}`).attr("stroke-dasharray", (d) =>
+    d.isDashed ? "4 2" : null
   );
 }
 
@@ -933,6 +971,7 @@ function setupLabelsContextMenuFunctions(svg, jsonData) {
 //TODO: Hier ist bestimmt so gottlos viel überflüssig
 //oder kann umstrukturiert werden.
 function linkInteractiveDrag(svg, jsonData, gridSpacing) {
+  console.log("I was created!");
   svg.selectAll(".link").call(
     d3
       .drag()
@@ -940,7 +979,7 @@ function linkInteractiveDrag(svg, jsonData, gridSpacing) {
         d.isCurved = true;
         d.linkControlX = event.x;
         d.linkControlY = event.y;
-
+        console.log("drag!");
         const link = jsonData.links.find((link) => link.linkId === d.linkId);
         if (link) {
           link.linkControlX = d.linkControlX;
@@ -1037,6 +1076,107 @@ function updatePositions() {
 }
 
 //----------START: allInteractiveClicks === LEFTCLICK NODE UNIQUE FUNCTIONS--------------//
+
+//-------------------------------------------------------------------//
+
+//----------START: handleAllEditOperations === ALL ADD NEW LINK UNIQUE FUNCTION--------------//
+
+//TODO: Gucken ob das probleme bereitet, notfalls auskommentieren, andere sachen implementieren
+/*
+function handleCreateNewLink(svg, jsonData) {
+  let firstNode = null;
+
+  svg.selectAll(".node").on("click", function (event, d) {
+    if (!firstNode) {
+      firstNode = d;
+      console.log(`First node selected: `, firstNode);
+    } else if (d.id !== firstNode.id) {
+      const secondNode = d;
+      console.log(`Second node selected: `, secondNode);
+
+      const newLink = {
+        linkId: uuid.v4(),
+        source: firstNode,
+        target: secondNode,
+        arrowhead: "normal",
+        arrowtail: "tail",
+        linkControlX: (firstNode.x + secondNode.x) / 2,
+        linkControlY: (firstNode.y + secondNode.y) / 2,
+        isCurved: false,
+        isDashed: false,
+      };
+
+      jsonData.links.push(newLink);
+      drawOnlyNewLink(svg, jsonData, newLink.linkId);
+      updatePagJsonDisplay(jsonData);
+      firstNode = null;
+      //secondNode = null;
+    } else {
+      console.log("You cannot select the same node twice.");
+    }
+  });
+}
+
+function drawOnlyNewLink(svg, jsonData, linkId) {
+  const selectedLink = jsonData.links.find((link) => link.linkId === linkId);
+
+  if (!selectedLink) {
+    console.error(`No link found with ID: ${linkId}`);
+    return;
+  }
+
+  const linkSelection = svg
+    .selectAll(`#link-${linkId}`)
+    .data([selectedLink], (d) => d.linkId)
+    .enter()
+    .append("path")
+    .attr("class", "link")
+    .attr("id", `link-${selectedLink.linkId}`)
+    .attr("stroke", "black")
+    .attr("stroke-width", 2)
+    .attr("fill", "none")
+    .each(function (d) {
+      if (d.isDashed) {
+        d3.select(this).attr("stroke-dasharray", "4 2");
+      }
+    })
+    .attr("marker-end", () => {
+      if (selectedLink.arrowhead === "normal") return "url(#normal-head)";
+      if (selectedLink.arrowhead === "odot") return "url(#odot-head)";
+      if (selectedLink.arrowhead === "tail") return "url(#tail-head)";
+      return null;
+    })
+    .attr("marker-start", () => {
+      if (selectedLink.arrowtail === "normal") return "url(#normal-tail)";
+      if (selectedLink.arrowtail === "odot") return "url(#odot-tail)";
+      if (selectedLink.arrowtail === "tail") return "url(#tail-tail)";
+      return null;
+    })
+    .attr("d", calculateLinkPath(selectedLink));
+
+  linkSelection.on("contextmenu", function (event, d) {
+    event.preventDefault();
+    const menu = document.getElementById("link-context-menu");
+    menu.style.display = "block";
+    menu.style.left = `${event.pageX}px`;
+    menu.style.top = `${event.pageY}px`;
+    menu.setAttribute("data-link-id", d.linkId);
+  });
+
+  //gucken ob das als absicherung vor nicht reproduzierbarem
+  //node-label error hilft
+  svg
+    .selectAll(".node-label")
+    .data(jsonData.nodes, (d) => d.id)
+    .join("text")
+    .attr("class", "node-label")
+    .attr("id", (d) => `label-${d.id}`);
+
+  //monitoren ob das iwie harmful ist
+  linkInteractiveDrag(svg, jsonData, currentGridSpacing);
+}
+*/
+//----------END: handleAllEditOperations === ALL ADD NEW LINK UNIQUE FUNCTION--------------//
 
 //-------------------------------------------------------------------//
 
