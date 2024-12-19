@@ -119,6 +119,7 @@ function pagConvertMatrixToJson(parsedPagMatrix) {
       const kantenTypFromTo = parseInt(parsedPagMatrix[i][j]);
       const kantenTypToFrom = parseInt(parsedPagMatrix[j][i]);
       const zielKnoten = knotenNamen[j - 1];
+      //const knotenFarbe = "whitesmoke";
 
       knotenSet.add(quellKnoten);
       knotenSet.add(zielKnoten);
@@ -128,6 +129,7 @@ function pagConvertMatrixToJson(parsedPagMatrix) {
         zielKnoten,
         kantenTypFromTo,
         kantenTypToFrom
+        //,knotenFarbe
       );
       if (link) {
         links.push(link);
@@ -138,6 +140,7 @@ function pagConvertMatrixToJson(parsedPagMatrix) {
   //knoten in jsonFormat
   const nodes = Array.from(knotenSet).map((node) => ({
     id: node,
+    nodeColor: "whitesmoke",
     x: null,
     y: null,
     labelOffsetX: 0,
@@ -166,11 +169,6 @@ function parsePagContent(csvContent) {
     .map((row) => row.split(",").map((cell) => cell.replace(/"/g, "").trim()));
 }
 
-//brauch ich wirklich bei jedem link die koordinaten ne oder?
-//das kann man doch auch mit einem edgeMapping machen aber andersrum
-//also wenn ich kantenTypFromTo === 1 hab, dann ist das mit
-//edgeMapping[1] = odot z.B. dann kann ich mir so viel schreiben
-//sparen oder?
 function pagCreateJsonLinks(
   quellKnoten,
   zielKnoten,
@@ -196,6 +194,7 @@ function pagCreateJsonLinks(
     linkId: uuid.v4(),
     source: {
       id: quellKnoten,
+      nodeColor: "whitesmoke",
       x: null,
       y: null,
       labelOffsetX: 0,
@@ -203,6 +202,7 @@ function pagCreateJsonLinks(
     },
     target: {
       id: zielKnoten,
+      nodeColor: "whitesmoke",
       x: null,
       y: null,
       labelOffsetX: 0,
@@ -330,14 +330,27 @@ pagConvertDotToJsonButton.addEventListener("click", () => {
   );
 });
 
+//TOOD: //entweder überall trim oder nirgendwo, regwex anpassen
 function pagDotToJsonConversion(dotSyntax) {
   const knoten = new Set();
   const links = [];
+  const nodeColors = new Map();
 
   const edgeRegex =
-    /"([^"]+)"\s*->\s*"([^"]+)"\s*\[dir=both, arrowhead=([^,]+), arrowtail=([^,]+)(?:, style=([^,\]]+))?\];/g;
+    /"([^"]+)"\s*->\s*"([^"]+)"\s*\[\s*dir\s*=\s*both\s*,\s*arrowhead\s*=\s*([^,\s]+)\s*,\s*arrowtail\s*=\s*([^,\s]+)(?:\s*,\s*style\s*=\s*([^,\]]+))?\s*\];/g;
+
+  const nodeRegex = /"([^"]+)"\s*\[.*?fillcolor=([^,\]]+).*?\];/g;
+
   let match;
 
+  //entweder überall trim oder nirgendwo, regwex anpassen
+  while ((match = nodeRegex.exec(dotSyntax)) !== null) {
+    const nodeId = match[1];
+    const nodeColor = match[2].trim();
+    nodeColors.set(nodeId, nodeColor);
+  }
+
+  //entweder überall trim oder nirgendwo, regwex anpassen
   while ((match = edgeRegex.exec(dotSyntax)) !== null) {
     const source = match[1];
     const target = match[2];
@@ -351,10 +364,12 @@ function pagDotToJsonConversion(dotSyntax) {
     //TODO: remove:
     //i really dont need to fill the values for source and target here
     //thats overkill and destroys seperations of concern.
+    //change it when everything else works, for now it works.
     links.push({
       linkId: uuid.v4(),
       source: {
         id: source,
+        nodeColor: nodeColors.get(source) || "whitesmoke",
         x: null,
         y: null,
         labelOffsetX: 0,
@@ -362,6 +377,7 @@ function pagDotToJsonConversion(dotSyntax) {
       },
       target: {
         id: target,
+        nodeColor: nodeColors.get(target) || "whitesmoke",
         x: null,
         y: null,
         labelOffsetX: 0,
@@ -378,6 +394,7 @@ function pagDotToJsonConversion(dotSyntax) {
 
   const nodesArray = Array.from(knoten).map((node) => ({
     id: node,
+    nodeColor: nodeColors.get(node) || "whitesmoke",
     x: null, //initial null
     y: null, //initial null
     labelOffsetX: 0,
@@ -394,6 +411,12 @@ function pagDotToJsonConversion(dotSyntax) {
 
 //----------------START: JSON -> DOT (PAG)------------------------//
 
+//TODO: vllt kann ich die ja wiederverwenden und von iwas abhängig dann
+//diagraph PAG oder halt diagraph ADMG schreiben am anfang der dot-syntax.
+
+//TODO: kommentar durchlesen über node.nodeColor teil
+
+//Aktuell werden Knoten ohne Kanten von der konvertierung ignoriert
 const pagConvertJsonToDotButton = document.getElementById(
   "pagConvertJsonToDot"
 );
@@ -415,6 +438,14 @@ function jsonToDotConversion(jsonData) {
     const style = link.isDashed ? ", style=dashed" : "";
 
     dotOutput += `"${source}" -> "${target}" [dir=both, arrowhead=${arrowhead}, arrowtail=${arrowtail}${style}];\n`;
+  });
+
+  jsonData.nodes.forEach((node) => {
+    //hier muss ich noch hinzufügen den case falls nodeColor == whitesmoke ABER node nicht in link
+    //dann trotzdem in dotOutput schreiben, weil dann ist es ein node ohne links
+    if (node.nodeColor !== "whitesmoke") {
+      dotOutput += `"${node.id}" [style=filled, fillcolor=${node.nodeColor}];\n`;
+    }
   });
 
   dotOutput += "}";
@@ -649,10 +680,9 @@ function drawEverything(svg, jsonData) {
   drawLabels(svg, jsonData);
 }
 
-
 //Ich glaube "svg.selectAll(".link").on("contextmenu", null);" ist deadcode und kann weg
 //wenn das link dingen iwo gecleared wird dann in der addNewLink Function
-//die handleAllContextMenus wird doch eh nie wieder aufgerufen 
+//die handleAllContextMenus wird doch eh nie wieder aufgerufen
 
 //calls the functions that implement the contextmenu for the three objects
 function handleAllContextMenus(svg, jsonData, gridSpacing) {
@@ -720,7 +750,7 @@ function drawNodes(svg, jsonData) {
     .append("circle")
     .attr("class", "node")
     .attr("r", 15)
-    .attr("fill", "white")
+    .attr("fill", "whitesmoke")
     .attr("stroke", "black")
     .attr("stroke-width", 1)
     .attr("cx", (d) => d.x)
@@ -901,6 +931,7 @@ function resetLinkCurve(selectedLink) {
 }
 
 function toggleDashedState(selectedLink) {
+  console.log("called dashed");
   selectedLink.isDashed = !selectedLink.isDashed;
 
   //muss hier d.isDashed oder selectedLink.isDashed ??
@@ -1083,15 +1114,19 @@ function updatePositions() {
 
 //TODO: Gucken ob das probleme bereitet, notfalls auskommentieren, andere sachen implementieren
 
+//anstatt let einf const firstNode
 function handleCreateNewLink(svg, jsonData) {
   let firstNode = null;
 
   svg.selectAll(".node").on("click", function (event, d) {
     if (!firstNode) {
       firstNode = d;
+      //d3.select(this).style("fill", "gray");
       console.log(`First node selected: `, firstNode);
+      console.log("firstNode color:" + firstNode.fillColor);
     } else if (d.id !== firstNode.id) {
       const secondNode = d;
+      //HOW DO I COLOR IT NORMAL AGAIN
       console.log(`Second node selected: `, secondNode);
 
       const newLink = {
@@ -1107,6 +1142,7 @@ function handleCreateNewLink(svg, jsonData) {
       };
 
       jsonData.links.push(newLink);
+
       drawOnlyNewLink(svg, jsonData, newLink.linkId);
       updatePagJsonDisplay(jsonData);
       firstNode = null;
@@ -1115,8 +1151,48 @@ function handleCreateNewLink(svg, jsonData) {
       console.log("You cannot select the same node twice.");
     }
   });
+
+  svg.on("click", function (event) {
+    if (d3.select(event.target).classed("node") === false) {
+      if (firstNode) {
+        console.log("Click detected on canvas. Resetting firstNode.");
+        firstNode = null;
+        //svg.selectAll(".node").style("fill", "black");
+      }
+    }
+  });
 }
 
+//TODO 1: Hinzufügen das ich meine knoten auswahl auch abbrechen kann, das ganze visuell darstellen.
+
+//TODO 2: Jetzt die Knoten nochmal neu zeichnen, so das sie durch eine formel passen gekürzt werden,
+//damit das mit den arrowmarkern nicht immer so krampfhaft aussieht, frage ist nur, geht mir mein
+//clipping und so dann kaputt oder sieht das weiterhin schön aus weil ich die verkürzte kantenform
+//irgendwie basierend auf den mittelpunkten der referenzierten knoten zeichnen kann?
+
+//TODO 2.1: die borders meine svg canvases nicht durchdringbar machen, bei createSvgCanvas proably und
+//gucken ob sich dann neu erstellte knoten auch daran halten
+
+//TODO 3: Delete edges? Where do i add this? Probably in the context menu would be best
+//and easiest i think, contextmenu should close afterward, otherwise id probably get errors
+//when the user tries to change the arrowmarkers or so of the edge after it got deleted
+//gotta delete it in: DOM(svg-elements), jsonData Obejct, jsonDataDisplay
+
+//TODO 4: Labels über knotextmenu namen verändern können?
+
+//TODO 4.1:Farbe von knoten anpassen können + (deren größe), dies unterbringen im jsonData & contextmenu
+//-> Contextmenu für knoten erstellen yippie
+
+//TODO 5: sich das zu nutze machen beim erstellen von eigenen knoten
+
+//TODO 6: Knoten löschen können, wenn daran links hängen diese mit löschen, daher delete link, nicht nur
+//im kontextmenü unterbringen sondern den wichtigsten teil in aufrufbare funktion versetzen.
+//-> bei deletenode muss ich laufende processe wie "einen node ausgewählt" und dann lösche ich diesen knoten
+//und dann drücke ich auf den zweiten und will eine kante zeichnen, dann würde mir das um die ohren fliegen
+//das iwie absichern.
+
+//The helper function needs to get helper functions, gotta refactor that shit
+//idk if calling the "linkInteractiveDrag" function is unstable beeing called every time a edge is created
 function drawOnlyNewLink(svg, jsonData, linkId) {
   const selectedLink = jsonData.links.find((link) => link.linkId === linkId);
 
@@ -1172,7 +1248,7 @@ function drawOnlyNewLink(svg, jsonData, linkId) {
     .attr("class", "node-label")
     .attr("id", (d) => `label-${d.id}`);
 
-  //monitoren ob das iwie harmful ist
+  //monitoren ob das iwie harmful ist (unstable?)
   linkInteractiveDrag(svg, jsonData, currentGridSpacing);
 }
 
