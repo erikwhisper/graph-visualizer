@@ -543,6 +543,11 @@ function resetCheckBoxes() {
   //more checkboxes to be cleared...
 }
 
+//todo: when drawing something with two edges and the linkOffsets are not set i gotta set them for atleast
+//one of them a bit off, for every other edge between the node the same offset upon there.
+
+//todo: wenn graph auch aus matrix oder dot kommt und komplett neu gezeichnet wird, muss offset bei edge between
+//two nodes +1 erstellt werden
 function visualizeJsonWithD3(jsonData) {
   const svg = createSvgCanvas();
   currentSvg = svg; //currently only for visual grid needed
@@ -750,7 +755,7 @@ function drawNodes(svg, jsonData) {
     .append("circle")
     .attr("class", "node")
     .attr("r", 15)
-    .attr("fill", "whitesmoke")
+    .attr("fill", (d) => d.nodeColor)
     .attr("stroke", "black")
     .attr("stroke-width", 1)
     .attr("cx", (d) => d.x)
@@ -1437,37 +1442,37 @@ function downloadSvgAsPdf() {
 
 // First event listener for menu-toggle
 document.addEventListener("DOMContentLoaded", () => {
-  const menuToggle = document.getElementById("menu-toggle");
-  const sideMenus = document.getElementById("side-menus");
-  const menus = document.querySelectorAll(".side-menu");
+  const navigationBarButton = document.getElementById("right-slidemenu-toggle");
+  const slideMenuMinor = document.getElementById("right-slidemenu-minor");
+  const slideMenuMajor = document.querySelectorAll(".right-slidemenu-major");
 
-  menuToggle.addEventListener("click", () => {
-    const isActive = sideMenus.classList.contains("active");
+  navigationBarButton.addEventListener("click", () => {
+    const isActive = slideMenuMinor.classList.contains("active");
 
     if (isActive) {
-      menus.forEach((menu) => menu.classList.remove("active"));
+      slideMenuMajor.forEach((menu) => menu.classList.remove("active"));
     }
 
-    sideMenus.classList.toggle("active");
+    slideMenuMinor.classList.toggle("active");
   });
 });
 
 // Second event listener for menu-buttons (separate logic for buttons)
 document.addEventListener("DOMContentLoaded", () => {
-  const buttons = document.querySelectorAll("#menu-buttons button");
-  const menus = document.querySelectorAll(".side-menu");
+  const slideMenuMinorButtons = document.querySelectorAll("#right-slidemenu-minor-buttons button");
+  const slideMenuMajor = document.querySelectorAll(".right-slidemenu-major");
 
-  buttons.forEach((button, index) => {
+  slideMenuMinorButtons.forEach((button, index) => {
     button.addEventListener("click", () => {
-      const targetMenu = document.getElementById(`menu-content-${index + 1}`);
+      const currentSlideMenuMajor = document.getElementById(`menu-content-${index + 1}`);
 
-      if (targetMenu) {
-        const isActive = targetMenu.classList.contains("active");
+      if (currentSlideMenuMajor) {
+        const isActive = currentSlideMenuMajor.classList.contains("active");
 
-        menus.forEach((menu) => menu.classList.remove("active"));
+        slideMenuMajor.forEach((menu) => menu.classList.remove("active"));
 
         if (!isActive) {
-          targetMenu.classList.add("active");
+          currentSlideMenuMajor.classList.add("active");
         }
       }
     });
