@@ -1,4 +1,5 @@
-html, body {
+html,
+body {
   margin: 0;
   padding: 0;
   box-sizing: border-box;
@@ -31,12 +32,11 @@ html, body {
   height: 100%;
   background-color: #a0956a;
   display: flex;
-  flex-direction: column; 
+  flex-direction: column;
   align-items: flex-start;
   justify-content: flex-start;
   transition: right 0.4s ease;
   z-index: 1000;
-  
 }
 
 #right-slidemenu-minor.active {
@@ -79,14 +79,14 @@ html, body {
 
 .right-slidemenu-major {
   position: fixed;
-  top: 60px;
+  top: 10%;
   right: -40%; /* width(30%) + slidemenu-minor-width(10%) = 40% */
   width: 30%;
   height: 100%;
-  background-color: #978d64; 
+  background-color: #978d64;
   display: flex;
   flex-direction: column;
-  justify-content: flex-start; 
+  justify-content: flex-start;
   align-items: flex-start;
   gap: 10px;
   transition: right 0.4s ease;
@@ -96,11 +96,9 @@ html, body {
   box-sizing: border-box;
 }
 
-
 .right-slidemenu-major.active {
   right: 10%;
 }
-
 
 .right-slidemenu-major-content-headline {
   font-size: 1.5rem;
@@ -114,37 +112,61 @@ html, body {
 
 .right-slidemenu-major textarea {
   width: 95%;
-  height: 150px;
+  height: 100px;
   margin-right: 10%;
-  resize: vertical; 
+  resize: vertical;
   padding: 10px;
   font-family: Arial, sans-serif;
-  font-size: 14px; 
-  color: #333; 
+  font-size: 14px;
+  color: #333;
   background-color: #f8f7f5;
   border: 1px solid #ccc;
-  border-radius: 5px; 
+  border-radius: 5px;
   box-shadow: inset 0 2px 5px rgba(0, 0, 0, 0.1);
 }
- 
+
 textarea {
-  width: 200px;
-  height: 50%;
+  height: auto;
 }
+
 
 /*----- ENDE: Side Menu Major -----*/
 
 /*----------------------------------*/
 
-/*----- ENDE: Context Menus -----*/
+/*----- START: Context Menus -----*/
 
 .context-menus {
   display: none;
   position: absolute;
-  background: green;
+  background: #978d64;
   border: 1px solid black;
   padding: 10px;
   z-index: 1000;
+}
+
+#color-palette {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, 15px);
+  gap: 0;
+  max-height: 100px;
+  overflow-x: scroll;
+  padding: 1px;
+  margin-top: 10%;
+  background: #b4a877;
+  border: 0;
+}
+
+#color-palette .color-swatch {
+  width: 15px;
+  height: 15px;
+  cursor: pointer;
+  box-sizing: border-box;
+  margin: 0;
+}
+
+#color-palette .color-swatch:hover {
+  box-shadow: inset 0 0 0 1px black;
 }
 
 /*----- ENDE: Contextmenus -----*/
@@ -155,12 +177,12 @@ textarea {
 
 #graph-container {
   width: 100%;
-  height: calc(100vh - 60px);
+  height: calc(
+    100vh - 60px
+  ); /*das muss 100% einf oder? -10% heder, wie kann man das besser machen*/
   background-color: whitesmoke;
   margin-top: 60px;
   box-sizing: border-box;
 }
 
 /*----- ENDE: Graph Container -----*/
-
-

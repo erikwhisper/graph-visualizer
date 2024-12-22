@@ -548,6 +548,10 @@ function resetCheckBoxes() {
 
 //todo: wenn graph auch aus matrix oder dot kommt und komplett neu gezeichnet wird, muss offset bei edge between
 //two nodes +1 erstellt werden
+
+//TODO: wenn nix mehr geht, kann ich doch einf nen counter hier hin machen, der von 0 auf 1 geht, wenn ich
+//einmal diese funktion aufgerufen hab, dadrin rufe ich dann einmal alle contextmenu funktionen auf und dann
+//danach halt nie wieder, oder ist das problematisch?
 function visualizeJsonWithD3(jsonData) {
   const svg = createSvgCanvas();
   currentSvg = svg; //currently only for visual grid needed
@@ -562,7 +566,7 @@ function visualizeJsonWithD3(jsonData) {
 
   handleCreateNewLink(svg, jsonData);
 
-  handleAllContextMenus(svg, jsonData, gridSpacing);
+  handleAllContextMenus(svg, jsonData);
 
   handleAllInteractiveDrags(svg, jsonData, gridSpacing);
 
@@ -690,12 +694,13 @@ function drawEverything(svg, jsonData) {
 //die handleAllContextMenus wird doch eh nie wieder aufgerufen
 
 //calls the functions that implement the contextmenu for the three objects
-function handleAllContextMenus(svg, jsonData, gridSpacing) {
+function handleAllContextMenus(svg, jsonData) {
   svg.selectAll(".link").on("contextmenu", null);
   linkContextMenu(svg, jsonData);
+  svg.selectAll(".node").on("contextmenu", null);
+  nodeContextMenu(svg, jsonData);
   svg.selectAll(".node-label").on("contextmenu", null);
   labelContextMenu(svg, jsonData);
-  //nodeContextMenu(svg, jsonData); //maybe implement later
 }
 
 //calls the functions that implement the leftclick for the three objects
@@ -753,6 +758,7 @@ function drawNodes(svg, jsonData) {
     .data(jsonData.nodes)
     .enter()
     .append("circle")
+    .attr("id", (d) => `node-${d.id}`) //hinzugefügt für colorchange, ist das sonst iwo ein problem?
     .attr("class", "node")
     .attr("r", 15)
     .attr("fill", (d) => d.nodeColor)
@@ -773,7 +779,7 @@ function drawLabels(svg, jsonData) {
     .attr("y", (d) => d.y + d.labelOffsetY) //idk if needed
     .attr("dy", 5)
     .attr("text-anchor", "middle")
-    .text((d) => d.id)
+    .text((d) => d.id) //maybe hier auch "label-d.id" nutzen wenns ums knoten editen geht.
     .attr("fill", "black")
     .style("font-size", "15px")
     .style("pointer-events", "all")
@@ -793,10 +799,27 @@ function linkContextMenu(svg, jsonData) {
     ".link",
     "link-context-menu",
     "data-link-id",
-    (d) => d.linkId // Verwende direkt die linkId
+    (d) => d.linkId // Verwende direkt uniquely generated die linkId
   );
   setupLinksContextMenuFunctions(svg, jsonData);
-  closeContextMenu(svg, "link-context-menu");
+  closeContextMenu("link-context-menu");
+}
+
+//TODO: "am besten auch hier für die zukunft eine eigene nodeId mit uuid.v4 erstellen, da wir sonst"
+//einen knoten mit dem namen "Knoten A" löschen könnten, für den bestimmte sachen gelten
+//dann erstellen wir einen neuen knoten namens "Knoten A" und wenn die id=name ist
+//kann dies zu problemen führen, da der neue knoten natürlich nix mit dem alten zu tun hat,
+//ausser das beide den selben namen haben.
+function nodeContextMenu(svg, jsonData) {
+  setupContextMenu(
+    svg,
+    ".node",
+    "node-context-menu",
+    "data-node-id",
+    (d) => d.id //uses its unique name as an id <- *
+  );
+  setupNodesContextMenuFunctions(svg, jsonData);
+  closeContextMenu("node-context-menu");
 }
 
 //TODO: anderes wort für setup finden
@@ -807,10 +830,10 @@ function labelContextMenu(svg, jsonData) {
     ".node-label",
     "label-context-menu",
     "data-label-id",
-    (d) => d.id
+    (d) => d.id //uses the nodesId, which is its unique name, to be referenced
   );
   setupLabelsContextMenuFunctions(svg, jsonData);
-  closeContextMenu(svg, "label-context-menu");
+  closeContextMenu("label-context-menu");
 }
 
 //----------END: allContextMenus() === CONTEXTMENU ORGANIZATION--------------//
@@ -835,7 +858,7 @@ function setupContextMenu(svg, objectType, contextMenuType, attributeID, calcula
   });
 }
 
-function closeContextMenu(svg, contextMenuType) {
+function closeContextMenu(contextMenuType) {
   document.addEventListener("click", (event) => {
     const menu = document.getElementById(contextMenuType);
     if (!menu.contains(event.target)) {
@@ -851,19 +874,7 @@ function closeContextMenu(svg, contextMenuType) {
 //----------START: linkContextMenu === CONTEXTMENU LINKS UNIQUE FUNCTIONS--------------//
 
 //TODO: Diese menuActions kacke iwie anpassen, auch wenn hier eig geil, lieber bei labels anpassen maybe
-
-//TODO: Alle Contextmenu buttons müssen auch linkId nutzen anstatt nur diese id die wir vorher hatte
-//Problem warum dashed nicht geht, es ist ein switch und er wird wenn man im programm
-//"setupLinksContextMenuFunctions" ein zweites mal aufruft immer doppelt aktiviert und damit ist es so
-//als wäre er nie umgelegt worde. entweder möglichkeit finden neue kante zu einzubauen, das ich diese methode
-//nicht zweimal aufrufen muss oder halt von dieser switch methode auf zwei verschiedene knöpfe ausweichen
-//oder die auswahlmöglichkeit per checkbox oder ähnlichem.
-
-//Eigentlicher Plan
-//Das hier anpassen
-//Das alles linkId nutzt lol
-//OKAY lets go
-
+//wird halt so oft durchgeführt wie "visualisieren" gedrückt wird, aber kann egal sein for now
 function setupLinksContextMenuFunctions(svg, jsonData) {
   const menuActions = [
     // prettier-ignore
@@ -882,8 +893,8 @@ function setupLinksContextMenuFunctions(svg, jsonData) {
 
   menuActions.forEach((action) => {
     document.getElementById(action.id).addEventListener("click", () => {
-      const menu = document.getElementById("link-context-menu");
-      const linkId = menu.getAttribute("data-link-id");
+      const linkMenu = document.getElementById("link-context-menu");
+      const linkId = linkMenu.getAttribute("data-link-id");
       const selectedLink = jsonData.links.find(
         (link) => link.linkId === linkId
       );
@@ -899,26 +910,44 @@ function setupLinksContextMenuFunctions(svg, jsonData) {
     });
   });
 
-  // Additional buttons like reset and toggle dashed
+  //buttons, ausserhalb von arrowmarker änderung
+  //TODO: Kann man anstatt mit selected Link wie bei delete-link nicht direkt mit linkId arbeiten?
   document.getElementById("straighten-link").addEventListener("click", () => {
-    const menu = document.getElementById("link-context-menu");
-    const linkId = menu.getAttribute("data-link-id");
+    const linkMenu = document.getElementById("link-context-menu");
+    const linkId = linkMenu.getAttribute("data-link-id");
     const selectedLink = jsonData.links.find((link) => link.linkId === linkId);
-    if (selectedLink) resetLinkCurve(selectedLink);
-    updatePagJsonDisplay(jsonData);
+    if (selectedLink) {
+      resetLinkCurve(selectedLink);
+      updatePagJsonDisplay(jsonData);
+    }
   });
 
+  //TODO: Kann man anstatt mit selected Link wie bei delete-link nicht direkt mit linkId arbeiten?
   document
     .getElementById("toggle-dashed-link")
     .addEventListener("click", () => {
-      const menu = document.getElementById("link-context-menu");
-      const linkId = menu.getAttribute("data-link-id");
+      const linkMenu = document.getElementById("link-context-menu");
+      const linkId = linkMenu.getAttribute("data-link-id");
       const selectedLink = jsonData.links.find(
         (link) => link.linkId === linkId
       );
-      if (selectedLink) toggleDashedState(selectedLink);
-      updatePagJsonDisplay(jsonData);
+      if (selectedLink) {
+        toggleDashedState(selectedLink);
+        updatePagJsonDisplay(jsonData);
+      }
     });
+
+  //wird halt so oft ausgeführt wie oft "visualize" button gedrückt wurde... was macht man dagegen
+  document.getElementById("delete-link").addEventListener("click", () => {
+    const linkMenu = document.getElementById("link-context-menu");
+    const linkId = linkMenu.getAttribute("data-link-id");
+    if (linkId) {
+      deleteLink(linkId, jsonData);
+      if (linkMenu) {
+        linkMenu.style.display = "none";
+      }
+    }
+  });
 }
 
 function resetLinkCurve(selectedLink) {
@@ -936,16 +965,88 @@ function resetLinkCurve(selectedLink) {
 }
 
 function toggleDashedState(selectedLink) {
-  console.log("called dashed");
   selectedLink.isDashed = !selectedLink.isDashed;
 
-  //muss hier d.isDashed oder selectedLink.isDashed ??
   d3.select(`#link-${selectedLink.linkId}`).attr("stroke-dasharray", (d) =>
     d.isDashed ? "4 2" : null
   );
 }
 
+function deleteLink(linkId, jsonData) {
+  jsonData.links = jsonData.links.filter((link) => link.linkId !== linkId); //löscht link aus jsonData
+
+  d3.select(`#link-${linkId}`).remove(); //löscht link von svg canvas
+
+  updatePagJsonDisplay(jsonData); //passt displayed jsondata auf actual jsondata an
+}
+
 //----------END: linkContextMenu === CONTEXTMENU LINKS UNIQUE FUNCTIONS--------------//
+
+//-------------------------------------------------------------------//
+
+//----------START: nodeContextMenu === CONTEXTMENU NODES UNIQUE FUNCTIONS--------------//
+
+//TODO: Adapt labelcolor, add labelcolor maybe, and change to black or white, according to the brightness of the color
+//automatically
+function setupNodesContextMenuFunctions(svg, jsonData) {
+  const colorPalette = document.getElementById("color-palette");
+
+  colorPalette.innerHTML = "";
+  //all css-colors with names from W3Schools
+  // prettier-ignore
+  const namedColors = [
+  "white", "whitesmoke", "azure", "aliceblue", "ghostwhite", "floralwhite", "ivory", "beige", "antiquewhite", "mintcream", "snow", "oldlace", 
+  "lavenderblush", "seashell", "cornsilk", "blanchedalmond", "papayawhip", "lemonchiffon", "linen", "honeydew", "gainsboro", "navajowhite",
+  //yeelows
+  "lightyellow", "yellow", "khaki", "gold", "palegoldenrod", "goldenrod", "darkgoldenrod", "darkkhaki",
+  //oranges
+  "moccasin", "peachpuff", "bisque", "orange", "darkorange", "tan", "sandybrown", "burlywood", "peru", "chocolate", "saddlebrown", "maroon",
+  //reds
+  "lightpink", "pink", "hotpink", "mistyrose", "salmon", "lightsalmon", "lightcoral", "coral", "tomato", "orangered", "indianred", "darksalmon", "crimson", 
+  "firebrick", "red", "darkred",
+  //brown
+  "rosybrown", "brown", "sienna",
+  //lilas
+  "thistle", "lavender", "plum", "orchid", "rebeccapurple", "violet", "mediumorchid", "mediumpurple", "blueviolet", "darkorchid", "darkviolet", "purple", "magenta", 
+  "fuchsia", "mediumvioletred", "palevioletred", "indigo",
+  //blue
+  "lightcyan", "lightblue", "lightsteelblue", "powderblue", "skyblue", "lightskyblue", "deepskyblue", "dodgerblue", "cornflowerblue", "steelblue", 
+  "royalblue", "mediumblue", "mediumslateblue", "blue", "darkblue", "navy", "midnightblue", "slateblue", "darkslateblue",
+  //greens
+  "lightgreen", "lightseagreen", "palegreen", "springgreen", "mediumspringgreen", "greenyellow", "lime", "limegreen", "yellowgreen", "lawngreen", 
+  "chartreuse", "mediumseagreen", "seagreen", "darkseagreen", "darkolivegreen", "forestgreen", "green", "darkgreen", "olivedrab", "olive",
+  //aqua
+  "lightgoldenrodyellow", "cyan", "aqua", "aquamarine", "mediumaquamarine", "teal", "turquoise", "paleturquoise", "mediumturquoise", 
+  "darkturquoise", "darkcyan", "cadetblue",
+  //graus + schwarz
+  "lightgray", "lightslategray", "silver", "darkgray", "dimgray", "slategray", "darkslategray", "black"
+];
+
+  namedColors.forEach((color) => {
+    const colorSwatch = document.createElement("div");
+    colorSwatch.className = "color-swatch";
+    colorSwatch.style.backgroundColor = color;
+
+    colorSwatch.addEventListener("click", () => {
+      const nodeMenu = document.getElementById("node-context-menu");
+      const nodeId = nodeMenu.getAttribute("data-node-id");
+
+      const node = jsonData.nodes.find((n) => n.id === nodeId);
+      if (node) {
+        node.nodeColor = color;
+
+        const selectedNode = d3.select(`#node-${nodeId}`);
+        selectedNode.attr("fill", color).style("fill", color);
+
+        updatePagJsonDisplay(jsonData);
+      }
+    });
+
+    colorPalette.appendChild(colorSwatch);
+  });
+}
+
+//----------END: NodeContextMenu === CONTEXTMENU NODES UNIQUE FUNCTIONS--------------//
 
 //-------------------------------------------------------------------//
 
@@ -1459,12 +1560,16 @@ document.addEventListener("DOMContentLoaded", () => {
 
 // Second event listener for menu-buttons (separate logic for buttons)
 document.addEventListener("DOMContentLoaded", () => {
-  const slideMenuMinorButtons = document.querySelectorAll("#right-slidemenu-minor-buttons button");
+  const slideMenuMinorButtons = document.querySelectorAll(
+    "#right-slidemenu-minor-buttons button"
+  );
   const slideMenuMajor = document.querySelectorAll(".right-slidemenu-major");
 
   slideMenuMinorButtons.forEach((button, index) => {
     button.addEventListener("click", () => {
-      const currentSlideMenuMajor = document.getElementById(`menu-content-${index + 1}`);
+      const currentSlideMenuMajor = document.getElementById(
+        `menu-content-${index + 1}`
+      );
 
       if (currentSlideMenuMajor) {
         const isActive = currentSlideMenuMajor.classList.contains("active");

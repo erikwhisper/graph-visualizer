@@ -86,7 +86,12 @@
       <div id="graph-container"></div>
 
       <!-- Label & Link Contextmenus Section -->
+       <!--TODO: Bei allen contextmenu functions einen check einfügen, falls die node/link/label-id die man
+       initial angeklickt hat nicht mehr existiert, dann für auch nix aus, kann passieren wenn man context menu
+       öffnet, etwas löscht und dann etwas ausführt, oder knoten löscht wenn man ihr für kante ziehen aus
+       gewhält hat-->
       <div id="context-menus">
+        <!--Label Section-->
         <div id="label-context-menu" class="context-menus">
           <button id="menu-center">Center</button>
           <button id="menu-above">Above</button>
@@ -95,6 +100,7 @@
           <button id="menu-right">Right</button>
         </div>
 
+        <!--Link Section-->
         <div id="link-context-menu" class="context-menus">
           <p><strong>Arrowhead:</strong></p>
           <button id="arrowhead-normal">Normal</button>
@@ -104,11 +110,21 @@
           <button id="arrowtail-normal">Normal</button>
           <button id="arrowtail-odot">Odot</button>
           <button id="arrowtail-tail">Tail</button>
-          <p><strong>Straighten:</strong></p>
+          <p><strong>Other:</strong></p>
           <button id="straighten-link">Straighten</button>
-          <p><strong>Dashed:</strong></p>
           <button id="toggle-dashed-link">Toggle Dashed</button>
+          <button id="delete-link">Delete Link</button>
         </div>
+
+        <!--Node Section-->
+        <div id="node-context-menu" class="context-menus">
+          <p><strong>Change Color:</strong></p> 
+          <button id="delete-node">to be implemented</button>
+          <div id="color-palette"></div>
+        </div>
+
+        <!--wie bei yED einen neuen knoten generieren nicht nur durch einfaches klicken auf canvas, sondern
+        durch kombination von z.B. bei yEd ist es hold alt + klick, ich könnte sowas wie hold k+click machen-->
     </div>
 
     <!--alle zu beschreibenden und zu erklärenden imports und hilfsfunktionen-->
