@@ -76,25 +76,35 @@ body {
 /*----------------------------------*/
 
 /*----- START: Side Menu Major -----*/
+/*Das kann man so gottlos refactorn*/
 
 .right-slidemenu-major {
   position: fixed;
   top: 10%;
-  right: -40%; /* width(30%) + slidemenu-minor-width(10%) = 40% */
+  right: -40%;
   width: 30%;
-  height: 100%;
+  height: 90%;
   background-color: #978d64;
   display: flex;
   flex-direction: column;
   justify-content: flex-start;
-  align-items: flex-start;
+  align-items: center;
   gap: 10px;
   transition: right 0.4s ease;
   z-index: 999;
   overflow-y: auto;
   overflow-x: hidden;
   box-sizing: border-box;
+  padding: 1%;
 }
+
+.input-section {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
 
 .right-slidemenu-major.active {
   right: 10%;
@@ -108,11 +118,27 @@ body {
   background-color: #857c58;
   padding: 10px 15px;
   border-radius: 5px;
+  text-align: center;
 }
 
+.right-slidemenu-major section {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  width: 100%;
+}
+
+.right-slidemenu-major textarea.active {
+  display: block;
+  height: 150px;
+}
+
+/*das macht hier keinen sinn mehr, da eh nur textarea.active angezeigt wird, hier muss nur display:none drin sein*/
 .right-slidemenu-major textarea {
-  width: 95%;
-  height: 100px;
+  width: 90%;
+  max-width: 90%;
+  text-align: left;
+  height: 50%;
   margin-right: 10%;
   resize: vertical;
   padding: 10px;
@@ -123,11 +149,27 @@ body {
   border: 1px solid #ccc;
   border-radius: 5px;
   box-shadow: inset 0 2px 5px rgba(0, 0, 0, 0.1);
+  resize: none;
+  display: none; 
 }
 
-textarea {
-  height: auto;
+.right-slidemenu-major button {
+  width: 100%;
+  height: 50px;
+  background-color: #938961;
+  color: black;
+  font-size: 1rem;
+  font-weight: bold;
+  border: none;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+  text-align: left;
 }
+
+.right-slidemenu-major button:hover {
+  background-color: #b4a877;
+}
+
 
 
 /*----- ENDE: Side Menu Major -----*/

@@ -1,69 +1,66 @@
 <!DOCTYPE html>
 <html lang="en"> <!--end oder de?-->
-   <head>
+  <head>
       <meta charset="UTF-8" />
       <meta name="viewport" content="width=device-width, initial-scale=1.0" />
       <link rel="stylesheet" href="../styles/style.css" />
       <title>CausalGraph Visualiser</title>
-   </head>
-   <body>
+  </head>
+  <body>
   
       <!-- Zentrale feste Navigationsbar ganz oben auf der Seite -->
-      <div id="navigation-header">
-        <h1>CausalGraph Visualiser</h1>
-         <button>Button 1</button>
-         <button id="right-slidemenu-toggle">Menu</button> <!-- aktuell nur platzhalter -->
-      </div>
+    <div id="navigation-header">
+      <h1>CausalGraph Visualiser</h1>
+      <button>Button 1</button>
+      <button id="right-slidemenu-toggle">Menu</button> <!-- aktuell nur platzhalter -->
+    </div>
 
       <!-- Das initiale kleine von links kommende slidemenu, welches auf right-slidemenu-toggle reagiert -->
-      <div id="right-slidemenu-minor">
+    <div id="right-slidemenu-minor">
          <div id="right-slidemenu-minor-buttons">
             <button id="right-slidemenu-minor-button-fileInput">Öffnen PAG</button>
             <button id="right-slidemenu-minor-button-fileOutput">Speichern</button>
             <button id="right-slidemenu-minor-button-fileExport">Exportieren</button>
          </div>
-      </div>
+    </div>
 
       <!-- Die groeßeren von links kommenden slidemenus, welche auf die verschiedenen right-slidemenu-minor-buttons reagieren -->
-      <div class="right-slidemenu-major" id="menu-content-1"> <!--right-slidemenu-major-content-fileInput-->
+    <div class="right-slidemenu-major" id="menu-content-1"> <!--right-slidemenu-major-content-fileInput-->
          <div class="right-slidemenu-major-content-headline">Öffnen PAG</div>
 
          <!-- PAG Matrix Input Section -->
          <section id="pag-matrix-input-section">
             <input type="file" id="pagMatrixFileInput" accept=".csv" />
+              <button class="toggle-textarea" data-target="pagMatrixDisplay">Anzeigen/Verbergen</button>
             <textarea
                id="pagMatrixDisplay"
-               placeholder="Matrix wird hier angezeigt..."
-               
-               ></textarea>
+               placeholder="Matrix wird hier angezeigt..."></textarea>
             <button id="pagMatrixReadButton">Einlesen</button>
          </section>
 
          <!-- PAG JSON Input Section -->
          <section id="pag-json-input-section">
             <input type="file" id="pagJsonFileInput" accept=".csv" />
+              <button class="toggle-textarea" data-target="pagJsonDisplay">Anzeigen/Verbergen</button>
             <textarea
                id="pagJsonDisplay"
-               placeholder="JSON-Daten werden hier angezeigt..."
-               
-               ></textarea>
+               placeholder="JSON-Daten werden hier angezeigt..."></textarea>
             <button id="pagJsonReadButton">Einlesen</button>
          </section>
          
          <!-- PAG DOT Input Section -->
          <section id="pag-dot-input-section">
             <input type="file" id="pagDotFileInput" accept=".csv" />
+              <button class="toggle-textarea" data-target="pagDotDisplay">Anzeigen/Verbergen</button>
             <textarea
                id="pagDotDisplay"
-               placeholder="DOT-Syntax wird hier angezeigt..."
-               
-               ></textarea>
+               placeholder="DOT-Syntax wird hier angezeigt..."></textarea>
             <button id="pagDotReadButton">Einlesen</button>
          </section>
-      </div>
+    </div>
 
       <!-- Conversion Button Section + Button -->
-      <div class="right-slidemenu-major" id="menu-content-2"> <!--right-slidemenu-major-content-fileOutput-->
+    <div class="right-slidemenu-major" id="menu-content-2"> <!--right-slidemenu-major-content-fileOutput-->
         <div class="right-slidemenu-major-content-headline">Speichern</div>
         <section id="pag-conversion-button-section">
             <label><input type="checkbox" id="gridClippingToggle" unchecked />Grid</label>
@@ -73,14 +70,14 @@
             <button id="pagConvertJsonToDot">JSON -> DOT</button>
             <button id="pagVisualizeJsonWithD3">Visualiser</button>
         </section>
-      </div>
+    </div>
 
       <!-- Export Button Section + Button -->
-      <div class="right-slidemenu-major" id="menu-content-3"> <!--right-slidemenu-major-content-fileExport-->
+    <div class="right-slidemenu-major" id="menu-content-3"> <!--right-slidemenu-major-content-fileExport-->
          <div class="right-slidemenu-major-content-headline">Exportieren</div>
          <button id="downloadPngButton">Download PNG</button>
          <button id="downloadPdfButton">Download PDF</button>
-      </div>
+    </div>
 
       <!-- Graph Container -->
       <div id="graph-container"></div>
@@ -125,7 +122,7 @@
 
         <!--wie bei yED einen neuen knoten generieren nicht nur durch einfaches klicken auf canvas, sondern
         durch kombination von z.B. bei yEd ist es hold alt + klick, ich könnte sowas wie hold k+click machen-->
-    </div>
+      </div>
 
     <!--alle zu beschreibenden und zu erklärenden imports und hilfsfunktionen-->
       <script src = https://cdnjs.cloudflare.com/ajax/libs/d3/7.9.0/d3.min.js></script>

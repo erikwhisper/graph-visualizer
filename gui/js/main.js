@@ -522,6 +522,9 @@ function jsonToDotConversion(jsonData) {
 //----------START: BASIC VISUALIZATION + DRAG&DROP --------------//
 
 //Eventlistener for basic visualization
+//TODO: JsonData display bei laden der seite mit einem leeren node[],link[] initalisieren, damit ich auch von
+//null auf anfangen kann knoten und kanten zu zeichnen, oder maybe falls feld empty dann erstell ich mir node[].link[]
+//leer und ruf meine visualize mit d3 auf damit ich halt nen canvas hab.
 document
   .getElementById("pagVisualizeJsonWithD3")
   .addEventListener("click", () => {
@@ -545,13 +548,19 @@ function resetCheckBoxes() {
 
 //todo: when drawing something with two edges and the linkOffsets are not set i gotta set them for atleast
 //one of them a bit off, for every other edge between the node the same offset upon there.
-
 //todo: wenn graph auch aus matrix oder dot kommt und komplett neu gezeichnet wird, muss offset bei edge between
 //two nodes +1 erstellt werden
 
 //TODO: wenn nix mehr geht, kann ich doch einf nen counter hier hin machen, der von 0 auf 1 geht, wenn ich
 //einmal diese funktion aufgerufen hab, dadrin rufe ich dann einmal alle contextmenu funktionen auf und dann
 //danach halt nie wieder, oder ist das problematisch?
+
+//TODO 1: Überall im code wo es geht css.escape nutzen edge-client um keine probleme
+//mit sonderzeichen in namen zu haben.
+//TODO 2: Jetzt mit deleteNode im node contextmenu anfangen und dann create und delete node refactorn.
+//TODO 3: Kanten dragging so überarbeiten das die kante wirklich da gerade ist wo mein kruser ist
+//auch wenn das bedeutet nen hardcoded coordinated +200 rein zu packen.
+//TODO 4: Bei langen namen die direkt über oder unter dem kreis anzeigen
 function visualizeJsonWithD3(jsonData) {
   const svg = createSvgCanvas();
   currentSvg = svg; //currently only for visual grid needed
@@ -564,14 +573,19 @@ function visualizeJsonWithD3(jsonData) {
 
   drawEverything(svg, jsonData);
 
-  handleCreateNewLink(svg, jsonData);
-
   handleAllContextMenus(svg, jsonData);
 
   handleAllInteractiveDrags(svg, jsonData, gridSpacing);
 
+  handleCreateNewLink(svg, jsonData);
+
+  handleCreateNewNode(svg, jsonData);
+
   updatePagJsonDisplay(jsonData);
 }
+
+//TODO: Knoten mit Label hinzufügen / Knoten mit Label löschen können + zugehörige Kanten löschen
+//TODO Matrix->JSON, JSON->Matrix for Admg
 
 //----------START: NOCH KEINEN NAMEN HIERFUEHR --------------//
 
@@ -695,19 +709,21 @@ function drawEverything(svg, jsonData) {
 
 //calls the functions that implement the contextmenu for the three objects
 function handleAllContextMenus(svg, jsonData) {
-  svg.selectAll(".link").on("contextmenu", null);
+  svg.selectAll(".link").on("click", null).on("contextmenu", null);
+  svg.selectAll(".node").on("click", null).on("contextmenu", null);
+  svg.selectAll(".node-label").on("click", null).on("contextmenu", null);
   linkContextMenu(svg, jsonData);
-  svg.selectAll(".node").on("contextmenu", null);
+
   nodeContextMenu(svg, jsonData);
-  svg.selectAll(".node-label").on("contextmenu", null);
+
   labelContextMenu(svg, jsonData);
 }
 
 //calls the functions that implement the leftclick for the three objects
 function handleAllInteractiveDrags(svg, jsonData, gridSpacing) {
   svg.selectAll(".link").on(".drag", null);
-  linkInteractiveDrag(svg, jsonData, gridSpacing);
   svg.selectAll(".node").on(".drag", null);
+  linkInteractiveDrag(svg, jsonData, gridSpacing);
   nodeInteractiveDrag(svg, jsonData, gridSpacing);
   //labelInteractiveClick(svg, jsonData, gridSpacing); //maybe implement later
 }
@@ -767,6 +783,12 @@ function drawNodes(svg, jsonData) {
     .attr("cx", (d) => d.x)
     .attr("cy", (d) => d.y);
 }
+
+//------------------------
+//TODO: Plan ist ganz einfach, als (1.) möchte ich jetzt überall label-d.id nutzen. 
+// (2.) Create newLink komplett neu schreiben und den fehler der beim label entsteht möglichst früh finden
+// (3.) Nodes löschen können.
+//------------------------
 
 function drawLabels(svg, jsonData) {
   svg
@@ -1034,7 +1056,8 @@ function setupNodesContextMenuFunctions(svg, jsonData) {
       const node = jsonData.nodes.find((n) => n.id === nodeId);
       if (node) {
         node.nodeColor = color;
-
+        //TODO: Hier auch css.escape, sonst können knoten mit sonderzeichen im namen nicht
+        //korrekt im svg canvas gefärbt werden und es geht nur in der jsonData
         const selectedNode = d3.select(`#node-${nodeId}`);
         selectedNode.attr("fill", color).style("fill", color);
 
@@ -1044,6 +1067,33 @@ function setupNodesContextMenuFunctions(svg, jsonData) {
 
     colorPalette.appendChild(colorSwatch);
   });
+
+  document.getElementById("delete-node").addEventListener("click", () => {
+    const nodeMenu = document.getElementById("node-context-menu");
+    const nodeId = nodeMenu.getAttribute("data-node-id");
+    if (nodeId) {
+      deleteNode(nodeId, jsonData);
+      if (nodeMenu) {
+        nodeMenu.style.display = "none";
+      }
+    }
+  });
+}
+
+//TODO: GEHT NOCHT NICHT!
+function deleteNode(nodeId, jsonData) {
+  // Entferne den Knoten aus dem jsonData.nodes-Array
+  jsonData.nodes = jsonData.nodes.filter((node) => node.id !== nodeId);
+  jsonData.links = jsonData.links.filter(
+    (link) => link.source !== nodeId && link.target !== nodeId
+  );
+
+  d3.select(`#node-${nodeId}`).remove();
+  //TODO: Das löschen von den passenden links funktioniert noch nicht, dafür einf die delete link Funktion
+  //aufrufen oder?
+  d3.selectAll(`[data-source='${nodeId}'], [data-target='${nodeId}']`).remove();
+
+  updatePagJsonDisplay(jsonData);
 }
 
 //----------END: NodeContextMenu === CONTEXTMENU NODES UNIQUE FUNCTIONS--------------//
@@ -1224,12 +1274,13 @@ function updatePositions() {
 function handleCreateNewLink(svg, jsonData) {
   let firstNode = null;
 
+  svg.selectAll(".node").on("click", null);
+
   svg.selectAll(".node").on("click", function (event, d) {
     if (!firstNode) {
       firstNode = d;
       //d3.select(this).style("fill", "gray");
       console.log(`First node selected: `, firstNode);
-      console.log("firstNode color:" + firstNode.fillColor);
     } else if (d.id !== firstNode.id) {
       const secondNode = d;
       //HOW DO I COLOR IT NORMAL AGAIN
@@ -1246,7 +1297,7 @@ function handleCreateNewLink(svg, jsonData) {
         isCurved: false,
         isDashed: false,
       };
-
+      console.log("Creating new link:", newLink);
       jsonData.links.push(newLink);
 
       drawOnlyNewLink(svg, jsonData, newLink.linkId);
@@ -1254,10 +1305,14 @@ function handleCreateNewLink(svg, jsonData) {
       firstNode = null;
       //secondNode = null;
     } else {
-      console.log("You cannot select the same node twice.");
+      console.log("Click detected on the same node. Resetting firstNode.");
+      firstNode = null;
     }
   });
 
+  //Das abbrechen durch click auf den canvas ist ein problem, stattdessen klick auf den selbe knoten
+  //zum abbrechen nutzen.
+  /*
   svg.on("click", function (event) {
     if (d3.select(event.target).classed("node") === false) {
       if (firstNode) {
@@ -1267,29 +1322,25 @@ function handleCreateNewLink(svg, jsonData) {
       }
     }
   });
+  */
 }
 
 //TODO 1: Hinzufügen das ich meine knoten auswahl auch abbrechen kann, das ganze visuell darstellen.
+//-> Fehlt noch, also node färben wenn ausgewählt
 
 //TODO 2: Jetzt die Knoten nochmal neu zeichnen, so das sie durch eine formel passen gekürzt werden,
 //damit das mit den arrowmarkern nicht immer so krampfhaft aussieht, frage ist nur, geht mir mein
 //clipping und so dann kaputt oder sieht das weiterhin schön aus weil ich die verkürzte kantenform
 //irgendwie basierend auf den mittelpunkten der referenzierten knoten zeichnen kann?
+//-> Fehlt noch, stattdessen aber kanten einf initial kürzer machen, dann spar ich mir neuzeichenn
 
 //TODO 2.1: die borders meine svg canvases nicht durchdringbar machen, bei createSvgCanvas proably und
 //gucken ob sich dann neu erstellte knoten auch daran halten
-
-//TODO 3: Delete edges? Where do i add this? Probably in the context menu would be best
-//and easiest i think, contextmenu should close afterward, otherwise id probably get errors
-//when the user tries to change the arrowmarkers or so of the edge after it got deleted
-//gotta delete it in: DOM(svg-elements), jsonData Obejct, jsonDataDisplay
+//-> Fehlt auch noch
 
 //TODO 4: Labels über knotextmenu namen verändern können?
 
-//TODO 4.1:Farbe von knoten anpassen können + (deren größe), dies unterbringen im jsonData & contextmenu
-//-> Contextmenu für knoten erstellen yippie
-
-//TODO 5: sich das zu nutze machen beim erstellen von eigenen knoten
+//TODO 4.1:Größe von knoten anpassen können, dies unterbringen im jsonData & contextmenu
 
 //TODO 6: Knoten löschen können, wenn daran links hängen diese mit löschen, daher delete link, nicht nur
 //im kontextmenü unterbringen sondern den wichtigsten teil in aufrufbare funktion versetzen.
@@ -1347,18 +1398,157 @@ function drawOnlyNewLink(svg, jsonData, linkId) {
 
   //gucken ob das als absicherung vor nicht reproduzierbarem
   //node-label error hilft
+  //nein es wird nicht helfen es gibt keien label-d.id
   svg
     .selectAll(".node-label")
     .data(jsonData.nodes, (d) => d.id)
     .join("text")
     .attr("class", "node-label")
-    .attr("id", (d) => `label-${d.id}`);
+    .attr("id", (d) => `label-${d.id}`); //.attr("id", (d) => `label-${d.id}`);
 
   //monitoren ob das iwie harmful ist (unstable?)
   linkInteractiveDrag(svg, jsonData, currentGridSpacing);
 }
 
 //----------END: handleAllEditOperations === ALL ADD NEW LINK UNIQUE FUNCTION--------------//
+
+//-------------------------------------------------------------------//
+
+//----------START: handleAllEditOperations === ALL ADD NEW NODE UNIQUE FUNCTION--------------//
+
+//TODO 1: Überall im code wo es geht css.escape nutzen edge-client um keine probleme
+//mit sonderzeichen in namen zu haben. ÜBERALL dann fr
+//TODO 2: Jetzt mit deleteNode im node contextmenu anfangen und dann create und delete node refactorn.
+//TODO 3: Kanten dragging so überarbeiten das die kante wirklich da gerade ist wo mein kruser ist
+//auch wenn das bedeutet nen hardcoded coordinated +200 rein zu packen.
+//TODO 4: Bei langen namen die direkt über oder unter dem kreis anzeigen
+
+//Jetzt klappt die kacke komplett, aber refactorn und console logs raus damits ordentlich aussieht.
+
+function handleCreateNewNode(svg, jsonData) {
+  /*
+  console.log("Setting up 'Shift + Click' for creating a new node.");
+  svg.on("click", function (event) {
+    if (event.shiftKey && event.button === 0) {
+      // Check if 'Shift' is held and left mouse button clicked
+      console.log("Shift + Left click detected.");
+      const [x, y] = d3.pointer(event, this); // Get the coordinates relative to the SVG canvas
+
+      // Öffne ein Eingabefeld für den Knoten-Namen
+      const nodeName = window.prompt(
+        "Bitte geben Sie den Namen für den neuen Knoten ein:"
+      );
+
+      if (nodeName) {
+        console.log(`User entered node name: ${nodeName}`);
+        // Prüfe, ob ein Knoten mit dieser ID bereits existiert
+        const isDuplicate = jsonData.nodes.some((node) => node.id === nodeName);
+        if (isDuplicate) {
+          alert(
+            `Ein Knoten mit dem Namen "${nodeName}" existiert bereits. Bitte wählen Sie einen anderen Namen.`
+          );
+          return;
+        }
+
+        // Erstelle den neuen Knoten
+        const newNode = {
+          id: nodeName,
+          nodeColor: "whitesmoke",
+          x: x,
+          y: y,
+          labelOffsetX: 0,
+          labelOffsetY: 0,
+        };
+
+        // Füge den Knoten zu jsonData hinzu
+        console.log("Creating new node:", newNode);
+        jsonData.nodes.push(newNode);
+
+        drawOnlyNewNode(svg, jsonData, nodeName);
+
+        // Aktualisiere die Anzeige im JSON-Textfeld
+        updatePagJsonDisplay(jsonData);
+
+        console.log(`Neuer Knoten erstellt:`, newNode);
+      } else {
+        console.log("Kein Name eingegeben. Knoten wird nicht erstellt.");
+      }
+    }
+  });
+  */
+}
+
+//nodeId escaped damit auch sonderzeichen in den namen akzeptiert werden wie #,?,...
+function drawOnlyNewNode(svg, jsonData, nodeId) {
+  /*
+  // Find the newly created node in jsonData
+  console.log("node id" + nodeId);
+  const selectedNode = jsonData.nodes.find((node) => node.id === nodeId);
+
+  if (!selectedNode) {
+    console.error(`No node found with ID: ${nodeId}`);
+    return;
+  }
+
+  // Draw the new node (circle)
+  const nodeSelection = svg
+  .selectAll(`#node-${nodeId}`) // Ensure no duplicate nodes are added
+    .data([selectedNode], (d) => d.id)
+    .enter()
+    .append("circle")
+    .attr("id", `node-${nodeId}`)
+    .attr("class", "node")
+    .attr("r", 15)
+    .attr("fill", selectedNode.nodeColor)
+    .attr("stroke", "black")
+    .attr("stroke-width", 1)
+    .attr("cx", selectedNode.x)
+    .attr("cy", selectedNode.y);
+
+  nodeSelection.on("contextmenu", function (event, d) {
+    event.preventDefault();
+    const menu = document.getElementById("node-context-menu");
+    menu.style.display = "block";
+    menu.style.left = `${event.pageX}px`;
+    menu.style.top = `${event.pageY}px`;
+    menu.setAttribute("data-node-id", d.id);
+  });
+
+  // Draw the new label (text)
+  const labelSelection = svg
+  .selectAll(`#label-${nodeId}`)// Ensure no duplicate labels are added
+    .data([selectedNode], (d) => d.id)
+    .enter()
+    .append("text")
+    .attr("id", `label-${nodeId}`)
+    .attr("class", "node-label")
+    .attr("x", selectedNode.x + selectedNode.labelOffsetX)
+    .attr("y", selectedNode.y + selectedNode.labelOffsetY)
+    .attr("dy", 5)
+    .attr("text-anchor", "middle")
+    .text(selectedNode.id)
+    .attr("fill", "black")
+    .style("font-size", "15px")
+    .style("pointer-events", "all")
+    .style("user-select", "none");
+
+  labelSelection.on("contextmenu", function (event, d) {
+    event.preventDefault();
+    const menu = document.getElementById("label-context-menu");
+    menu.style.display = "block";
+    menu.style.left = `${event.pageX}px`;
+    menu.style.top = `${event.pageY}px`;
+    menu.setAttribute("data-label-id", d.id);
+  });
+
+  nodeInteractiveDrag(svg, jsonData, currentGridSpacing);
+  //handleCreateNewLink aufruf klappt, da abbrechen jetzt so funktioniert das ich auf den selben
+  //knoten nochmal klicken muss anstatt einf iwo aufn canvas
+  handleCreateNewLink(svg, jsonData);
+  */
+}
+
+//----------START: handleAllEditOperations === ALL ADD NEW NODE UNIQUE FUNCTION--------------//
 
 //-------------------------------------------------------------------//
 
@@ -1579,6 +1769,21 @@ document.addEventListener("DOMContentLoaded", () => {
         if (!isActive) {
           currentSlideMenuMajor.classList.add("active");
         }
+      }
+    });
+  });
+});
+
+document.addEventListener("DOMContentLoaded", () => {
+  const toggleButtons = document.querySelectorAll(".toggle-textarea");
+
+  toggleButtons.forEach((button) => {
+    button.addEventListener("click", () => {
+      const targetId = button.getAttribute("data-target");
+      const textarea = document.getElementById(targetId);
+
+      if (textarea) {
+        textarea.classList.toggle("active");
       }
     });
   });
