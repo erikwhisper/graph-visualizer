@@ -142,8 +142,8 @@ function pagConvertMatrixToJson(parsedPagMatrix) {
   }
 
   //knoten in jsonFormat
-  const nodes = Array.from(knotenMap.entries()).map(([name, id]) => ({
-    id, // ID aus der Map
+  const nodes = Array.from(knotenMap.entries()).map(([name, nodeId]) => ({
+    nodeId, // ID aus der Map
     name, // Name aus der Map
     nodeColor: "whitesmoke",
     x: null,
@@ -193,7 +193,7 @@ function pagCreateJsonLinks(quellId, zielId, kantenTypFromTo, kantenTypToFrom) {
   return {
     linkId: uuid.v4(),
     source: {
-      id: quellId,
+      nodeId: quellId,
       nodeColor: "whitesmoke",
       x: null,
       y: null,
@@ -201,7 +201,7 @@ function pagCreateJsonLinks(quellId, zielId, kantenTypFromTo, kantenTypToFrom) {
       labelOffsetY: 0,
     },
     target: {
-      id: zielId,
+      nodeId: zielId,
       nodeColor: "whitesmoke",
       x: null,
       y: null,
@@ -289,10 +289,10 @@ function mapEdgeToType(arrowhead, arrowtail) {
 function pagConvertJsonToMatrix(jsonData) {
   //das geht safe besser
   const mapNodeIdToNodeName = Object.fromEntries(
-    jsonData.nodes.map((node) => [node.id, node.name])
+    jsonData.nodes.map((node) => [node.nodeId, node.name])
   );
 
-  const knoten = jsonData.nodes.map((node) => node.id);
+  const knoten = jsonData.nodes.map((node) => node.nodeId);
   const matrixSize = knoten.length;
 
   const matrix = Array.from({ length: matrixSize + 1 }, () =>
@@ -300,14 +300,14 @@ function pagConvertJsonToMatrix(jsonData) {
   );
 
   matrix[0][0] = '""'; // Ecke hardcoded
-  knoten.forEach((id, index) => {
-    matrix[0][index + 1] = `"${mapNodeIdToNodeName[id]}"`;
-    matrix[index + 1][0] = `"${mapNodeIdToNodeName[id]}"`;
+  knoten.forEach((nodeId, index) => {
+    matrix[0][index + 1] = `"${mapNodeIdToNodeName[nodeId]}"`;
+    matrix[index + 1][0] = `"${mapNodeIdToNodeName[nodeId]}"`;
   });
 
   jsonData.links.forEach((link) => {
-    const sourceIndex = knoten.indexOf(link.source.id) + 1;
-    const targetIndex = knoten.indexOf(link.target.id) + 1;
+    const sourceIndex = knoten.indexOf(link.source.nodeId) + 1;
+    const targetIndex = knoten.indexOf(link.target.nodeId) + 1;
 
     const [edgeTypeForward, edgeTypeReverse] = mapEdgeToType(
       link.arrowhead,
@@ -359,7 +359,7 @@ function pagDotToJsonConversion(dotSyntax) {
 
     if (!knoten.has(nodeName)) {
       knoten.set(nodeName, {
-        id: uuid.v4(),
+        nodeId: uuid.v4(),
         name: nodeName,
         nodeColor: nodeColor || "whitesmoke",
         x: null,
@@ -381,7 +381,7 @@ function pagDotToJsonConversion(dotSyntax) {
     //prüfen ob sourceName oder targetName zsm fassen und im if case dafür dann nach name prüfen und setzen
     if (!knoten.has(sourceName)) {
       knoten.set(sourceName, {
-        id: uuid.v4(),
+        nodeId: uuid.v4(),
         name: sourceName,
         nodeColor: "whitesmoke",
         x: null,
@@ -393,7 +393,7 @@ function pagDotToJsonConversion(dotSyntax) {
 
     if (!knoten.has(targetName)) {
       knoten.set(targetName, {
-        id: uuid.v4(),
+        nodeId: uuid.v4(),
         name: targetName,
         nodeColor: "whitesmoke",
         x: null,
@@ -446,12 +446,12 @@ function jsonToDotConversion(jsonData) {
   let dotOutput = "digraph PAG {\n";
 
   const mapNodeIdToNodeName = Object.fromEntries(
-    jsonData.nodes.map((node) => [node.id, node.name])
+    jsonData.nodes.map((node) => [node.nodeId, node.name])
   );
 
   jsonData.links.forEach((link) => {
-    const source = mapNodeIdToNodeName[link.source.id];
-    const target = mapNodeIdToNodeName[link.target.id];
+    const source = mapNodeIdToNodeName[link.source.nodeId];
+    const target = mapNodeIdToNodeName[link.target.nodeId];
     const arrowhead = link.arrowhead;
     const arrowtail = link.arrowtail;
     const style = link.isDashed ? ", style=dashed" : "";
@@ -463,11 +463,11 @@ function jsonToDotConversion(jsonData) {
 
     //falls node alleinsetehend ist, wird er auch in dot-syntaxt übersetzt
     const nodeIsInLinks = jsonData.links.some(
-      (link) => link.source.id === node.id || link.target.id === node.id
+      (link) => link.source.nodeId === node.nodeId || link.target.nodeId === node.nodeId
     );
 
     if (node.nodeColor !== "whitesmoke" || !nodeIsInLinks) {
-      dotOutput += `"${mapNodeIdToNodeName[node.id]}" [style=filled, fillcolor=${node.nodeColor}];\n`;
+      dotOutput += `"${mapNodeIdToNodeName[node.nodeId]}" [style=filled, fillcolor=${node.nodeColor}];\n`;
     }
   });
 
@@ -708,8 +708,8 @@ function initializeNodeCoordinates(jsonData, gridSpacing) {
   });
 
   jsonData.links.forEach((link) => {
-    link.source = jsonData.nodes.find((node) => node.id === link.source.id);
-    link.target = jsonData.nodes.find((node) => node.id === link.target.id);
+    link.source = jsonData.nodes.find((node) => node.nodeId === link.source.nodeId);
+    link.target = jsonData.nodes.find((node) => node.nodeId === link.target.nodeId);
   });
 }
 
@@ -736,9 +736,7 @@ function handleAllContextMenus(svg, jsonData) {
   svg.selectAll(".node").on("click", null).on("contextmenu", null);
   svg.selectAll(".node-label").on("click", null).on("contextmenu", null);
   linkContextMenu(svg, jsonData);
-
   nodeContextMenu(svg, jsonData);
-
   labelContextMenu(svg, jsonData);
 }
 
@@ -797,7 +795,7 @@ function drawNodes(svg, jsonData) {
     .data(jsonData.nodes)
     .enter()
     .append("circle")
-    .attr("id", (d) => `node-${d.id}`) //hinzugefügt für colorchange, ist das sonst iwo ein problem?
+    .attr("id", (d) => `node-${d.nodeId}`) //hinzugefügt für colorchange, ist das sonst iwo ein problem?
     .attr("class", "node")
     .attr("r", 15)
     .attr("fill", (d) => d.nodeColor)
@@ -819,7 +817,7 @@ function drawLabels(svg, jsonData) {
     .data(jsonData.nodes)
     .enter()
     .append("text")
-    .attr("id", (d) => `label-${d.id}`) //ist erreichbar über label + die nodeId
+    .attr("id", (d) => `label-${d.nodeId}`) //ist erreichbar über label + die nodeId
     .attr("class", "node-label")
     .attr("x", (d) => d.x + d.labelOffsetX) //idk if needed
     .attr("y", (d) => d.y + d.labelOffsetY) //idk if needed
@@ -862,7 +860,7 @@ function nodeContextMenu(svg, jsonData) {
     ".node",
     "node-context-menu",
     "data-node-id",
-    (d) => d.id //uses its unique name as an id <- *
+    (d) => d.nodeId //uses its unique name as an id <- *
   );
   setupNodesContextMenuFunctions(svg, jsonData);
   closeContextMenu("node-context-menu");
@@ -876,7 +874,7 @@ function labelContextMenu(svg, jsonData) {
     ".node-label",
     "label-context-menu",
     "data-label-id",
-    (d) => d.id //uses the nodesId, which is its unique name, to be referenced
+    (d) => d.nodeId //uses the nodesId, which is its unique name, to be referenced
   );
   setupLabelsContextMenuFunctions(svg, jsonData);
   closeContextMenu("label-context-menu");
@@ -938,6 +936,7 @@ function setupLinksContextMenuFunctions(svg, jsonData) {
   ];
 
   menuActions.forEach((action) => {
+    //id hier hat nichts mit nodeId, linkId oder labelId zu tun, id ist intern für menuActions
     document.getElementById(action.id).addEventListener("click", () => {
       const linkMenu = document.getElementById("link-context-menu");
       const linkId = linkMenu.getAttribute("data-link-id");
@@ -1077,7 +1076,7 @@ function setupNodesContextMenuFunctions(svg, jsonData) {
       const nodeMenu = document.getElementById("node-context-menu");
       const nodeId = nodeMenu.getAttribute("data-node-id");
 
-      const node = jsonData.nodes.find((n) => n.id === nodeId);
+      const node = jsonData.nodes.find((n) => n.nodeId === nodeId);
       if (node) {
         node.nodeColor = color;
         //TODO: Hier auch css.escape, sonst können knoten mit sonderzeichen im namen nicht
@@ -1107,7 +1106,7 @@ function setupNodesContextMenuFunctions(svg, jsonData) {
 //TODO: GEHT NOCHT NICHT!
 function deleteNode(nodeId, jsonData) {
   // Entferne den Knoten aus dem jsonData.nodes-Array
-  jsonData.nodes = jsonData.nodes.filter((node) => node.id !== nodeId);
+  jsonData.nodes = jsonData.nodes.filter((node) => node.nodeId !== nodeId);
   jsonData.links = jsonData.links.filter(
     (link) => link.source !== nodeId && link.target !== nodeId
   );
@@ -1130,28 +1129,28 @@ function setupLabelsContextMenuFunctions(svg, jsonData) {
   const menuActions = {
     center: (label, jsonData, nodeId) => {
       label.attr("x", (d) => d.x).attr("y", (d) => d.y);
-      const node = jsonData.nodes.find((n) => n.id === nodeId);
+      const node = jsonData.nodes.find((n) => n.nodeId === nodeId);
       node.labelOffsetX = 0;
       node.labelOffsetY = 0;
     },
     above: (label, jsonData, nodeId) => {
       label.attr("y", (d) => d.y - 25);
-      const node = jsonData.nodes.find((n) => n.id === nodeId);
+      const node = jsonData.nodes.find((n) => n.nodeId === nodeId);
       node.labelOffsetY = -25;
     },
     below: (label, jsonData, nodeId) => {
       label.attr("y", (d) => d.y + 25);
-      const node = jsonData.nodes.find((n) => n.id === nodeId);
+      const node = jsonData.nodes.find((n) => n.nodeId === nodeId);
       node.labelOffsetY = 25;
     },
     left: (label, jsonData, nodeId) => {
       label.attr("x", (d) => d.x - 25);
-      const node = jsonData.nodes.find((n) => n.id === nodeId);
+      const node = jsonData.nodes.find((n) => n.nodeId === nodeId);
       node.labelOffsetX = -25;
     },
     right: (label, jsonData, nodeId) => {
       label.attr("x", (d) => d.x + 25);
-      const node = jsonData.nodes.find((n) => n.id === nodeId);
+      const node = jsonData.nodes.find((n) => n.nodeId === nodeId);
       node.labelOffsetX = 25;
     },
   };
@@ -1164,7 +1163,7 @@ function setupLabelsContextMenuFunctions(svg, jsonData) {
 
       const label = svg
         .selectAll(".node-label")
-        .filter((d) => d.id === labelId);
+        .filter((d) => d.nodeId === labelId);
 
       handler(label, jsonData, labelId);
 
@@ -1305,7 +1304,7 @@ function handleCreateNewLink(svg, jsonData) {
       firstNode = d;
       //d3.select(this).style("fill", "gray");
       console.log(`First node selected: `, firstNode);
-    } else if (d.id !== firstNode.id) {
+    } else if (d.nodeId !== firstNode.nodeId) {
       const secondNode = d;
       //HOW DO I COLOR IT NORMAL AGAIN
       console.log(`Second node selected: `, secondNode);
@@ -1425,10 +1424,10 @@ function drawOnlyNewLink(svg, jsonData, linkId) {
   //nein es wird nicht helfen es gibt keien label-d.id
   svg
     .selectAll(".node-label")
-    .data(jsonData.nodes, (d) => d.id)
+    .data(jsonData.nodes, (d) => d.nodeId)
     .join("text")
     .attr("class", "node-label")
-    .attr("id", (d) => `label-${d.id}`); //.attr("id", (d) => `label-${d.id}`);
+    .attr("id", (d) => `label-${d.nodeId}`); //.attr("id", (d) => `label-${d.id}`);
 
   //monitoren ob das iwie harmful ist (unstable?)
   linkInteractiveDrag(svg, jsonData, currentGridSpacing);
