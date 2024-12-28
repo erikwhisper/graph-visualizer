@@ -107,26 +107,30 @@ pagConvertMatrixToJsonButton.addEventListener(
 );
 
 function pagConvertMatrixToJson(parsedPagMatrix) {
-  const knotenSet = new Set(); //alle knoten in menge
+  const knotenMap = new Map(); //alle knoten in menge
   const links = []; //alle edges
 
   //knoten auslesen und einmalig übernehmen
   const knotenNamen = parsedPagMatrix[0].slice(1);
 
+  knotenNamen.forEach((name) => {
+    console.log("Log: " + knotenNamen);
+    knotenMap.set(name, uuid.v4());
+  });
+
   for (let i = 1; i < parsedPagMatrix.length; i++) {
-    const quellKnoten = parsedPagMatrix[i][0];
+    const quellKnotenName = parsedPagMatrix[i][0];
     for (let j = i + 1; j < parsedPagMatrix[i].length; j++) {
       const kantenTypFromTo = parseInt(parsedPagMatrix[i][j]);
       const kantenTypToFrom = parseInt(parsedPagMatrix[j][i]);
-      const zielKnoten = knotenNamen[j - 1];
-      //const knotenFarbe = "whitesmoke";
+      const zielKnotenName = knotenNamen[j - 1];
 
-      knotenSet.add(quellKnoten);
-      knotenSet.add(zielKnoten);
+      //knotenSet.add(quellKnotenName);
+      //knotenSet.add(zielKnotenName);
 
       const link = pagCreateJsonLinks(
-        quellKnoten,
-        zielKnoten,
+        knotenMap.get(quellKnotenName),
+        knotenMap.get(zielKnotenName),
         kantenTypFromTo,
         kantenTypToFrom
         //,knotenFarbe
@@ -138,8 +142,9 @@ function pagConvertMatrixToJson(parsedPagMatrix) {
   }
 
   //knoten in jsonFormat
-  const nodes = Array.from(knotenSet).map((node) => ({
-    id: node,
+  const nodes = Array.from(knotenMap.entries()).map(([name, id]) => ({
+    id, // ID aus der Map
+    name, // Name aus der Map
     nodeColor: "whitesmoke",
     x: null,
     y: null,
@@ -169,12 +174,7 @@ function parsePagContent(csvContent) {
     .map((row) => row.split(",").map((cell) => cell.replace(/"/g, "").trim()));
 }
 
-function pagCreateJsonLinks(
-  quellKnoten,
-  zielKnoten,
-  kantenTypFromTo,
-  kantenTypToFrom
-) {
+function pagCreateJsonLinks(quellId, zielId, kantenTypFromTo, kantenTypToFrom) {
   const edgeMap = {
     0: "none",
     1: "odot",
@@ -193,7 +193,7 @@ function pagCreateJsonLinks(
   return {
     linkId: uuid.v4(),
     source: {
-      id: quellKnoten,
+      id: quellId,
       nodeColor: "whitesmoke",
       x: null,
       y: null,
@@ -201,7 +201,7 @@ function pagCreateJsonLinks(
       labelOffsetY: 0,
     },
     target: {
-      id: zielKnoten,
+      id: zielId,
       nodeColor: "whitesmoke",
       x: null,
       y: null,
@@ -278,39 +278,45 @@ function mapEdgeToType(arrowhead, arrowtail) {
 }
 
 //JSON -> Matrix
+//TODO: Funktioniert, aber:
+//   const idToName = Object.fromEntries(jsonData.nodes.map((node) => [node.id, node.name]));
+//warum muss ich node.id auf node.name so mappen, ist das die normalste lösung? ich meine zu jedem node.id
+//gehört ja auch immer ein node.name, gibt es nicht soetwas wie jsonData.nodes.name[id], oder so?
+
+//Erstmal so lassen, als nächstes kommt Json->DOT und DOT->Json,
+//dann müssen stück für stück alle funktionen angepasst weden, das sie jetzt die neue id nutzen
+//und falls sie den namen brauchen jetzt über node.name und nicht mehr node.id gehen.
 function pagConvertJsonToMatrix(jsonData) {
+  //das geht safe besser
+  const mapNodeIdToNodeName = Object.fromEntries(
+    jsonData.nodes.map((node) => [node.id, node.name])
+  );
+
   const knoten = jsonData.nodes.map((node) => node.id);
   const matrixSize = knoten.length;
 
-  //init matirx
   const matrix = Array.from({ length: matrixSize + 1 }, () =>
     Array(matrixSize + 1).fill(0)
   );
 
-  //erstmal leer initialisieren
-  matrix[0][0] = '""'; //ecke hardcoded auf ""
+  matrix[0][0] = '""'; // Ecke hardcoded
   knoten.forEach((id, index) => {
-    matrix[0][index + 1] = `"${id}"`;
-    matrix[index + 1][0] = `"${id}"`;
+    matrix[0][index + 1] = `"${mapNodeIdToNodeName[id]}"`;
+    matrix[index + 1][0] = `"${mapNodeIdToNodeName[id]}"`;
   });
 
-  //kanten
   jsonData.links.forEach((link) => {
     const sourceIndex = knoten.indexOf(link.source.id) + 1;
     const targetIndex = knoten.indexOf(link.target.id) + 1;
 
-    //vorwärts kanten reinschreiben
     const [edgeTypeForward, edgeTypeReverse] = mapEdgeToType(
       link.arrowhead,
       link.arrowtail
     );
     matrix[sourceIndex][targetIndex] = edgeTypeForward;
-
-    //rückwärts kanten reinschreiben
     matrix[targetIndex][sourceIndex] = edgeTypeReverse;
   });
 
-  //ausgabe verschoenern
   return matrix.map((row) => row.join(", ")).join("\n");
 }
 
@@ -331,10 +337,13 @@ pagConvertDotToJsonButton.addEventListener("click", () => {
 });
 
 //TOOD: //entweder überall trim oder nirgendwo, regwex anpassen
+//TODO: remove:
+//i really dont need to fill the values for source and target here
+//thats overkill and destroys seperations of concern.
+//change it when everything else works, for now it works.
 function pagDotToJsonConversion(dotSyntax) {
-  const knoten = new Set();
+  const knoten = new Map();
   const links = [];
-  const nodeColors = new Map();
 
   const edgeRegex =
     /"([^"]+)"\s*->\s*"([^"]+)"\s*\[\s*dir\s*=\s*both\s*,\s*arrowhead\s*=\s*([^,\s]+)\s*,\s*arrowtail\s*=\s*([^,\s]+)(?:\s*,\s*style\s*=\s*([^,\]]+))?\s*\];/g;
@@ -343,46 +352,61 @@ function pagDotToJsonConversion(dotSyntax) {
 
   let match;
 
-  //entweder überall trim oder nirgendwo, regwex anpassen
+  //guckt sich alle knoten an für die farbe definiert wurde
   while ((match = nodeRegex.exec(dotSyntax)) !== null) {
-    const nodeId = match[1];
+    const nodeName = match[1];
     const nodeColor = match[2].trim();
-    nodeColors.set(nodeId, nodeColor);
+
+    if (!knoten.has(nodeName)) {
+      knoten.set(nodeName, {
+        id: uuid.v4(),
+        name: nodeName,
+        nodeColor: nodeColor || "whitesmoke",
+        x: null,
+        y: null,
+        labelOffsetX: 0,
+        labelOffsetY: 0,
+      });
+    }
   }
 
-  //entweder überall trim oder nirgendwo, regwex anpassen
+  //guckt sich alles andere an
   while ((match = edgeRegex.exec(dotSyntax)) !== null) {
-    const source = match[1];
-    const target = match[2];
+    const sourceName = match[1];
+    const targetName = match[2];
     const arrowhead = match[3].trim();
     const arrowtail = match[4].trim();
     const style = match[5]?.trim();
 
-    knoten.add(source);
-    knoten.add(target);
+    //prüfen ob sourceName oder targetName zsm fassen und im if case dafür dann nach name prüfen und setzen
+    if (!knoten.has(sourceName)) {
+      knoten.set(sourceName, {
+        id: uuid.v4(),
+        name: sourceName,
+        nodeColor: "whitesmoke",
+        x: null,
+        y: null,
+        labelOffsetX: 0,
+        labelOffsetY: 0,
+      });
+    }
 
-    //TODO: remove:
-    //i really dont need to fill the values for source and target here
-    //thats overkill and destroys seperations of concern.
-    //change it when everything else works, for now it works.
+    if (!knoten.has(targetName)) {
+      knoten.set(targetName, {
+        id: uuid.v4(),
+        name: targetName,
+        nodeColor: "whitesmoke",
+        x: null,
+        y: null,
+        labelOffsetX: 0,
+        labelOffsetY: 0,
+      });
+    }
+
     links.push({
       linkId: uuid.v4(),
-      source: {
-        id: source,
-        nodeColor: nodeColors.get(source) || "whitesmoke",
-        x: null,
-        y: null,
-        labelOffsetX: 0,
-        labelOffsetY: 0,
-      },
-      target: {
-        id: target,
-        nodeColor: nodeColors.get(target) || "whitesmoke",
-        x: null,
-        y: null,
-        labelOffsetX: 0,
-        labelOffsetY: 0,
-      },
+      source: knoten.get(sourceName),
+      target: knoten.get(targetName),
       arrowhead: arrowhead,
       arrowtail: arrowtail,
       linkControlX: 0,
@@ -392,14 +416,7 @@ function pagDotToJsonConversion(dotSyntax) {
     });
   }
 
-  const nodesArray = Array.from(knoten).map((node) => ({
-    id: node,
-    nodeColor: nodeColors.get(node) || "whitesmoke",
-    x: null, //initial null
-    y: null, //initial null
-    labelOffsetX: 0,
-    labelOffsetY: 0,
-  }));
+  const nodesArray = Array.from(knoten.values());
 
   const jsonData = {
     nodes: nodesArray,
@@ -415,8 +432,6 @@ function pagDotToJsonConversion(dotSyntax) {
 //diagraph PAG oder halt diagraph ADMG schreiben am anfang der dot-syntax.
 
 //TODO: kommentar durchlesen über node.nodeColor teil
-
-//Aktuell werden Knoten ohne Kanten von der konvertierung ignoriert
 const pagConvertJsonToDotButton = document.getElementById(
   "pagConvertJsonToDot"
 );
@@ -430,9 +445,13 @@ pagConvertJsonToDotButton.addEventListener("click", () => {
 function jsonToDotConversion(jsonData) {
   let dotOutput = "digraph PAG {\n";
 
+  const mapNodeIdToNodeName = Object.fromEntries(
+    jsonData.nodes.map((node) => [node.id, node.name])
+  );
+
   jsonData.links.forEach((link) => {
-    const source = link.source.id;
-    const target = link.target.id;
+    const source = mapNodeIdToNodeName[link.source.id];
+    const target = mapNodeIdToNodeName[link.target.id];
     const arrowhead = link.arrowhead;
     const arrowtail = link.arrowtail;
     const style = link.isDashed ? ", style=dashed" : "";
@@ -441,10 +460,14 @@ function jsonToDotConversion(jsonData) {
   });
 
   jsonData.nodes.forEach((node) => {
-    //hier muss ich noch hinzufügen den case falls nodeColor == whitesmoke ABER node nicht in link
-    //dann trotzdem in dotOutput schreiben, weil dann ist es ein node ohne links
-    if (node.nodeColor !== "whitesmoke") {
-      dotOutput += `"${node.id}" [style=filled, fillcolor=${node.nodeColor}];\n`;
+
+    //falls node alleinsetehend ist, wird er auch in dot-syntaxt übersetzt
+    const nodeIsInLinks = jsonData.links.some(
+      (link) => link.source.id === node.id || link.target.id === node.id
+    );
+
+    if (node.nodeColor !== "whitesmoke" || !nodeIsInLinks) {
+      dotOutput += `"${mapNodeIdToNodeName[node.id]}" [style=filled, fillcolor=${node.nodeColor}];\n`;
     }
   });
 
@@ -785,7 +808,7 @@ function drawNodes(svg, jsonData) {
 }
 
 //------------------------
-//TODO: Plan ist ganz einfach, als (1.) möchte ich jetzt überall label-d.id nutzen. 
+//TODO: Plan ist ganz einfach, als (1.) möchte ich jetzt überall label-d.id nutzen.
 // (2.) Create newLink komplett neu schreiben und den fehler der beim label entsteht möglichst früh finden
 // (3.) Nodes löschen können.
 //------------------------
@@ -796,12 +819,13 @@ function drawLabels(svg, jsonData) {
     .data(jsonData.nodes)
     .enter()
     .append("text")
+    .attr("id", (d) => `label-${d.id}`) //ist erreichbar über label + die nodeId
     .attr("class", "node-label")
     .attr("x", (d) => d.x + d.labelOffsetX) //idk if needed
     .attr("y", (d) => d.y + d.labelOffsetY) //idk if needed
     .attr("dy", 5)
     .attr("text-anchor", "middle")
-    .text((d) => d.id) //maybe hier auch "label-d.id" nutzen wenns ums knoten editen geht.
+    .text((d) => d.name) //nutzt d.name als anzeige name
     .attr("fill", "black")
     .style("font-size", "15px")
     .style("pointer-events", "all")
