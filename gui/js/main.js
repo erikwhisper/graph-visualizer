@@ -460,14 +460,16 @@ function jsonToDotConversion(jsonData) {
   });
 
   jsonData.nodes.forEach((node) => {
-
     //falls node alleinsetehend ist, wird er auch in dot-syntaxt übersetzt
     const nodeIsInLinks = jsonData.links.some(
-      (link) => link.source.nodeId === node.nodeId || link.target.nodeId === node.nodeId
+      (link) =>
+        link.source.nodeId === node.nodeId || link.target.nodeId === node.nodeId
     );
 
     if (node.nodeColor !== "whitesmoke" || !nodeIsInLinks) {
-      dotOutput += `"${mapNodeIdToNodeName[node.nodeId]}" [style=filled, fillcolor=${node.nodeColor}];\n`;
+      dotOutput += `"${
+        mapNodeIdToNodeName[node.nodeId]
+      }" [style=filled, fillcolor=${node.nodeColor}];\n`;
     }
   });
 
@@ -708,8 +710,12 @@ function initializeNodeCoordinates(jsonData, gridSpacing) {
   });
 
   jsonData.links.forEach((link) => {
-    link.source = jsonData.nodes.find((node) => node.nodeId === link.source.nodeId);
-    link.target = jsonData.nodes.find((node) => node.nodeId === link.target.nodeId);
+    link.source = jsonData.nodes.find(
+      (node) => node.nodeId === link.source.nodeId
+    );
+    link.target = jsonData.nodes.find(
+      (node) => node.nodeId === link.target.nodeId
+    );
   });
 }
 
@@ -732,9 +738,9 @@ function drawEverything(svg, jsonData) {
 
 //calls the functions that implement the contextmenu for the three objects
 function handleAllContextMenus(svg, jsonData) {
-  svg.selectAll(".link").on("click", null).on("contextmenu", null);
-  svg.selectAll(".node").on("click", null).on("contextmenu", null);
-  svg.selectAll(".node-label").on("click", null).on("contextmenu", null);
+  svg.selectAll(".link").on("contextmenu", null);
+  svg.selectAll(".node").on("contextmenu", null);
+  svg.selectAll(".node-label").on("contextmenu", null);
   linkContextMenu(svg, jsonData);
   nodeContextMenu(svg, jsonData);
   labelContextMenu(svg, jsonData);
@@ -795,7 +801,7 @@ function drawNodes(svg, jsonData) {
     .data(jsonData.nodes)
     .enter()
     .append("circle")
-    .attr("id", (d) => `node-${d.nodeId}`) //hinzugefügt für colorchange, ist das sonst iwo ein problem?
+    .attr("id", (d) => `node-${d.nodeId}`)
     .attr("class", "node")
     .attr("r", 15)
     .attr("fill", (d) => d.nodeColor)
@@ -920,6 +926,7 @@ function closeContextMenu(contextMenuType) {
 //TODO: Diese menuActions kacke iwie anpassen, auch wenn hier eig geil, lieber bei labels anpassen maybe
 //wird halt so oft durchgeführt wie "visualisieren" gedrückt wird, aber kann egal sein for now
 function setupLinksContextMenuFunctions(svg, jsonData) {
+  console.log("Link Contextmenu called");
   const menuActions = [
     // prettier-ignore
     { id: "arrowhead-normal", attr: "arrowhead", value: "normal", marker: "url(#normal-head)", position: "marker-end" },
@@ -967,17 +974,30 @@ function setupLinksContextMenuFunctions(svg, jsonData) {
     }
   });
 
-  //TODO: Kann man anstatt mit selected Link wie bei delete-link nicht direkt mit linkId arbeiten?
   document
-    .getElementById("toggle-dashed-link")
+    .getElementById("toggle-dashed-on-link")
     .addEventListener("click", () => {
       const linkMenu = document.getElementById("link-context-menu");
       const linkId = linkMenu.getAttribute("data-link-id");
       const selectedLink = jsonData.links.find(
         (link) => link.linkId === linkId
       );
-      if (selectedLink) {
-        toggleDashedState(selectedLink);
+      if (selectedLink && !selectedLink.isDashed) {
+        setDashed(selectedLink);
+        updatePagJsonDisplay(jsonData);
+      }
+    });
+
+  document
+    .getElementById("toggle-dashed-off-link")
+    .addEventListener("click", () => {
+      const linkMenu = document.getElementById("link-context-menu");
+      const linkId = linkMenu.getAttribute("data-link-id");
+      const selectedLink = jsonData.links.find(
+        (link) => link.linkId === linkId
+      );
+      if (selectedLink && selectedLink.isDashed) {
+        unsetDashed(selectedLink);
         updatePagJsonDisplay(jsonData);
       }
     });
@@ -1009,12 +1029,16 @@ function resetLinkCurve(selectedLink) {
   );
 }
 
-function toggleDashedState(selectedLink) {
-  selectedLink.isDashed = !selectedLink.isDashed;
+function setDashed(selectedLink) {
+  selectedLink.isDashed = true;
 
-  d3.select(`#link-${selectedLink.linkId}`).attr("stroke-dasharray", (d) =>
-    d.isDashed ? "4 2" : null
-  );
+  d3.select(`#link-${selectedLink.linkId}`).attr("stroke-dasharray", "4 2");
+}
+
+function unsetDashed(selectedLink) {
+  selectedLink.isDashed = false;
+
+  d3.select(`#link-${selectedLink.linkId}`).attr("stroke-dasharray", null);
 }
 
 function deleteLink(linkId, jsonData) {
@@ -1034,6 +1058,7 @@ function deleteLink(linkId, jsonData) {
 //TODO: Adapt labelcolor, add labelcolor maybe, and change to black or white, according to the brightness of the color
 //automatically
 function setupNodesContextMenuFunctions(svg, jsonData) {
+  console.log("Node Contextmenu called");
   const colorPalette = document.getElementById("color-palette");
 
   colorPalette.innerHTML = "";
@@ -1126,6 +1151,7 @@ function deleteNode(nodeId, jsonData) {
 //----------START: labelContextMenu === CONTEXTMENU LABEL UNIQUE FUNCTIONS--------------//
 
 function setupLabelsContextMenuFunctions(svg, jsonData) {
+  console.log("Label Contextmenu called");
   const menuActions = {
     center: (label, jsonData, nodeId) => {
       label.attr("x", (d) => d.x).attr("y", (d) => d.y);
@@ -1181,6 +1207,7 @@ function setupLabelsContextMenuFunctions(svg, jsonData) {
 //TODO: Hier ist bestimmt so gottlos viel überflüssig
 //oder kann umstrukturiert werden.
 function linkInteractiveDrag(svg, jsonData, gridSpacing) {
+  console.log("linkInteractiveDrag called");
   console.log("I was created!");
   svg.selectAll(".link").call(
     d3
@@ -1239,6 +1266,7 @@ function calculateLinkPath(d) {
 //----------START: allInteractiveClicks === LEFTCLICK NODE UNIQUE FUNCTIONS--------------//
 
 function nodeInteractiveDrag(svg, jsonData, gridSpacing) {
+  console.log("nodeInteractiveDrag called");
   svg.selectAll(".node").call(
     d3
       .drag()
@@ -1295,6 +1323,7 @@ function updatePositions() {
 
 //anstatt let einf const firstNode
 function handleCreateNewLink(svg, jsonData) {
+  console.log("handleCreateNewLink called");
   let firstNode = null;
 
   svg.selectAll(".node").on("click", null);
@@ -1374,6 +1403,7 @@ function handleCreateNewLink(svg, jsonData) {
 //The helper function needs to get helper functions, gotta refactor that shit
 //idk if calling the "linkInteractiveDrag" function is unstable beeing called every time a edge is created
 function drawOnlyNewLink(svg, jsonData, linkId) {
+  console.log("drawOnlyNewLink called");
   const selectedLink = jsonData.links.find((link) => link.linkId === linkId);
 
   if (!selectedLink) {
@@ -1422,13 +1452,14 @@ function drawOnlyNewLink(svg, jsonData, linkId) {
   //gucken ob das als absicherung vor nicht reproduzierbarem
   //node-label error hilft
   //nein es wird nicht helfen es gibt keien label-d.id
+  /*
   svg
     .selectAll(".node-label")
     .data(jsonData.nodes, (d) => d.nodeId)
     .join("text")
     .attr("class", "node-label")
     .attr("id", (d) => `label-${d.nodeId}`); //.attr("id", (d) => `label-${d.id}`);
-
+*/
   //monitoren ob das iwie harmful ist (unstable?)
   linkInteractiveDrag(svg, jsonData, currentGridSpacing);
 }
@@ -1448,8 +1479,93 @@ function drawOnlyNewLink(svg, jsonData, linkId) {
 
 //Jetzt klappt die kacke komplett, aber refactorn und console logs raus damits ordentlich aussieht.
 
+//okay, jetzt wo ich nodeId und nodeName getrennt habe ist es bestimmt einfacher das hier zu implementieren
+//und auch namen mit sonderzeichen zu haben!
+
+/*
+Okay, the next step would now be if the name is not already in out jsonData to add 
+the new node to our jsonData with a unique uuid.v4() id and the name as it was typed 
+into the window, with the coordinates of the mouse click. Lets for now implement that, 
+after that we can care about visual implementation and integrating the new node into our 
+other functions for contextmenu, drag&drop and drawing edges from and to.
+*/
 function handleCreateNewNode(svg, jsonData) {
-  /*
+  svg.on("click", function (event) {
+    if (event.shiftKey && event.button === 0) {
+      console.log("Shift + Left click detected.");
+
+      const newNodeName = window.prompt(
+        "Bitte geben Sie den Namen für den neuen Knoten ein:"
+      );
+      if (newNodeName) {
+        console.log(`User entered node name: ${newNodeName}`);
+
+        const isDuplicate = jsonData.nodes.some(
+          (node) => node.name === newNodeName
+        );
+        if (isDuplicate) {
+          console.log("STOP! Wir haben den Namen schon.");
+        } else {
+          console.log("Wir haben den Namen noch nicht.");
+
+          const [x, y] = d3.pointer(event, this);
+
+          const newNode = {
+            nodeId: uuid.v4(),
+            name: newNodeName,
+            nodeColor: "whitesmoke",
+            x: x,
+            y: y,
+            labelOffsetX: 0,
+            labelOffsetY: 0,
+          };
+
+          jsonData.nodes.push(newNode);
+          drawNewNode(svg, newNode);
+          drawNewLabel(svg, newNode);
+          handleAllContextMenus(svg, jsonData);
+          handleAllInteractiveDrags(svg, jsonData, currentGridSpacing);
+          updatePagJsonDisplay(jsonData);
+          console.log("New node added:", newNode);
+        }
+      }
+    }
+  });
+}
+
+function drawNewNode(svg, node) {
+  svg
+    .append("circle")
+    .datum(node) // Bind the node data to the new element
+    .attr("id", `node-${node.nodeId}`) // Use unique ID for the node
+    .attr("class", "node")
+    .attr("r", 15)
+    .attr("fill", node.nodeColor)
+    .attr("stroke", "black")
+    .attr("stroke-width", 1)
+    .attr("cx", node.x)
+    .attr("cy", node.y);
+  console.log("New node added to SVG with data:", node);
+}
+
+function drawNewLabel(svg, node) {
+  svg
+    .append("text")
+    .datum(node) // Bind the node data to the label
+    .attr("id", `label-${node.nodeId}`) // Use unique ID for the label
+    .attr("class", "node-label")
+    .attr("x", node.x + node.labelOffsetX)
+    .attr("y", node.y + node.labelOffsetY)
+    .attr("dy", 5)
+    .attr("text-anchor", "middle")
+    .text(node.name) // Display the node's name
+    .attr("fill", "black")
+    .style("font-size", "15px")
+    .style("pointer-events", "all")
+    .style("user-select", "none");
+}
+
+/*
   console.log("Setting up 'Shift + Click' for creating a new node.");
   svg.on("click", function (event) {
     if (event.shiftKey && event.button === 0) {
@@ -1499,7 +1615,6 @@ function handleCreateNewNode(svg, jsonData) {
     }
   });
   */
-}
 
 //nodeId escaped damit auch sonderzeichen in den namen akzeptiert werden wie #,?,...
 function drawOnlyNewNode(svg, jsonData, nodeId) {
