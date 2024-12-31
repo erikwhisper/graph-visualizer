@@ -739,11 +739,19 @@ function drawEverything(svg, jsonData) {
 //calls the functions that implement the contextmenu for the three objects
 function handleAllContextMenus(svg, jsonData) {
   svg.selectAll(".link").on("contextmenu", null);
+
   svg.selectAll(".node").on("contextmenu", null);
+
   svg.selectAll(".node-label").on("contextmenu", null);
+
   linkContextMenu(svg, jsonData);
+  console.log("Link context menu reinitialized.");
+
   nodeContextMenu(svg, jsonData);
+  console.log("Node context menu reinitialized.");
+
   labelContextMenu(svg, jsonData);
+  console.log("Label context menu reinitialized.");
 }
 
 //calls the functions that implement the leftclick for the three objects
@@ -844,15 +852,51 @@ function drawLabels(svg, jsonData) {
 
 //TODO: anderes wort für setup finden
 function linkContextMenu(svg, jsonData) {
+  console.log("Initializing link context menu...");
   setupContextMenu(
     svg,
     ".link",
     "link-context-menu",
     "data-link-id",
-    (d) => d.linkId // Verwende direkt uniquely generated die linkId
+    (d) => d.linkId // Unique linkId
+  );
+  console.log(
+    `Total links with context menu: ${svg.selectAll(".link").size()}`
   );
   setupLinksContextMenuFunctions(svg, jsonData);
   closeContextMenu("link-context-menu");
+}
+
+function nodeContextMenu(svg, jsonData) {
+  console.log("Initializing node context menu...");
+  setupContextMenu(
+    svg,
+    ".node",
+    "node-context-menu",
+    "data-node-id",
+    (d) => d.nodeId // Unique nodeId
+  );
+  console.log(
+    `Total nodes with context menu: ${svg.selectAll(".node").size()}`
+  );
+  setupNodesContextMenuFunctions(svg, jsonData);
+  closeContextMenu("node-context-menu");
+}
+
+function labelContextMenu(svg, jsonData) {
+  console.log("Initializing label context menu...");
+  setupContextMenu(
+    svg,
+    ".node-label",
+    "label-context-menu",
+    "data-label-id",
+    (d) => d.nodeId // Unique nodeId for label
+  );
+  console.log(
+    `Total labels with context menu: ${svg.selectAll(".node-label").size()}`
+  );
+  setupLabelsContextMenuFunctions(svg, jsonData);
+  closeContextMenu("label-context-menu");
 }
 
 //TODO: "am besten auch hier für die zukunft eine eigene nodeId mit uuid.v4 erstellen, da wir sonst"
@@ -860,31 +904,9 @@ function linkContextMenu(svg, jsonData) {
 //dann erstellen wir einen neuen knoten namens "Knoten A" und wenn die id=name ist
 //kann dies zu problemen führen, da der neue knoten natürlich nix mit dem alten zu tun hat,
 //ausser das beide den selben namen haben.
-function nodeContextMenu(svg, jsonData) {
-  setupContextMenu(
-    svg,
-    ".node",
-    "node-context-menu",
-    "data-node-id",
-    (d) => d.nodeId //uses its unique name as an id <- *
-  );
-  setupNodesContextMenuFunctions(svg, jsonData);
-  closeContextMenu("node-context-menu");
-}
 
 //TODO: anderes wort für setup finden
 //TODO: hier gibts noch keine label id? einführen sinnvoll or nah?
-function labelContextMenu(svg, jsonData) {
-  setupContextMenu(
-    svg,
-    ".node-label",
-    "label-context-menu",
-    "data-label-id",
-    (d) => d.nodeId //uses the nodesId, which is its unique name, to be referenced
-  );
-  setupLabelsContextMenuFunctions(svg, jsonData);
-  closeContextMenu("label-context-menu");
-}
 
 //----------END: allContextMenus() === CONTEXTMENU ORGANIZATION--------------//
 
@@ -895,8 +917,10 @@ function labelContextMenu(svg, jsonData) {
 //TODO: brauch ich menu.style.left und menu.sytle.top wirklich?
 // prettier-ignore
 function setupContextMenu(svg, objectType, contextMenuType, attributeID, calculation) {
-  //geileren namen finden für "calculation"
+  console.log(`Setting up context menu for ${objectType}...`);
+  
   svg.selectAll(objectType).on("contextmenu", function (event, d) {
+    console.log(`Context menu triggered for ${objectType} with ID: ${calculation(d)}`);
     event.preventDefault();
 
     const menu = document.getElementById(contextMenuType);
@@ -906,13 +930,18 @@ function setupContextMenu(svg, objectType, contextMenuType, attributeID, calcula
 
     menu.setAttribute(attributeID, calculation(d));
   });
+
+  console.log(`Context menu event handlers set for ${svg.selectAll(objectType).size()} ${objectType}(s).`);
 }
 
 function closeContextMenu(contextMenuType) {
+  console.log(`Setting up close context menu for ${contextMenuType}...`);
+
   document.addEventListener("click", (event) => {
     const menu = document.getElementById(contextMenuType);
     if (!menu.contains(event.target)) {
       menu.style.display = "none";
+      console.log(`${contextMenuType} hidden.`);
     }
   });
 }
@@ -975,7 +1004,7 @@ function setupLinksContextMenuFunctions(svg, jsonData) {
   });
 
   document
-    .getElementById("toggle-dashed-on-link")
+    .getElementById("toggle-dashed-link")
     .addEventListener("click", () => {
       const linkMenu = document.getElementById("link-context-menu");
       const linkId = linkMenu.getAttribute("data-link-id");
@@ -985,18 +1014,7 @@ function setupLinksContextMenuFunctions(svg, jsonData) {
       if (selectedLink && !selectedLink.isDashed) {
         setDashed(selectedLink);
         updatePagJsonDisplay(jsonData);
-      }
-    });
-
-  document
-    .getElementById("toggle-dashed-off-link")
-    .addEventListener("click", () => {
-      const linkMenu = document.getElementById("link-context-menu");
-      const linkId = linkMenu.getAttribute("data-link-id");
-      const selectedLink = jsonData.links.find(
-        (link) => link.linkId === linkId
-      );
-      if (selectedLink && selectedLink.isDashed) {
+      } else if (selectedLink && selectedLink.isDashed) {
         unsetDashed(selectedLink);
         updatePagJsonDisplay(jsonData);
       }
@@ -1331,11 +1349,9 @@ function handleCreateNewLink(svg, jsonData) {
   svg.selectAll(".node").on("click", function (event, d) {
     if (!firstNode) {
       firstNode = d;
-      //d3.select(this).style("fill", "gray");
       console.log(`First node selected: `, firstNode);
     } else if (d.nodeId !== firstNode.nodeId) {
       const secondNode = d;
-      //HOW DO I COLOR IT NORMAL AGAIN
       console.log(`Second node selected: `, secondNode);
 
       const newLink = {
@@ -1350,31 +1366,20 @@ function handleCreateNewLink(svg, jsonData) {
         isDashed: false,
       };
       console.log("Creating new link:", newLink);
+
       jsonData.links.push(newLink);
 
-      drawOnlyNewLink(svg, jsonData, newLink.linkId);
+      drawNewLink(svg, newLink);
+
+      linkInteractiveDrag(svg, jsonData, currentGridSpacing);
+
       updatePagJsonDisplay(jsonData);
       firstNode = null;
-      //secondNode = null;
     } else {
       console.log("Click detected on the same node. Resetting firstNode.");
       firstNode = null;
     }
   });
-
-  //Das abbrechen durch click auf den canvas ist ein problem, stattdessen klick auf den selbe knoten
-  //zum abbrechen nutzen.
-  /*
-  svg.on("click", function (event) {
-    if (d3.select(event.target).classed("node") === false) {
-      if (firstNode) {
-        console.log("Click detected on canvas. Resetting firstNode.");
-        firstNode = null;
-        //svg.selectAll(".node").style("fill", "black");
-      }
-    }
-  });
-  */
 }
 
 //TODO 1: Hinzufügen das ich meine knoten auswahl auch abbrechen kann, das ganze visuell darstellen.
@@ -1402,22 +1407,15 @@ function handleCreateNewLink(svg, jsonData) {
 
 //The helper function needs to get helper functions, gotta refactor that shit
 //idk if calling the "linkInteractiveDrag" function is unstable beeing called every time a edge is created
-function drawOnlyNewLink(svg, jsonData, linkId) {
-  console.log("drawOnlyNewLink called");
-  const selectedLink = jsonData.links.find((link) => link.linkId === linkId);
 
-  if (!selectedLink) {
-    console.error(`No link found with ID: ${linkId}`);
-    return;
-  }
+function drawNewLink(svg, link) {
+  console.log("drawNewLink called for link:", link);
 
   const linkSelection = svg
-    .selectAll(`#link-${linkId}`)
-    .data([selectedLink], (d) => d.linkId)
-    .enter()
     .append("path")
+    .datum(link)
     .attr("class", "link")
-    .attr("id", `link-${selectedLink.linkId}`)
+    .attr("id", `link-${link.linkId}`)
     .attr("stroke", "black")
     .attr("stroke-width", 2)
     .attr("fill", "none")
@@ -1427,42 +1425,36 @@ function drawOnlyNewLink(svg, jsonData, linkId) {
       }
     })
     .attr("marker-end", () => {
-      if (selectedLink.arrowhead === "normal") return "url(#normal-head)";
-      if (selectedLink.arrowhead === "odot") return "url(#odot-head)";
-      if (selectedLink.arrowhead === "tail") return "url(#tail-head)";
+      if (link.arrowhead === "normal") return "url(#normal-head)";
+      if (link.arrowhead === "odot") return "url(#odot-head)";
+      if (link.arrowhead === "tail") return "url(#tail-head)";
       return null;
     })
     .attr("marker-start", () => {
-      if (selectedLink.arrowtail === "normal") return "url(#normal-tail)";
-      if (selectedLink.arrowtail === "odot") return "url(#odot-tail)";
-      if (selectedLink.arrowtail === "tail") return "url(#tail-tail)";
+      if (link.arrowtail === "normal") return "url(#normal-tail)";
+      if (link.arrowtail === "odot") return "url(#odot-tail)";
+      if (link.arrowtail === "tail") return "url(#tail-tail)";
       return null;
     })
-    .attr("d", calculateLinkPath(selectedLink));
+    .attr("d", calculateLinkPath(link));
+
+  console.log("New link added to SVG:", link);
 
   linkSelection.on("contextmenu", function (event, d) {
+    console.log(`Context menu triggered for link with ID: ${d.linkId}`);
     event.preventDefault();
+
     const menu = document.getElementById("link-context-menu");
     menu.style.display = "block";
     menu.style.left = `${event.pageX}px`;
     menu.style.top = `${event.pageY}px`;
+
     menu.setAttribute("data-link-id", d.linkId);
   });
 
-  //gucken ob das als absicherung vor nicht reproduzierbarem
-  //node-label error hilft
-  //nein es wird nicht helfen es gibt keien label-d.id
-  /*
-  svg
-    .selectAll(".node-label")
-    .data(jsonData.nodes, (d) => d.nodeId)
-    .join("text")
-    .attr("class", "node-label")
-    .attr("id", (d) => `label-${d.nodeId}`); //.attr("id", (d) => `label-${d.id}`);
-*/
-  //monitoren ob das iwie harmful ist (unstable?)
-  linkInteractiveDrag(svg, jsonData, currentGridSpacing);
+  console.log(`Context menu set up for new link: ${link.linkId}`);
 }
+
 
 //----------END: handleAllEditOperations === ALL ADD NEW LINK UNIQUE FUNCTION--------------//
 
@@ -1482,13 +1474,23 @@ function drawOnlyNewLink(svg, jsonData, linkId) {
 //okay, jetzt wo ich nodeId und nodeName getrennt habe ist es bestimmt einfacher das hier zu implementieren
 //und auch namen mit sonderzeichen zu haben!
 
-/*
-Okay, the next step would now be if the name is not already in out jsonData to add 
-the new node to our jsonData with a unique uuid.v4() id and the name as it was typed 
-into the window, with the coordinates of the mouse click. Lets for now implement that, 
-after that we can care about visual implementation and integrating the new node into our 
-other functions for contextmenu, drag&drop and drawing edges from and to.
-*/
+//-----------------------------------------------------------------------------
+//TODO 1: Bei neuen Knoten hat er das Problem das er beim LabelContextMenu sagt das er den Knoten nicht kennt
+//woran kann das liegen? Es passiert auch erst nach dem zweiten "Visualisieren" drücken
+//mit console logs rausfinden was der grund sein kann.
+
+//TODO 1.2: ContextMenu implementation funktioniert jetzt für newNode+newLabel und für newlink
+//einziges problem ist jetzt weiterhin noch das verschieben von Labels über deren kontextmenu
+//bei neuen nodes, mal gucken ob die contextMenuLabel function nen problem hat oder was es sonst
+//sein könnte + LabelOffset dynamisch an radius anpassen.
+
+//TODO 3: Kantenlänge anpassen, damit neue kanten nicht immer so turbo lang drüber sind
+//TODO 4: Label/Node namen ändern können
+//TODO 5: Knotenradius ändern könnnen (dynamisch mit kantenlänge und labelOffset machen)
+//TODO 5: ADMG support
+//TODO 6: Alles auf canvas moven können
+//TODO 7: Pdf export an graphen größe anpassen
+//-----------------------------------------------------------------------------
 function handleCreateNewNode(svg, jsonData) {
   svg.on("click", function (event) {
     if (event.shiftKey && event.button === 0) {
@@ -1522,9 +1524,13 @@ function handleCreateNewNode(svg, jsonData) {
 
           jsonData.nodes.push(newNode);
           drawNewNode(svg, newNode);
+
           drawNewLabel(svg, newNode);
-          handleAllContextMenus(svg, jsonData);
+
           handleAllInteractiveDrags(svg, jsonData, currentGridSpacing);
+
+          handleCreateNewLink(svg, jsonData);
+
           updatePagJsonDisplay(jsonData);
           console.log("New node added:", newNode);
         }
@@ -1534,7 +1540,7 @@ function handleCreateNewNode(svg, jsonData) {
 }
 
 function drawNewNode(svg, node) {
-  svg
+  const newNode = svg
     .append("circle")
     .datum(node) // Bind the node data to the new element
     .attr("id", `node-${node.nodeId}`) // Use unique ID for the node
@@ -1545,11 +1551,25 @@ function drawNewNode(svg, node) {
     .attr("stroke-width", 1)
     .attr("cx", node.x)
     .attr("cy", node.y);
+
   console.log("New node added to SVG with data:", node);
+
+  // Add context menu handling for the new node
+  newNode.on("contextmenu", function (event, d) {
+    console.log(`Context menu triggered for node with ID: ${d.nodeId}`);
+    event.preventDefault();
+
+    const menu = document.getElementById("node-context-menu");
+    menu.style.display = "block";
+    menu.style.left = `${event.pageX}px`;
+    menu.style.top = `${event.pageY}px`;
+
+    menu.setAttribute("data-node-id", d.nodeId);
+  });
 }
 
 function drawNewLabel(svg, node) {
-  svg
+  const newLabel = svg
     .append("text")
     .datum(node) // Bind the node data to the label
     .attr("id", `label-${node.nodeId}`) // Use unique ID for the label
@@ -1563,6 +1583,21 @@ function drawNewLabel(svg, node) {
     .style("font-size", "15px")
     .style("pointer-events", "all")
     .style("user-select", "none");
+
+  console.log("New label added to SVG with data:", node);
+
+  // Add context menu handling for the new label
+  newLabel.on("contextmenu", function (event, d) {
+    console.log(`Context menu triggered for label with ID: ${d.nodeId}`);
+    event.preventDefault();
+
+    const menu = document.getElementById("label-context-menu");
+    menu.style.display = "block";
+    menu.style.left = `${event.pageX}px`;
+    menu.style.top = `${event.pageY}px`;
+
+    menu.setAttribute("data-label-id", d.nodeId);
+  });
 }
 
 /*
