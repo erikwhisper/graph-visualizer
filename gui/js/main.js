@@ -4,15 +4,41 @@
 
 //Try to get rid of global variables:
 
-//want to replace this over a secure uuid.v4() link id
-let globalLinkI = 0;
-
 //GLOBALE VARIABELN:
 let isGridClippingEnabled = false;
 
 //necessary for the visual grid
 let currentSvg = null;
 let currentGridSpacing = null;
+
+//prettier-ignore
+const allowedColors = [
+  "white", "whitesmoke", "azure", "aliceblue", "ghostwhite", "floralwhite", "ivory", "beige", "antiquewhite", "mintcream", "snow", "oldlace", 
+  "lavenderblush", "seashell", "cornsilk", "blanchedalmond", "papayawhip", "lemonchiffon", "linen", "honeydew", "gainsboro", "navajowhite",
+  //yeelows
+  "lightyellow", "yellow", "khaki", "gold", "palegoldenrod", "goldenrod", "darkgoldenrod", "darkkhaki",
+  //oranges
+  "moccasin", "peachpuff", "bisque", "orange", "darkorange", "tan", "sandybrown", "burlywood", "peru", "chocolate", "saddlebrown", "maroon",
+  //reds
+  "lightpink", "pink", "hotpink", "mistyrose", "salmon", "lightsalmon", "lightcoral", "coral", "tomato", "orangered", "indianred", "darksalmon", "crimson", 
+  "firebrick", "red", "darkred",
+  //brown
+  "rosybrown", "brown", "sienna",
+  //lilas
+  "thistle", "lavender", "plum", "orchid", "rebeccapurple", "violet", "mediumorchid", "mediumpurple", "blueviolet", "darkorchid", "darkviolet", "purple", "magenta", 
+  "fuchsia", "mediumvioletred", "palevioletred", "indigo",
+  //blue
+  "lightcyan", "lightblue", "lightsteelblue", "powderblue", "skyblue", "lightskyblue", "deepskyblue", "dodgerblue", "cornflowerblue", "steelblue", 
+  "royalblue", "mediumblue", "mediumslateblue", "blue", "darkblue", "navy", "midnightblue", "slateblue", "darkslateblue",
+  //aqua
+  "lightgoldenrodyellow", "cyan", "aqua", "aquamarine", "mediumaquamarine", "teal", "turquoise", "paleturquoise", "mediumturquoise", 
+  "darkturquoise", "darkcyan", "cadetblue",
+  //greens
+  "lightgreen", "lightseagreen", "palegreen", "springgreen", "mediumspringgreen", "greenyellow", "lime", "limegreen", "yellowgreen", "lawngreen", 
+  "chartreuse", "mediumseagreen", "seagreen", "darkseagreen", "darkolivegreen", "forestgreen", "green", "darkgreen", "olivedrab", "olive",
+  //graus + schwarz
+  "lightgray", "lightslategray", "silver", "darkgray", "dimgray", "slategray", "darkslategray", "black"
+];
 
 /***********************************************************/
 
@@ -192,6 +218,7 @@ function pagCreateJsonLinks(quellId, zielId, kantenTypFromTo, kantenTypToFrom) {
   //thats overkill and destroys seperations of concern.
   return {
     linkId: uuid.v4(),
+    linkColor: "red",
     source: {
       nodeId: quellId,
       nodeColor: "whitesmoke",
@@ -336,17 +363,12 @@ pagConvertDotToJsonButton.addEventListener("click", () => {
   );
 });
 
-//TOOD: //entweder überall trim oder nirgendwo, regwex anpassen
-//TODO: remove:
-//i really dont need to fill the values for source and target here
-//thats overkill and destroys seperations of concern.
-//change it when everything else works, for now it works.
 function pagDotToJsonConversion(dotSyntax) {
   const knoten = new Map();
   const links = [];
 
   const edgeRegex =
-    /"([^"]+)"\s*->\s*"([^"]+)"\s*\[\s*dir\s*=\s*both\s*,\s*arrowhead\s*=\s*([^,\s]+)\s*,\s*arrowtail\s*=\s*([^,\s]+)(?:\s*,\s*style\s*=\s*([^,\]]+))?\s*\];/g;
+    /"([^"]+)"\s*->\s*"([^"]+)"\s*\[\s*dir\s*=\s*both[,\s]*arrowhead\s*=\s*([^,\s]+)[,\s]*arrowtail\s*=\s*([^,\s]+)(?:[,\s]*style\s*=\s*([^,\]]+))?(?:[,\s]*color\s*=\s*([^,\]]+))?\s*\];/g;
 
   const nodeRegex = /"([^"]+)"\s*\[.*?fillcolor=([^,\]]+).*?\];/g;
 
@@ -377,6 +399,7 @@ function pagDotToJsonConversion(dotSyntax) {
     const arrowhead = match[3].trim();
     const arrowtail = match[4].trim();
     const style = match[5]?.trim();
+    const color = match[6]?.trim() || "black";
 
     //prüfen ob sourceName oder targetName zsm fassen und im if case dafür dann nach name prüfen und setzen
     if (!knoten.has(sourceName)) {
@@ -403,8 +426,11 @@ function pagDotToJsonConversion(dotSyntax) {
       });
     }
 
+    const validatedColor = allowedColors.includes(color) ? color : "black";
+
     links.push({
       linkId: uuid.v4(),
+      linkColor: validatedColor,
       source: knoten.get(sourceName),
       target: knoten.get(targetName),
       arrowhead: arrowhead,
@@ -455,8 +481,12 @@ function jsonToDotConversion(jsonData) {
     const arrowhead = link.arrowhead;
     const arrowtail = link.arrowtail;
     const style = link.isDashed ? ", style=dashed" : "";
+    const color =
+      allowedColors.includes(link.linkColor) && link.linkColor !== "black"
+        ? `, color=${link.linkColor}`
+        : "";
 
-    dotOutput += `"${source}" -> "${target}" [dir=both, arrowhead=${arrowhead}, arrowtail=${arrowtail}${style}];\n`;
+    dotOutput += `"${source}" -> "${target}" [dir=both, arrowhead=${arrowhead}, arrowtail=${arrowtail}${style}${color}];\n`;
   });
 
   jsonData.nodes.forEach((node) => {
@@ -636,7 +666,7 @@ function createSvgCanvas() {
 
 function initializePagArrowMarkers(svg) {
   // prettier-ignore
-  setupArrowMarker(svg, "normal-head", "path", "black", null, "auto");
+  setupArrowMarker(svg, "normal-head", "path", "black", null, "auto"); //sinnvoller wäre hier fillColor none und strokeColor black damit es zu odot passt aber idc
   // prettier-ignore
   setupArrowMarker(svg, "normal-tail", "path", "black", null, "auto-start-reverse"); //fromally red
   // prettier-ignore
@@ -784,7 +814,7 @@ function drawLinks(svg, jsonData) {
     .append("path")
     .attr("class", "link")
     .attr("id", (d) => `link-${d.linkId}`)
-    .attr("stroke", "black")
+    .attr("stroke", (d) => d.linkColor)
     .attr("stroke-width", 2)
     .attr("fill", "none")
     .attr("stroke-dasharray", (d) => (d.isDashed ? "4 2" : null))
@@ -1082,35 +1112,8 @@ function setupNodesContextMenuFunctions(svg, jsonData) {
   colorPalette.innerHTML = "";
   //all css-colors with names from W3Schools
   // prettier-ignore
-  const namedColors = [
-  "white", "whitesmoke", "azure", "aliceblue", "ghostwhite", "floralwhite", "ivory", "beige", "antiquewhite", "mintcream", "snow", "oldlace", 
-  "lavenderblush", "seashell", "cornsilk", "blanchedalmond", "papayawhip", "lemonchiffon", "linen", "honeydew", "gainsboro", "navajowhite",
-  //yeelows
-  "lightyellow", "yellow", "khaki", "gold", "palegoldenrod", "goldenrod", "darkgoldenrod", "darkkhaki",
-  //oranges
-  "moccasin", "peachpuff", "bisque", "orange", "darkorange", "tan", "sandybrown", "burlywood", "peru", "chocolate", "saddlebrown", "maroon",
-  //reds
-  "lightpink", "pink", "hotpink", "mistyrose", "salmon", "lightsalmon", "lightcoral", "coral", "tomato", "orangered", "indianred", "darksalmon", "crimson", 
-  "firebrick", "red", "darkred",
-  //brown
-  "rosybrown", "brown", "sienna",
-  //lilas
-  "thistle", "lavender", "plum", "orchid", "rebeccapurple", "violet", "mediumorchid", "mediumpurple", "blueviolet", "darkorchid", "darkviolet", "purple", "magenta", 
-  "fuchsia", "mediumvioletred", "palevioletred", "indigo",
-  //blue
-  "lightcyan", "lightblue", "lightsteelblue", "powderblue", "skyblue", "lightskyblue", "deepskyblue", "dodgerblue", "cornflowerblue", "steelblue", 
-  "royalblue", "mediumblue", "mediumslateblue", "blue", "darkblue", "navy", "midnightblue", "slateblue", "darkslateblue",
-  //greens
-  "lightgreen", "lightseagreen", "palegreen", "springgreen", "mediumspringgreen", "greenyellow", "lime", "limegreen", "yellowgreen", "lawngreen", 
-  "chartreuse", "mediumseagreen", "seagreen", "darkseagreen", "darkolivegreen", "forestgreen", "green", "darkgreen", "olivedrab", "olive",
-  //aqua
-  "lightgoldenrodyellow", "cyan", "aqua", "aquamarine", "mediumaquamarine", "teal", "turquoise", "paleturquoise", "mediumturquoise", 
-  "darkturquoise", "darkcyan", "cadetblue",
-  //graus + schwarz
-  "lightgray", "lightslategray", "silver", "darkgray", "dimgray", "slategray", "darkslategray", "black"
-];
 
-  namedColors.forEach((color) => {
+  allowedColors.forEach((color) => {
     const colorSwatch = document.createElement("div");
     colorSwatch.className = "color-swatch";
     colorSwatch.style.backgroundColor = color;
@@ -1356,6 +1359,7 @@ function handleCreateNewLink(svg, jsonData) {
 
       const newLink = {
         linkId: uuid.v4(),
+        linkColor: "black",
         source: firstNode,
         target: secondNode,
         arrowhead: "normal",
@@ -1391,13 +1395,7 @@ function handleCreateNewLink(svg, jsonData) {
 //irgendwie basierend auf den mittelpunkten der referenzierten knoten zeichnen kann?
 //-> Fehlt noch, stattdessen aber kanten einf initial kürzer machen, dann spar ich mir neuzeichenn
 
-//TODO 2.1: die borders meine svg canvases nicht durchdringbar machen, bei createSvgCanvas proably und
-//gucken ob sich dann neu erstellte knoten auch daran halten
-//-> Fehlt auch noch
-
 //TODO 4: Labels über knotextmenu namen verändern können?
-
-//TODO 4.1:Größe von knoten anpassen können, dies unterbringen im jsonData & contextmenu
 
 //TODO 6: Knoten löschen können, wenn daran links hängen diese mit löschen, daher delete link, nicht nur
 //im kontextmenü unterbringen sondern den wichtigsten teil in aufrufbare funktion versetzen.
@@ -1416,7 +1414,7 @@ function drawNewLink(svg, link) {
     .datum(link)
     .attr("class", "link")
     .attr("id", `link-${link.linkId}`)
-    .attr("stroke", "black")
+    .attr("stroke", (d) => d.linkColor)
     .attr("stroke-width", 2)
     .attr("fill", "none")
     .each(function (d) {
@@ -1455,24 +1453,15 @@ function drawNewLink(svg, link) {
   console.log(`Context menu set up for new link: ${link.linkId}`);
 }
 
-
 //----------END: handleAllEditOperations === ALL ADD NEW LINK UNIQUE FUNCTION--------------//
 
 //-------------------------------------------------------------------//
 
 //----------START: handleAllEditOperations === ALL ADD NEW NODE UNIQUE FUNCTION--------------//
 
-//TODO 1: Überall im code wo es geht css.escape nutzen edge-client um keine probleme
-//mit sonderzeichen in namen zu haben. ÜBERALL dann fr
-//TODO 2: Jetzt mit deleteNode im node contextmenu anfangen und dann create und delete node refactorn.
 //TODO 3: Kanten dragging so überarbeiten das die kante wirklich da gerade ist wo mein kruser ist
 //auch wenn das bedeutet nen hardcoded coordinated +200 rein zu packen.
 //TODO 4: Bei langen namen die direkt über oder unter dem kreis anzeigen
-
-//Jetzt klappt die kacke komplett, aber refactorn und console logs raus damits ordentlich aussieht.
-
-//okay, jetzt wo ich nodeId und nodeName getrennt habe ist es bestimmt einfacher das hier zu implementieren
-//und auch namen mit sonderzeichen zu haben!
 
 //-----------------------------------------------------------------------------
 //TODO 1: Bei neuen Knoten hat er das Problem das er beim LabelContextMenu sagt das er den Knoten nicht kennt
@@ -1484,12 +1473,23 @@ function drawNewLink(svg, link) {
 //bei neuen nodes, mal gucken ob die contextMenuLabel function nen problem hat oder was es sonst
 //sein könnte + LabelOffset dynamisch an radius anpassen.
 
+//TODO 2.1: die borders meine svg canvases nicht durchdringbar machen, bei createSvgCanvas proably und
+//gucken ob sich dann neu erstellte knoten auch daran halten
+//-> Fehlt auch noch
+
+//TODO 2.2: Beim zeichnen von neuen kanten brauche ich ein offset, falls schon n+1 kante vorhanden ist
+//zwischen den beiden knoten
+
+//TODO 3: deleteNode in contextmenu hinzufügen
 //TODO 3: Kantenlänge anpassen, damit neue kanten nicht immer so turbo lang drüber sind
 //TODO 4: Label/Node namen ändern können
 //TODO 5: Knotenradius ändern könnnen (dynamisch mit kantenlänge und labelOffset machen)
 //TODO 5: ADMG support
 //TODO 6: Alles auf canvas moven können
 //TODO 7: Pdf export an graphen größe anpassen
+
+//-> Aktuell erstmal contextmenu für color change von links adden und gucken wie ich die arrowmarker
+//von den spezifischen links colorchange, bitte nicht noch eine id... Dann um das labels-nodes problem kümmern
 //-----------------------------------------------------------------------------
 function handleCreateNewNode(svg, jsonData) {
   svg.on("click", function (event) {
@@ -1542,8 +1542,8 @@ function handleCreateNewNode(svg, jsonData) {
 function drawNewNode(svg, node) {
   const newNode = svg
     .append("circle")
-    .datum(node) // Bind the node data to the new element
-    .attr("id", `node-${node.nodeId}`) // Use unique ID for the node
+    .datum(node)
+    .attr("id", `node-${node.nodeId}`)
     .attr("class", "node")
     .attr("r", 15)
     .attr("fill", node.nodeColor)
@@ -1554,7 +1554,6 @@ function drawNewNode(svg, node) {
 
   console.log("New node added to SVG with data:", node);
 
-  // Add context menu handling for the new node
   newNode.on("contextmenu", function (event, d) {
     console.log(`Context menu triggered for node with ID: ${d.nodeId}`);
     event.preventDefault();
@@ -1571,14 +1570,14 @@ function drawNewNode(svg, node) {
 function drawNewLabel(svg, node) {
   const newLabel = svg
     .append("text")
-    .datum(node) // Bind the node data to the label
-    .attr("id", `label-${node.nodeId}`) // Use unique ID for the label
+    .datum(node)
+    .attr("id", `label-${node.nodeId}`)
     .attr("class", "node-label")
     .attr("x", node.x + node.labelOffsetX)
     .attr("y", node.y + node.labelOffsetY)
     .attr("dy", 5)
     .attr("text-anchor", "middle")
-    .text(node.name) // Display the node's name
+    .text(node.name)
     .attr("fill", "black")
     .style("font-size", "15px")
     .style("pointer-events", "all")
@@ -1586,7 +1585,6 @@ function drawNewLabel(svg, node) {
 
   console.log("New label added to SVG with data:", node);
 
-  // Add context menu handling for the new label
   newLabel.on("contextmenu", function (event, d) {
     console.log(`Context menu triggered for label with ID: ${d.nodeId}`);
     event.preventDefault();
@@ -1598,127 +1596,6 @@ function drawNewLabel(svg, node) {
 
     menu.setAttribute("data-label-id", d.nodeId);
   });
-}
-
-/*
-  console.log("Setting up 'Shift + Click' for creating a new node.");
-  svg.on("click", function (event) {
-    if (event.shiftKey && event.button === 0) {
-      // Check if 'Shift' is held and left mouse button clicked
-      console.log("Shift + Left click detected.");
-      const [x, y] = d3.pointer(event, this); // Get the coordinates relative to the SVG canvas
-
-      // Öffne ein Eingabefeld für den Knoten-Namen
-      const nodeName = window.prompt(
-        "Bitte geben Sie den Namen für den neuen Knoten ein:"
-      );
-
-      if (nodeName) {
-        console.log(`User entered node name: ${nodeName}`);
-        // Prüfe, ob ein Knoten mit dieser ID bereits existiert
-        const isDuplicate = jsonData.nodes.some((node) => node.id === nodeName);
-        if (isDuplicate) {
-          alert(
-            `Ein Knoten mit dem Namen "${nodeName}" existiert bereits. Bitte wählen Sie einen anderen Namen.`
-          );
-          return;
-        }
-
-        // Erstelle den neuen Knoten
-        const newNode = {
-          id: nodeName,
-          nodeColor: "whitesmoke",
-          x: x,
-          y: y,
-          labelOffsetX: 0,
-          labelOffsetY: 0,
-        };
-
-        // Füge den Knoten zu jsonData hinzu
-        console.log("Creating new node:", newNode);
-        jsonData.nodes.push(newNode);
-
-        drawOnlyNewNode(svg, jsonData, nodeName);
-
-        // Aktualisiere die Anzeige im JSON-Textfeld
-        updatePagJsonDisplay(jsonData);
-
-        console.log(`Neuer Knoten erstellt:`, newNode);
-      } else {
-        console.log("Kein Name eingegeben. Knoten wird nicht erstellt.");
-      }
-    }
-  });
-  */
-
-//nodeId escaped damit auch sonderzeichen in den namen akzeptiert werden wie #,?,...
-function drawOnlyNewNode(svg, jsonData, nodeId) {
-  /*
-  // Find the newly created node in jsonData
-  console.log("node id" + nodeId);
-  const selectedNode = jsonData.nodes.find((node) => node.id === nodeId);
-
-  if (!selectedNode) {
-    console.error(`No node found with ID: ${nodeId}`);
-    return;
-  }
-
-  // Draw the new node (circle)
-  const nodeSelection = svg
-  .selectAll(`#node-${nodeId}`) // Ensure no duplicate nodes are added
-    .data([selectedNode], (d) => d.id)
-    .enter()
-    .append("circle")
-    .attr("id", `node-${nodeId}`)
-    .attr("class", "node")
-    .attr("r", 15)
-    .attr("fill", selectedNode.nodeColor)
-    .attr("stroke", "black")
-    .attr("stroke-width", 1)
-    .attr("cx", selectedNode.x)
-    .attr("cy", selectedNode.y);
-
-  nodeSelection.on("contextmenu", function (event, d) {
-    event.preventDefault();
-    const menu = document.getElementById("node-context-menu");
-    menu.style.display = "block";
-    menu.style.left = `${event.pageX}px`;
-    menu.style.top = `${event.pageY}px`;
-    menu.setAttribute("data-node-id", d.id);
-  });
-
-  // Draw the new label (text)
-  const labelSelection = svg
-  .selectAll(`#label-${nodeId}`)// Ensure no duplicate labels are added
-    .data([selectedNode], (d) => d.id)
-    .enter()
-    .append("text")
-    .attr("id", `label-${nodeId}`)
-    .attr("class", "node-label")
-    .attr("x", selectedNode.x + selectedNode.labelOffsetX)
-    .attr("y", selectedNode.y + selectedNode.labelOffsetY)
-    .attr("dy", 5)
-    .attr("text-anchor", "middle")
-    .text(selectedNode.id)
-    .attr("fill", "black")
-    .style("font-size", "15px")
-    .style("pointer-events", "all")
-    .style("user-select", "none");
-
-  labelSelection.on("contextmenu", function (event, d) {
-    event.preventDefault();
-    const menu = document.getElementById("label-context-menu");
-    menu.style.display = "block";
-    menu.style.left = `${event.pageX}px`;
-    menu.style.top = `${event.pageY}px`;
-    menu.setAttribute("data-label-id", d.id);
-  });
-
-  nodeInteractiveDrag(svg, jsonData, currentGridSpacing);
-  //handleCreateNewLink aufruf klappt, da abbrechen jetzt so funktioniert das ich auf den selben
-  //knoten nochmal klicken muss anstatt einf iwo aufn canvas
-  handleCreateNewLink(svg, jsonData);
-  */
 }
 
 //----------START: handleAllEditOperations === ALL ADD NEW NODE UNIQUE FUNCTION--------------//
