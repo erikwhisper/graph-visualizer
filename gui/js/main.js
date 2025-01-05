@@ -347,166 +347,166 @@ function pagConvertJsonToMatrix(jsonData) {
   return matrix.map((row) => row.join(", ")).join("\n");
 }
 
-//----------------START: DOT -> JSON (PAG)------------------------//
+  //----------------START: DOT -> JSON (PAG)------------------------//
 
-const pagConvertDotToJsonButton = document.getElementById(
-  "pagConvertDotToJson"
-);
-pagConvertDotToJsonButton.addEventListener("click", () => {
-  const dotInput = document.getElementById("pagDotDisplay").value;
-  const jsonData = pagDotToJsonConversion(dotInput);
-
-  document.getElementById("pagJsonDisplay").value = JSON.stringify(
-    jsonData,
-    null,
-    2
+  const pagConvertDotToJsonButton = document.getElementById(
+    "pagConvertDotToJson"
   );
-});
+  pagConvertDotToJsonButton.addEventListener("click", () => {
+    const dotInput = document.getElementById("pagDotDisplay").value;
+    const jsonData = pagDotToJsonConversion(dotInput);
 
-function pagDotToJsonConversion(dotSyntax) {
-  const knoten = new Map();
-  const links = [];
-
-  const edgeRegex =
-    /"([^"]+)"\s*->\s*"([^"]+)"\s*\[\s*dir\s*=\s*both[,\s]*arrowhead\s*=\s*([^,\s]+)[,\s]*arrowtail\s*=\s*([^,\s]+)(?:[,\s]*style\s*=\s*([^,\]]+))?(?:[,\s]*color\s*=\s*([^,\]]+))?\s*\];/g;
-
-  const nodeRegex = /"([^"]+)"\s*\[.*?fillcolor=([^,\]]+).*?\];/g;
-
-  let match;
-
-  //guckt sich alle knoten an für die farbe definiert wurde
-  while ((match = nodeRegex.exec(dotSyntax)) !== null) {
-    const nodeName = match[1];
-    const nodeColor = match[2].trim();
-
-    if (!knoten.has(nodeName)) {
-      knoten.set(nodeName, {
-        nodeId: uuid.v4(),
-        name: nodeName,
-        nodeColor: nodeColor || "whitesmoke",
-        x: null,
-        y: null,
-        labelOffsetX: 0,
-        labelOffsetY: 0,
-      });
-    }
-  }
-
-  //guckt sich alles andere an
-  while ((match = edgeRegex.exec(dotSyntax)) !== null) {
-    const sourceName = match[1];
-    const targetName = match[2];
-    const arrowhead = match[3].trim();
-    const arrowtail = match[4].trim();
-    const style = match[5]?.trim();
-    const color = match[6]?.trim() || "black";
-
-    //prüfen ob sourceName oder targetName zsm fassen und im if case dafür dann nach name prüfen und setzen
-    if (!knoten.has(sourceName)) {
-      knoten.set(sourceName, {
-        nodeId: uuid.v4(),
-        name: sourceName,
-        nodeColor: "whitesmoke",
-        x: null,
-        y: null,
-        labelOffsetX: 0,
-        labelOffsetY: 0,
-      });
-    }
-
-    if (!knoten.has(targetName)) {
-      knoten.set(targetName, {
-        nodeId: uuid.v4(),
-        name: targetName,
-        nodeColor: "whitesmoke",
-        x: null,
-        y: null,
-        labelOffsetX: 0,
-        labelOffsetY: 0,
-      });
-    }
-
-    const validatedColor = allowedColors.includes(color) ? color : "black";
-
-    links.push({
-      linkId: uuid.v4(),
-      linkColor: validatedColor,
-      source: knoten.get(sourceName),
-      target: knoten.get(targetName),
-      arrowhead: arrowhead,
-      arrowtail: arrowtail,
-      linkControlX: 0,
-      linkControlY: 0,
-      isCurved: false,
-      isDashed: style === "dashed",
-    });
-  }
-
-  const nodesArray = Array.from(knoten.values());
-
-  const jsonData = {
-    nodes: nodesArray,
-    links: links,
-  };
-
-  return jsonData;
-}
-
-//----------------START: JSON -> DOT (PAG)------------------------//
-
-//TODO: vllt kann ich die ja wiederverwenden und von iwas abhängig dann
-//diagraph PAG oder halt diagraph ADMG schreiben am anfang der dot-syntax.
-
-//TODO: kommentar durchlesen über node.nodeColor teil
-const pagConvertJsonToDotButton = document.getElementById(
-  "pagConvertJsonToDot"
-);
-pagConvertJsonToDotButton.addEventListener("click", () => {
-  const jsonInput = document.getElementById("pagJsonDisplay").value;
-  const jsonData = JSON.parse(jsonInput);
-  const dotSyntax = jsonToDotConversion(jsonData);
-  document.getElementById("pagDotDisplay").value = dotSyntax;
-});
-
-function jsonToDotConversion(jsonData) {
-  let dotOutput = "digraph PAG {\n";
-
-  const mapNodeIdToNodeName = Object.fromEntries(
-    jsonData.nodes.map((node) => [node.nodeId, node.name])
-  );
-
-  jsonData.links.forEach((link) => {
-    const source = mapNodeIdToNodeName[link.source.nodeId];
-    const target = mapNodeIdToNodeName[link.target.nodeId];
-    const arrowhead = link.arrowhead;
-    const arrowtail = link.arrowtail;
-    const style = link.isDashed ? ", style=dashed" : "";
-    const color =
-      allowedColors.includes(link.linkColor) && link.linkColor !== "black"
-        ? `, color=${link.linkColor}`
-        : "";
-
-    dotOutput += `"${source}" -> "${target}" [dir=both, arrowhead=${arrowhead}, arrowtail=${arrowtail}${style}${color}];\n`;
+    document.getElementById("pagJsonDisplay").value = JSON.stringify(
+      jsonData,
+      null,
+      2
+    );
   });
 
-  jsonData.nodes.forEach((node) => {
-    //falls node alleinsetehend ist, wird er auch in dot-syntaxt übersetzt
-    const nodeIsInLinks = jsonData.links.some(
-      (link) =>
-        link.source.nodeId === node.nodeId || link.target.nodeId === node.nodeId
+  function pagDotToJsonConversion(dotSyntax) {
+    const knoten = new Map();
+    const links = [];
+
+    const edgeRegex =
+      /"([^"]+)"\s*->\s*"([^"]+)"\s*\[\s*dir\s*=\s*both[,\s]*arrowhead\s*=\s*([^,\s]+)[,\s]*arrowtail\s*=\s*([^,\s]+)(?:[,\s]*style\s*=\s*([^,\]]+))?(?:[,\s]*color\s*=\s*([^,\]]+))?\s*\];/g;
+
+    const nodeRegex = /"([^"]+)"\s*\[.*?fillcolor=([^,\]]+).*?\];/g;
+
+    let match;
+
+    //guckt sich alle knoten an für die farbe definiert wurde
+    while ((match = nodeRegex.exec(dotSyntax)) !== null) {
+      const nodeName = match[1];
+      const nodeColor = match[2].trim();
+
+      if (!knoten.has(nodeName)) {
+        knoten.set(nodeName, {
+          nodeId: uuid.v4(),
+          name: nodeName,
+          nodeColor: nodeColor || "whitesmoke",
+          x: null,
+          y: null,
+          labelOffsetX: 0,
+          labelOffsetY: 0,
+        });
+      }
+    }
+
+    //guckt sich alles andere an
+    while ((match = edgeRegex.exec(dotSyntax)) !== null) {
+      const sourceName = match[1];
+      const targetName = match[2];
+      const arrowhead = match[3].trim();
+      const arrowtail = match[4].trim();
+      const style = match[5]?.trim();
+      const color = match[6]?.trim() || "black";
+
+      //prüfen ob sourceName oder targetName zsm fassen und im if case dafür dann nach name prüfen und setzen
+      if (!knoten.has(sourceName)) {
+        knoten.set(sourceName, {
+          nodeId: uuid.v4(),
+          name: sourceName,
+          nodeColor: "whitesmoke",
+          x: null,
+          y: null,
+          labelOffsetX: 0,
+          labelOffsetY: 0,
+        });
+      }
+
+      if (!knoten.has(targetName)) {
+        knoten.set(targetName, {
+          nodeId: uuid.v4(),
+          name: targetName,
+          nodeColor: "whitesmoke",
+          x: null,
+          y: null,
+          labelOffsetX: 0,
+          labelOffsetY: 0,
+        });
+      }
+
+      const validatedColor = allowedColors.includes(color) ? color : "black";
+
+      links.push({
+        linkId: uuid.v4(),
+        linkColor: validatedColor,
+        source: knoten.get(sourceName),
+        target: knoten.get(targetName),
+        arrowhead: arrowhead,
+        arrowtail: arrowtail,
+        linkControlX: 0,
+        linkControlY: 0,
+        isCurved: false,
+        isDashed: style === "dashed",
+      });
+    }
+
+    const nodesArray = Array.from(knoten.values());
+
+    const jsonData = {
+      nodes: nodesArray,
+      links: links,
+    };
+
+    return jsonData;
+  }
+
+  //----------------START: JSON -> DOT (PAG)------------------------//
+
+  //TODO: vllt kann ich die ja wiederverwenden und von iwas abhängig dann
+  //diagraph PAG oder halt diagraph ADMG schreiben am anfang der dot-syntax.
+
+  //TODO: kommentar durchlesen über node.nodeColor teil
+  const pagConvertJsonToDotButton = document.getElementById(
+    "pagConvertJsonToDot"
+  );
+  pagConvertJsonToDotButton.addEventListener("click", () => {
+    const jsonInput = document.getElementById("pagJsonDisplay").value;
+    const jsonData = JSON.parse(jsonInput);
+    const dotSyntax = jsonToDotConversion(jsonData);
+    document.getElementById("pagDotDisplay").value = dotSyntax;
+  });
+
+  function jsonToDotConversion(jsonData) {
+    let dotOutput = "digraph PAG {\n";
+
+    const mapNodeIdToNodeName = Object.fromEntries(
+      jsonData.nodes.map((node) => [node.nodeId, node.name])
     );
 
-    if (node.nodeColor !== "whitesmoke" || !nodeIsInLinks) {
-      dotOutput += `"${
-        mapNodeIdToNodeName[node.nodeId]
-      }" [style=filled, fillcolor=${node.nodeColor}];\n`;
-    }
-  });
+    jsonData.links.forEach((link) => {
+      const source = mapNodeIdToNodeName[link.source.nodeId];
+      const target = mapNodeIdToNodeName[link.target.nodeId];
+      const arrowhead = link.arrowhead;
+      const arrowtail = link.arrowtail;
+      const style = link.isDashed ? ", style=dashed" : "";
+      const color =
+        allowedColors.includes(link.linkColor) && link.linkColor !== "black"
+          ? `, color=${link.linkColor}`
+          : "";
 
-  dotOutput += "}";
+      dotOutput += `"${source}" -> "${target}" [dir=both, arrowhead=${arrowhead}, arrowtail=${arrowtail}${style}${color}];\n`;
+    });
 
-  return dotOutput;
-}
+    jsonData.nodes.forEach((node) => {
+      //falls node alleinsetehend ist, wird er auch in dot-syntaxt übersetzt
+      const nodeIsInLinks = jsonData.links.some(
+        (link) =>
+          link.source.nodeId === node.nodeId || link.target.nodeId === node.nodeId
+      );
+
+      if (node.nodeColor !== "whitesmoke" || !nodeIsInLinks) {
+        dotOutput += `"${
+          mapNodeIdToNodeName[node.nodeId]
+        }" [style=filled, fillcolor=${node.nodeColor}];\n`;
+      }
+    });
+
+    dotOutput += "}";
+
+    return dotOutput;
+  }
 
 /***********************************************************/
 /**********END: Type-Conversion Functions for PAG***********/
@@ -622,8 +622,6 @@ function visualizeJsonWithD3(jsonData) {
   const gridSpacing = 50;
   currentGridSpacing = gridSpacing; //currently only for visual grid needed
 
-  initializePagArrowMarkers(svg);
-
   initializeNodeCoordinates(jsonData, gridSpacing * 2); //initiales clipping nutz doppelt so breites gridSpacing
 
   drawEverything(svg, jsonData);
@@ -662,67 +660,6 @@ function createSvgCanvas() {
     });
 
   return svg;
-}
-
-function initializePagArrowMarkers(svg) {
-  // prettier-ignore
-  setupArrowMarker(svg, "normal-head", "path", "black", null, "auto"); //sinnvoller wäre hier fillColor none und strokeColor black damit es zu odot passt aber idc
-  // prettier-ignore
-  setupArrowMarker(svg, "normal-tail", "path", "black", null, "auto-start-reverse"); //fromally red
-  // prettier-ignore
-  setupArrowMarker(svg, "odot-head", "circle", "white", "black", "auto");
-  // prettier-ignore
-  setupArrowMarker(svg, "odot-tail", "circle", "white", "black", "auto-start-reverse"); //formally red
-  // prettier-ignore
-  setupArrowMarker(svg, "tail-head", "rect", "black", null, "auto");
-  // prettier-ignore
-  setupArrowMarker(svg, "tail-tail", "rect", "black", null, "auto-start-reverse"); //formally red
-}
-
-/* 
-setupArrowMarker():
-there doesnt seem to exist a normal arrowshape in d3,
-creating ur own using paths is the best options ig
----
-wenn width und height bei rect auf 0, dann ist unsichtbar
-kann aber trotzdem vom user ausgewählt werden, als eigene arrowmarker art.
-*/
-function setupArrowMarker(svg, id, shape, fillColor, strokeColor, orient) {
-  const marker = svg
-    .append("defs")
-    .append("marker")
-    .attr("id", id)
-    .attr("viewBox", "0 -5 10 10")
-    .attr("refX", 21.5)
-    .attr("refY", 0)
-    .attr("markerWidth", 6)
-    .attr("markerHeight", 6)
-    .attr("orient", orient);
-
-  if (shape === "path") {
-    // prettier-ignore
-    marker
-        .append("path")
-        .attr("d", "M0,-5L10,0L0,5")
-        .attr("fill", fillColor);
-  } else if (shape === "circle") {
-    marker
-      .append("circle")
-      .attr("cx", 5)
-      .attr("cy", 0)
-      .attr("r", 4)
-      .attr("fill", fillColor)
-      .attr("stroke", strokeColor)
-      .attr("stroke-width", 2);
-  } else if (shape === "rect") {
-    marker
-      .append("rect") //unser arrowmarker für tail
-      .attr("x", 0)
-      .attr("y", -5)
-      .attr("width", 0)
-      .attr("height", 0)
-      .attr("fill", fillColor);
-  }
 }
 
 function initializeNodeCoordinates(jsonData, gridSpacing) {
@@ -768,7 +705,7 @@ function drawEverything(svg, jsonData) {
 
 //calls the functions that implement the contextmenu for the three objects
 function handleAllContextMenus(svg, jsonData) {
-  svg.selectAll(".link").on("contextmenu", null);
+  svg.selectAll(".link").on("contextmenu", null); //hier maybe link-context-menu und node-context-menu? das ist ja deren id eig?
 
   svg.selectAll(".node").on("contextmenu", null);
 
@@ -819,18 +756,62 @@ function drawLinks(svg, jsonData) {
     .attr("fill", "none")
     .attr("stroke-dasharray", (d) => (d.isDashed ? "4 2" : null))
     .attr("marker-end", (d) => {
-      if (d.arrowhead === "normal") return "url(#normal-head)";
-      if (d.arrowhead === "odot") return "url(#odot-head)";
-      if (d.arrowhead === "tail") return "url(#tail-head)";
+      if (d.arrowhead) {
+        const markerId = `marker-${d.linkId}-end`;
+        setupArrowMarker(svg, markerId, d.arrowhead, d.linkColor, "auto");
+        return `url(#${markerId})`;
+      }
       return null;
     })
     .attr("marker-start", (d) => {
-      if (d.arrowtail === "normal") return "url(#normal-tail)";
-      if (d.arrowtail === "odot") return "url(#odot-tail)";
-      if (d.arrowtail === "tail") return "url(#tail-tail)";
+      if (d.arrowtail) {
+        const markerId = `marker-${d.linkId}-start`;
+        setupArrowMarker(svg, markerId, d.arrowtail, d.linkColor, "auto-start-reverse");
+        return `url(#${markerId})`;
+      }
       return null;
     })
     .attr("d", (d) => calculateLinkPath(d));
+}
+
+
+function setupArrowMarker(svg, id, type, color, orient) {
+  svg.select(`#${id}`).remove(); //alte arrowmarker löschen
+
+  const marker = svg
+    .append("defs")
+    .append("marker")
+    .attr("id", id)
+    .attr("viewBox", "0 -5 10 10")
+    .attr("refX", 21.5)
+    .attr("refY", 0)
+    .attr("markerWidth", 6)
+    .attr("markerHeight", 6)
+    .attr("orient", orient);
+
+  if (type === "normal") {
+    marker
+      .append("path")
+      .attr("d", "M0,-5L10,0L0,5")
+      .attr("fill", color);
+  } else if (type === "odot") {
+    marker
+      .append("circle")
+      .attr("cx", 5)
+      .attr("cy", 0)
+      .attr("r", 4)
+      .attr("fill", "white")
+      .attr("stroke", color)
+      .attr("stroke-width", 2);
+  } else if (type === "tail") {
+    marker
+      .append("rect")
+      .attr("x", 0)
+      .attr("y", -5)
+      .attr("width", 0)
+      .attr("height", 0)
+      .attr("fill", color);
+  }
 }
 
 function drawNodes(svg, jsonData) {
@@ -982,46 +963,68 @@ function closeContextMenu(contextMenuType) {
 
 //----------START: linkContextMenu === CONTEXTMENU LINKS UNIQUE FUNCTIONS--------------//
 
-//TODO: Diese menuActions kacke iwie anpassen, auch wenn hier eig geil, lieber bei labels anpassen maybe
-//wird halt so oft durchgeführt wie "visualisieren" gedrückt wird, aber kann egal sein for now
+//TODO: refactor redrawing of arrowhead/arrowtail...
 function setupLinksContextMenuFunctions(svg, jsonData) {
   console.log("Link Contextmenu called");
-  const menuActions = [
-    // prettier-ignore
-    { id: "arrowhead-normal", attr: "arrowhead", value: "normal", marker: "url(#normal-head)", position: "marker-end" },
-    // prettier-ignore
-    { id: "arrowhead-odot", attr: "arrowhead", value: "odot", marker: "url(#odot-head)", position: "marker-end" },
-    // prettier-ignore
-    { id: "arrowhead-tail", attr: "arrowhead", value: "tail", marker: "url(#tail-head)", position: "marker-end" },
-    // prettier-ignore
-    { id: "arrowtail-normal", attr: "arrowtail", value: "normal", marker: "url(#normal-tail)", position: "marker-start" },
-    // prettier-ignore
-    { id: "arrowtail-odot", attr: "arrowtail", value: "odot", marker: "url(#odot-tail)", position: "marker-start" },
-    // prettier-ignore
-    { id: "arrowtail-tail", attr: "arrowtail", value: "tail", marker: "url(#tail-tail)", position: "marker-start" },
-  ];
+  
+  function handleArrowheadClick(arrowheadType) {
+    const linkMenu = document.getElementById("link-context-menu");
+    const linkId = linkMenu.getAttribute("data-link-id");
+    const selectedLink = jsonData.links.find((link) => link.linkId === linkId);
+  
+    if (selectedLink) {
+      selectedLink.arrowhead = arrowheadType;
 
-  menuActions.forEach((action) => {
-    //id hier hat nichts mit nodeId, linkId oder labelId zu tun, id ist intern für menuActions
-    document.getElementById(action.id).addEventListener("click", () => {
-      const linkMenu = document.getElementById("link-context-menu");
-      const linkId = linkMenu.getAttribute("data-link-id");
-      const selectedLink = jsonData.links.find(
-        (link) => link.linkId === linkId
+      const markerId = `marker-${selectedLink.linkId}-end`;
+      setupArrowMarker(
+        d3.select("svg"),
+        markerId,
+        arrowheadType,
+        selectedLink.linkColor,
+        "auto"
       );
 
-      if (selectedLink) {
-        selectedLink[action.attr] = action.value;
-        d3.select(`#link-${selectedLink.linkId}`).attr(
-          action.position,
-          action.marker
-        );
-        updatePagJsonDisplay(jsonData);
-      }
-    });
-  });
+      d3.select(`#link-${selectedLink.linkId}`)
+        .attr("marker-end", `url(#${markerId})`);
 
-  //buttons, ausserhalb von arrowmarker änderung
+      updatePagJsonDisplay(jsonData);
+      console.log(`Arrowhead updated to '${arrowheadType}' for link ${linkId}`);
+    }
+  }
+
+  document.getElementById("arrowhead-normal").addEventListener("click", () => handleArrowheadClick("normal"));
+  document.getElementById("arrowhead-odot").addEventListener("click", () => handleArrowheadClick("odot"));
+  document.getElementById("arrowhead-tail").addEventListener("click", () => handleArrowheadClick("tail"));
+
+  function handleArrowtailClick(arrowtailType) {
+    const linkMenu = document.getElementById("link-context-menu");
+    const linkId = linkMenu.getAttribute("data-link-id");
+    const selectedLink = jsonData.links.find((link) => link.linkId === linkId);
+  
+    if (selectedLink) {
+      selectedLink.arrowtail = arrowtailType;
+
+      const markerId = `marker-${selectedLink.linkId}-start`;
+      setupArrowMarker(
+        d3.select("svg"),
+        markerId,
+        arrowtailType,
+        selectedLink.linkColor,
+        "auto-start-reverse"
+      );
+
+      d3.select(`#link-${selectedLink.linkId}`)
+        .attr("marker-start", `url(#${markerId})`);
+
+      updatePagJsonDisplay(jsonData);
+      console.log(`Arrowtail updated to '${arrowtailType}' for link ${linkId}`);
+    }
+  }
+
+  document.getElementById("arrowtail-normal").addEventListener("click", () => handleArrowtailClick("normal"));
+  document.getElementById("arrowtail-odot").addEventListener("click", () => handleArrowtailClick("odot"));
+  document.getElementById("arrowtail-tail").addEventListener("click", () => handleArrowtailClick("tail"));
+
   //TODO: Kann man anstatt mit selected Link wie bei delete-link nicht direkt mit linkId arbeiten?
   document.getElementById("straighten-link").addEventListener("click", () => {
     const linkMenu = document.getElementById("link-context-menu");
@@ -1062,6 +1065,8 @@ function setupLinksContextMenuFunctions(svg, jsonData) {
     }
   });
 }
+
+
 
 function resetLinkCurve(selectedLink) {
   const sourceNode = selectedLink.source;
@@ -1422,16 +1427,20 @@ function drawNewLink(svg, link) {
         d3.select(this).attr("stroke-dasharray", "4 2");
       }
     })
-    .attr("marker-end", () => {
-      if (link.arrowhead === "normal") return "url(#normal-head)";
-      if (link.arrowhead === "odot") return "url(#odot-head)";
-      if (link.arrowhead === "tail") return "url(#tail-head)";
+    .attr("marker-end", (d) => {
+      if (d.arrowhead) {
+        const markerId = `marker-${d.linkId}-end`;
+        setupArrowMarker(svg, markerId, d.arrowhead, d.linkColor, "auto");
+        return `url(#${markerId})`;
+      }
       return null;
     })
-    .attr("marker-start", () => {
-      if (link.arrowtail === "normal") return "url(#normal-tail)";
-      if (link.arrowtail === "odot") return "url(#odot-tail)";
-      if (link.arrowtail === "tail") return "url(#tail-tail)";
+    .attr("marker-start", (d) => {
+      if (d.arrowtail) {
+        const markerId = `marker-${d.linkId}-start`;
+        setupArrowMarker(svg, markerId, d.arrowtail, d.linkColor, "auto-start-reverse");
+        return `url(#${markerId})`;
+      }
       return null;
     })
     .attr("d", calculateLinkPath(link));
@@ -1473,11 +1482,7 @@ function drawNewLink(svg, link) {
 //bei neuen nodes, mal gucken ob die contextMenuLabel function nen problem hat oder was es sonst
 //sein könnte + LabelOffset dynamisch an radius anpassen.
 
-//TODO 2.1: die borders meine svg canvases nicht durchdringbar machen, bei createSvgCanvas proably und
-//gucken ob sich dann neu erstellte knoten auch daran halten
-//-> Fehlt auch noch
-
-//TODO 2.2: Beim zeichnen von neuen kanten brauche ich ein offset, falls schon n+1 kante vorhanden ist
+//TODO 2.1: Beim zeichnen von neuen kanten brauche ich ein offset, falls schon n+1 kante vorhanden ist
 //zwischen den beiden knoten
 
 //TODO 3: deleteNode in contextmenu hinzufügen
@@ -1488,8 +1493,16 @@ function drawNewLink(svg, link) {
 //TODO 6: Alles auf canvas moven können
 //TODO 7: Pdf export an graphen größe anpassen
 
-//-> Aktuell erstmal contextmenu für color change von links adden und gucken wie ich die arrowmarker
+//-> TODO 0: Aktuell erstmal contextmenu für color change von links adden und gucken wie ich die arrowmarker
 //von den spezifischen links colorchange, bitte nicht noch eine id... Dann um das labels-nodes problem kümmern
+//so wie ich das seh muss ich dann ja das ganze links/arrowmarker ding anders mach, weil wenn ich revisualisiere
+//gehört ja kein arrowmarker zu einem link so direkt oder wie.
+
+//-> link colorChange ContextMenu, nodes löschen können
+
+//TODO 0.1: Beim initialen laden der seite jsonData textfield mit nem leeren jsonData implementieren, damit
+//wenn man auf einlesen Visualisieren klickt man direkt mit dem zeichnen anfangen kann, oder einmal direkt das aufrufen am
+//anfang damit man sofort schon einen canvas hat, auch wenn mit einem noch leeren element.
 //-----------------------------------------------------------------------------
 function handleCreateNewNode(svg, jsonData) {
   svg.on("click", function (event) {
