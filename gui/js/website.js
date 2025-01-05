@@ -1,6 +1,11 @@
 //----------START: ERERVYTHING CONCERNING THE UI--------------//
 
-// First event listener for menu-toggle
+
+/***********************************************************/
+/************START: Website Navigation Functions************/
+/***********************************************************/
+
+//First event listener for menu-toggle
 document.addEventListener("DOMContentLoaded", () => {
     const navigationBarButton = document.getElementById("right-slidemenu-toggle");
     const slideMenuMinor = document.getElementById("right-slidemenu-minor");
@@ -17,7 +22,7 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   });
   
-  // Second event listener for menu-buttons (separate logic for buttons)
+  //Second event listener for menu-buttons (separate logic for buttons)
   document.addEventListener("DOMContentLoaded", () => {
     const slideMenuMinorButtons = document.querySelectorAll(
       "#right-slidemenu-minor-buttons button"
@@ -43,6 +48,7 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   });
   
+  //Third event listener 
   document.addEventListener("DOMContentLoaded", () => {
     const toggleButtons = document.querySelectorAll(".toggle-textarea");
   
@@ -58,3 +64,21 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   });
   
+/***********************************************************/
+/*************END: Website Navigation Functions*************/
+/***********************************************************/
+
+/***********************************************************/
+
+
+//todo: in the future add every event-listener here? 
+//do that after i know what my button layout is gonna look like, when i added admg button
+//and turned the transform buttons into download as .txt or .csv or .json 
+//whats with the eventlisteners from contextmenus? do they stay in the contextmenu? probably yeah?
+//should i make an own contextmenu.js file?
+
+
+
+
+
+//----------END: ERERVYTHING CONCERNING THE UI--------------//

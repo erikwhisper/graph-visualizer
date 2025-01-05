@@ -3,32 +3,153 @@
 /***********************************************************/
 
 const allowedColors = [
-    "white", "whitesmoke", "azure", "aliceblue", "ghostwhite", "floralwhite", "ivory", "beige", "antiquewhite", "mintcream", "snow", "oldlace", 
-    "lavenderblush", "seashell", "cornsilk", "blanchedalmond", "papayawhip", "lemonchiffon", "linen", "honeydew", "gainsboro", "navajowhite",
-    //yeelows
-    "lightyellow", "yellow", "khaki", "gold", "palegoldenrod", "goldenrod", "darkgoldenrod", "darkkhaki",
-    //oranges
-    "moccasin", "peachpuff", "bisque", "orange", "darkorange", "tan", "sandybrown", "burlywood", "peru", "chocolate", "saddlebrown", "maroon",
-    //reds
-    "lightpink", "pink", "hotpink", "mistyrose", "salmon", "lightsalmon", "lightcoral", "coral", "tomato", "orangered", "indianred", "darksalmon", "crimson", 
-    "firebrick", "red", "darkred",
-    //brown
-    "rosybrown", "brown", "sienna",
-    //lilas
-    "thistle", "lavender", "plum", "orchid", "rebeccapurple", "violet", "mediumorchid", "mediumpurple", "blueviolet", "darkorchid", "darkviolet", "purple", "magenta", 
-    "fuchsia", "mediumvioletred", "palevioletred", "indigo",
-    //blue
-    "lightcyan", "lightblue", "lightsteelblue", "powderblue", "skyblue", "lightskyblue", "deepskyblue", "dodgerblue", "cornflowerblue", "steelblue", 
-    "royalblue", "mediumblue", "mediumslateblue", "blue", "darkblue", "navy", "midnightblue", "slateblue", "darkslateblue",
-    //aqua
-    "lightgoldenrodyellow", "cyan", "aqua", "aquamarine", "mediumaquamarine", "teal", "turquoise", "paleturquoise", "mediumturquoise", 
-    "darkturquoise", "darkcyan", "cadetblue",
-    //greens
-    "lightgreen", "lightseagreen", "palegreen", "springgreen", "mediumspringgreen", "greenyellow", "lime", "limegreen", "yellowgreen", "lawngreen", 
-    "chartreuse", "mediumseagreen", "seagreen", "darkseagreen", "darkolivegreen", "forestgreen", "green", "darkgreen", "olivedrab", "olive",
-    //graus + schwarz
-    "lightgray", "lightslategray", "silver", "darkgray", "dimgray", "slategray", "darkslategray", "black"
-  ];
+  "white",
+  "whitesmoke",
+  "azure",
+  "aliceblue",
+  "ghostwhite",
+  "floralwhite",
+  "ivory",
+  "beige",
+  "antiquewhite",
+  "mintcream",
+  "snow",
+  "oldlace",
+  "lavenderblush",
+  "seashell",
+  "cornsilk",
+  "blanchedalmond",
+  "papayawhip",
+  "lemonchiffon",
+  "linen",
+  "honeydew",
+  "gainsboro",
+  "navajowhite",
+  //yeelows
+  "lightyellow",
+  "yellow",
+  "khaki",
+  "gold",
+  "palegoldenrod",
+  "goldenrod",
+  "darkgoldenrod",
+  "darkkhaki",
+  //oranges
+  "moccasin",
+  "peachpuff",
+  "bisque",
+  "orange",
+  "darkorange",
+  "tan",
+  "sandybrown",
+  "burlywood",
+  "peru",
+  "chocolate",
+  "saddlebrown",
+  "maroon",
+  //reds
+  "lightpink",
+  "pink",
+  "hotpink",
+  "mistyrose",
+  "salmon",
+  "lightsalmon",
+  "lightcoral",
+  "coral",
+  "tomato",
+  "orangered",
+  "indianred",
+  "darksalmon",
+  "crimson",
+  "firebrick",
+  "red",
+  "darkred",
+  //brown
+  "rosybrown",
+  "brown",
+  "sienna",
+  //lilas
+  "thistle",
+  "lavender",
+  "plum",
+  "orchid",
+  "rebeccapurple",
+  "violet",
+  "mediumorchid",
+  "mediumpurple",
+  "blueviolet",
+  "darkorchid",
+  "darkviolet",
+  "purple",
+  "magenta",
+  "fuchsia",
+  "mediumvioletred",
+  "palevioletred",
+  "indigo",
+  //blue
+  "lightcyan",
+  "lightblue",
+  "lightsteelblue",
+  "powderblue",
+  "skyblue",
+  "lightskyblue",
+  "deepskyblue",
+  "dodgerblue",
+  "cornflowerblue",
+  "steelblue",
+  "royalblue",
+  "mediumblue",
+  "mediumslateblue",
+  "blue",
+  "darkblue",
+  "navy",
+  "midnightblue",
+  "slateblue",
+  "darkslateblue",
+  //aqua
+  "lightgoldenrodyellow",
+  "cyan",
+  "aqua",
+  "aquamarine",
+  "mediumaquamarine",
+  "teal",
+  "turquoise",
+  "paleturquoise",
+  "mediumturquoise",
+  "darkturquoise",
+  "darkcyan",
+  "cadetblue",
+  //greens
+  "lightgreen",
+  "lightseagreen",
+  "palegreen",
+  "springgreen",
+  "mediumspringgreen",
+  "greenyellow",
+  "lime",
+  "limegreen",
+  "yellowgreen",
+  "lawngreen",
+  "chartreuse",
+  "mediumseagreen",
+  "seagreen",
+  "darkseagreen",
+  "darkolivegreen",
+  "forestgreen",
+  "green",
+  "darkgreen",
+  "olivedrab",
+  "olive",
+  //graus + schwarz
+  "lightgray",
+  "lightslategray",
+  "silver",
+  "darkgray",
+  "dimgray",
+  "slategray",
+  "darkslategray",
+  "black",
+];
 //Listener für PAG matrix
 const pagMatrixReadButton = document.getElementById("pagMatrixReadButton");
 pagMatrixReadButton.addEventListener("click", readPagMatrix);
@@ -53,9 +174,23 @@ function readPagMatrix() {
   if (fileInput) {
     const reader = new FileReader();
     reader.onload = function (event) {
-      const formattedMatrix = pagFormatMatrix(event.target.result);
-      displayArea.value = formattedMatrix; // Formatierte Matrix anzeigen
-      //displayArea.value = event.target.result; //Matrix anzeigen
+      const formattedMatrix = pagFormatMatrix(event.target.result); // Formatierte Matrix anzeigen (1)
+      displayArea.value = formattedMatrix; // Formatierte Matrix anzeigen (2)
+      //displayArea.value = event.target.result; //Matrix anzeigen (unformatiert)
+      //Matrix -> Json -> Dot
+
+      const jsonData = pagConvertMatrixToJson(parsePagContent(displayArea.value));
+
+      document.getElementById("pagJsonDisplay").value = JSON.stringify(
+        jsonData,
+        null,
+        2
+      );
+
+      document.getElementById("pagDotDisplay").value =
+        jsonToDotConversion(jsonData);
+
+      //Matrix -> Json -> Dot
     };
     reader.readAsText(fileInput);
   } else {
@@ -75,7 +210,18 @@ function readPagJson() {
   if (fileInput) {
     const reader = new FileReader();
     reader.onload = function (event) {
-      displayArea.value = event.target.result; // JSON anzeigen
+      displayArea.value = event.target.result;
+      //Json -> Matrix & Json -> Dot
+
+      const jsonData = JSON.parse(displayArea.value);
+
+      document.getElementById("pagMatrixDisplay").value =
+        pagConvertJsonToMatrix(jsonData);
+
+      document.getElementById("pagDotDisplay").value =
+        jsonToDotConversion(jsonData);
+
+      //Json -> Matrix & Json -> Dot
     };
     reader.readAsText(fileInput);
   } else {
@@ -90,7 +236,21 @@ function readPagDot() {
   if (fileInput) {
     const reader = new FileReader();
     reader.onload = function (event) {
-      displayArea.value = event.target.result; // DOT anzeigen
+      displayArea.value = event.target.result;
+      //Dot -> Json -> Matrix
+
+      const jsonData = pagDotToJsonConversion(displayArea.value);
+
+      document.getElementById("pagJsonDisplay").value = JSON.stringify(
+        jsonData,
+        null,
+        2
+      );
+
+      document.getElementById("pagMatrixDisplay").value =
+        pagConvertJsonToMatrix(jsonData);
+
+      //Dot -> Json -> Matrix
     };
     reader.readAsText(fileInput);
   } else {
@@ -107,6 +267,8 @@ function readPagDot() {
 
 //----------------START: MATRIX -> JSON (PAG)------------------------//
 
+//aus den conversion buttons download buttons machen, es reicht dann json->matrix für download matrix
+//json->dot für download dot und download json selbst
 const pagConvertMatrixToJsonButton = document.getElementById(
   "pagConvertMatrixToJson"
 );
@@ -201,7 +363,7 @@ function pagCreateJsonLinks(quellId, zielId, kantenTypFromTo, kantenTypToFrom) {
   //thats overkill and destroys seperations of concern.
   return {
     linkId: uuid.v4(),
-    linkColor: "red",
+    linkColor: "black",
     source: {
       nodeId: quellId,
       nodeColor: "whitesmoke",
@@ -330,166 +492,166 @@ function pagConvertJsonToMatrix(jsonData) {
   return matrix.map((row) => row.join(", ")).join("\n");
 }
 
-  //----------------START: DOT -> JSON (PAG)------------------------//
+//----------------START: DOT -> JSON (PAG)------------------------//
 
-  const pagConvertDotToJsonButton = document.getElementById(
-    "pagConvertDotToJson"
+const pagConvertDotToJsonButton = document.getElementById(
+  "pagConvertDotToJson"
+);
+pagConvertDotToJsonButton.addEventListener("click", () => {
+  const dotInput = document.getElementById("pagDotDisplay").value;
+  const jsonData = pagDotToJsonConversion(dotInput);
+
+  document.getElementById("pagJsonDisplay").value = JSON.stringify(
+    jsonData,
+    null,
+    2
   );
-  pagConvertDotToJsonButton.addEventListener("click", () => {
-    const dotInput = document.getElementById("pagDotDisplay").value;
-    const jsonData = pagDotToJsonConversion(dotInput);
+});
 
-    document.getElementById("pagJsonDisplay").value = JSON.stringify(
-      jsonData,
-      null,
-      2
-    );
-  });
+function pagDotToJsonConversion(dotSyntax) {
+  const knoten = new Map();
+  const links = [];
 
-  function pagDotToJsonConversion(dotSyntax) {
-    const knoten = new Map();
-    const links = [];
+  const edgeRegex =
+    /"([^"]+)"\s*->\s*"([^"]+)"\s*\[\s*dir\s*=\s*both[,\s]*arrowhead\s*=\s*([^,\s]+)[,\s]*arrowtail\s*=\s*([^,\s]+)(?:[,\s]*style\s*=\s*([^,\]]+))?(?:[,\s]*color\s*=\s*([^,\]]+))?\s*\];/g;
 
-    const edgeRegex =
-      /"([^"]+)"\s*->\s*"([^"]+)"\s*\[\s*dir\s*=\s*both[,\s]*arrowhead\s*=\s*([^,\s]+)[,\s]*arrowtail\s*=\s*([^,\s]+)(?:[,\s]*style\s*=\s*([^,\]]+))?(?:[,\s]*color\s*=\s*([^,\]]+))?\s*\];/g;
+  const nodeRegex = /"([^"]+)"\s*\[.*?fillcolor=([^,\]]+).*?\];/g;
 
-    const nodeRegex = /"([^"]+)"\s*\[.*?fillcolor=([^,\]]+).*?\];/g;
+  let match;
 
-    let match;
+  //guckt sich alle knoten an für die farbe definiert wurde
+  while ((match = nodeRegex.exec(dotSyntax)) !== null) {
+    const nodeName = match[1];
+    const nodeColor = match[2].trim();
 
-    //guckt sich alle knoten an für die farbe definiert wurde
-    while ((match = nodeRegex.exec(dotSyntax)) !== null) {
-      const nodeName = match[1];
-      const nodeColor = match[2].trim();
-
-      if (!knoten.has(nodeName)) {
-        knoten.set(nodeName, {
-          nodeId: uuid.v4(),
-          name: nodeName,
-          nodeColor: nodeColor || "whitesmoke",
-          x: null,
-          y: null,
-          labelOffsetX: 0,
-          labelOffsetY: 0,
-        });
-      }
+    if (!knoten.has(nodeName)) {
+      knoten.set(nodeName, {
+        nodeId: uuid.v4(),
+        name: nodeName,
+        nodeColor: nodeColor || "whitesmoke",
+        x: null,
+        y: null,
+        labelOffsetX: 0,
+        labelOffsetY: 0,
+      });
     }
+  }
 
-    //guckt sich alles andere an
-    while ((match = edgeRegex.exec(dotSyntax)) !== null) {
-      const sourceName = match[1];
-      const targetName = match[2];
-      const arrowhead = match[3].trim();
-      const arrowtail = match[4].trim();
-      const style = match[5]?.trim();
-      const color = match[6]?.trim() || "black";
+  //guckt sich alles andere an
+  while ((match = edgeRegex.exec(dotSyntax)) !== null) {
+    const sourceName = match[1];
+    const targetName = match[2];
+    const arrowhead = match[3].trim();
+    const arrowtail = match[4].trim();
+    const style = match[5]?.trim();
+    const color = match[6]?.trim() || "black";
 
-      //prüfen ob sourceName oder targetName zsm fassen und im if case dafür dann nach name prüfen und setzen
-      if (!knoten.has(sourceName)) {
-        knoten.set(sourceName, {
-          nodeId: uuid.v4(),
-          name: sourceName,
-          nodeColor: "whitesmoke",
-          x: null,
-          y: null,
-          labelOffsetX: 0,
-          labelOffsetY: 0,
-        });
-      }
-
-      if (!knoten.has(targetName)) {
-        knoten.set(targetName, {
-          nodeId: uuid.v4(),
-          name: targetName,
-          nodeColor: "whitesmoke",
-          x: null,
-          y: null,
-          labelOffsetX: 0,
-          labelOffsetY: 0,
-        });
-      }
-
-      const validatedColor = allowedColors.includes(color) ? color : "black";
-
-      links.push({
-        linkId: uuid.v4(),
-        linkColor: validatedColor,
-        source: knoten.get(sourceName),
-        target: knoten.get(targetName),
-        arrowhead: arrowhead,
-        arrowtail: arrowtail,
-        linkControlX: 0,
-        linkControlY: 0,
-        isCurved: false,
-        isDashed: style === "dashed",
+    //prüfen ob sourceName oder targetName zsm fassen und im if case dafür dann nach name prüfen und setzen
+    if (!knoten.has(sourceName)) {
+      knoten.set(sourceName, {
+        nodeId: uuid.v4(),
+        name: sourceName,
+        nodeColor: "whitesmoke",
+        x: null,
+        y: null,
+        labelOffsetX: 0,
+        labelOffsetY: 0,
       });
     }
 
-    const nodesArray = Array.from(knoten.values());
+    if (!knoten.has(targetName)) {
+      knoten.set(targetName, {
+        nodeId: uuid.v4(),
+        name: targetName,
+        nodeColor: "whitesmoke",
+        x: null,
+        y: null,
+        labelOffsetX: 0,
+        labelOffsetY: 0,
+      });
+    }
 
-    const jsonData = {
-      nodes: nodesArray,
-      links: links,
-    };
+    const validatedColor = allowedColors.includes(color) ? color : "black";
 
-    return jsonData;
+    links.push({
+      linkId: uuid.v4(),
+      linkColor: validatedColor,
+      source: knoten.get(sourceName),
+      target: knoten.get(targetName),
+      arrowhead: arrowhead,
+      arrowtail: arrowtail,
+      linkControlX: 0,
+      linkControlY: 0,
+      isCurved: false,
+      isDashed: style === "dashed",
+    });
   }
 
-  //----------------START: JSON -> DOT (PAG)------------------------//
+  const nodesArray = Array.from(knoten.values());
 
-  //TODO: vllt kann ich die ja wiederverwenden und von iwas abhängig dann
-  //diagraph PAG oder halt diagraph ADMG schreiben am anfang der dot-syntax.
+  const jsonData = {
+    nodes: nodesArray,
+    links: links,
+  };
 
-  //TODO: kommentar durchlesen über node.nodeColor teil
-  const pagConvertJsonToDotButton = document.getElementById(
-    "pagConvertJsonToDot"
+  return jsonData;
+}
+
+//----------------START: JSON -> DOT (PAG)------------------------//
+
+//TODO: vllt kann ich die ja wiederverwenden und von iwas abhängig dann
+//diagraph PAG oder halt diagraph ADMG schreiben am anfang der dot-syntax.
+
+//TODO: kommentar durchlesen über node.nodeColor teil
+const pagConvertJsonToDotButton = document.getElementById(
+  "pagConvertJsonToDot"
+);
+pagConvertJsonToDotButton.addEventListener("click", () => {
+  const jsonInput = document.getElementById("pagJsonDisplay").value;
+  const jsonData = JSON.parse(jsonInput);
+  const dotSyntax = jsonToDotConversion(jsonData);
+  document.getElementById("pagDotDisplay").value = dotSyntax;
+});
+
+function jsonToDotConversion(jsonData) {
+  let dotOutput = "digraph PAG {\n";
+
+  const mapNodeIdToNodeName = Object.fromEntries(
+    jsonData.nodes.map((node) => [node.nodeId, node.name])
   );
-  pagConvertJsonToDotButton.addEventListener("click", () => {
-    const jsonInput = document.getElementById("pagJsonDisplay").value;
-    const jsonData = JSON.parse(jsonInput);
-    const dotSyntax = jsonToDotConversion(jsonData);
-    document.getElementById("pagDotDisplay").value = dotSyntax;
+
+  jsonData.links.forEach((link) => {
+    const source = mapNodeIdToNodeName[link.source.nodeId];
+    const target = mapNodeIdToNodeName[link.target.nodeId];
+    const arrowhead = link.arrowhead;
+    const arrowtail = link.arrowtail;
+    const style = link.isDashed ? ", style=dashed" : "";
+    const color =
+      allowedColors.includes(link.linkColor) && link.linkColor !== "black"
+        ? `, color=${link.linkColor}`
+        : "";
+
+    dotOutput += `"${source}" -> "${target}" [dir=both, arrowhead=${arrowhead}, arrowtail=${arrowtail}${style}${color}];\n`;
   });
 
-  function jsonToDotConversion(jsonData) {
-    let dotOutput = "digraph PAG {\n";
-
-    const mapNodeIdToNodeName = Object.fromEntries(
-      jsonData.nodes.map((node) => [node.nodeId, node.name])
+  jsonData.nodes.forEach((node) => {
+    //falls node alleinsetehend ist, wird er auch in dot-syntaxt übersetzt
+    const nodeIsInLinks = jsonData.links.some(
+      (link) =>
+        link.source.nodeId === node.nodeId || link.target.nodeId === node.nodeId
     );
 
-    jsonData.links.forEach((link) => {
-      const source = mapNodeIdToNodeName[link.source.nodeId];
-      const target = mapNodeIdToNodeName[link.target.nodeId];
-      const arrowhead = link.arrowhead;
-      const arrowtail = link.arrowtail;
-      const style = link.isDashed ? ", style=dashed" : "";
-      const color =
-        allowedColors.includes(link.linkColor) && link.linkColor !== "black"
-          ? `, color=${link.linkColor}`
-          : "";
+    if (node.nodeColor !== "whitesmoke" || !nodeIsInLinks) {
+      dotOutput += `"${
+        mapNodeIdToNodeName[node.nodeId]
+      }" [style=filled, fillcolor=${node.nodeColor}];\n`;
+    }
+  });
 
-      dotOutput += `"${source}" -> "${target}" [dir=both, arrowhead=${arrowhead}, arrowtail=${arrowtail}${style}${color}];\n`;
-    });
+  dotOutput += "}";
 
-    jsonData.nodes.forEach((node) => {
-      //falls node alleinsetehend ist, wird er auch in dot-syntaxt übersetzt
-      const nodeIsInLinks = jsonData.links.some(
-        (link) =>
-          link.source.nodeId === node.nodeId || link.target.nodeId === node.nodeId
-      );
-
-      if (node.nodeColor !== "whitesmoke" || !nodeIsInLinks) {
-        dotOutput += `"${
-          mapNodeIdToNodeName[node.nodeId]
-        }" [style=filled, fillcolor=${node.nodeColor}];\n`;
-      }
-    });
-
-    dotOutput += "}";
-
-    return dotOutput;
-  }
+  return dotOutput;
+}
 
 /***********************************************************/
 /**************END: Type-Conversion Functions***************/
