@@ -177,7 +177,9 @@ function readPagMatrix() {
       const formattedMatrix = pagFormatMatrix(event.target.result); // Formatierte Matrix anzeigen (1)
       displayArea.value = formattedMatrix; // Formatierte Matrix anzeigen (2)
       //displayArea.value = event.target.result; //Matrix anzeigen (unformatiert)
+
       //Matrix -> Json -> Dot
+      //Unterscheiden zwischen ADMG Matrix und PAG Matrix wie?
 
       const jsonData = pagConvertMatrixToJson(parsePagContent(displayArea.value));
 
@@ -212,6 +214,7 @@ function readPagJson() {
     reader.onload = function (event) {
       displayArea.value = event.target.result;
       //Json -> Matrix & Json -> Dot
+      //Unterscheiden zwischen ADMG Matrix und PAG Matrix wie?
 
       const jsonData = JSON.parse(displayArea.value);
 
@@ -238,6 +241,7 @@ function readPagDot() {
     reader.onload = function (event) {
       displayArea.value = event.target.result;
       //Dot -> Json -> Matrix
+      //Unterscheiden zwischen ADMG Matrix und PAG Matrix wie?
 
       const jsonData = pagDotToJsonConversion(displayArea.value);
 

@@ -940,6 +940,9 @@ function drawNewLink(svg, link) {
 
 //-> link colorChange ContextMenu, nodes löschen können
 
+//add a field to the jsonData with nodes, links and maybe type: pag or admg? to determine into what matrice to
+//turn it into again?
+
 //TODO 0.1: Beim initialen laden der seite jsonData textfield mit nem leeren jsonData implementieren, damit
 //wenn man auf einlesen Visualisieren klickt man direkt mit dem zeichnen anfangen kann, oder einmal direkt das aufrufen am
 //anfang damit man sofort schon einen canvas hat, auch wenn mit einem noch leeren element.
