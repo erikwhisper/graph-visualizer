@@ -1,17 +1,4 @@
 /***********************************************************/
-/*********************GLOBAL VARIABLES**********************/
-/***********************************************************/
-
-//Try to get rid of global variables:
-
-//GLOBALE VARIABELN:
-let isGridClippingEnabled = false;
-
-//necessary for the visual grid
-let currentSvg = null;
-let currentGridSpacing = null;
-
-/***********************************************************/
 /***********START: jsonData Visulization for PAG************/
 /***********************************************************/
 
@@ -50,7 +37,6 @@ document
 
 function resetCheckBoxes() {
   //reset grid clipping
-  isGridClippingEnabled = false;
   document.getElementById("gridClippingToggle").checked = false;
   const svg = d3.select("svg");
   svg.selectAll(".grid-line").remove();
@@ -70,11 +56,13 @@ function resetCheckBoxes() {
 //TODO 2: Jetzt mit deleteNode im node contextmenu anfangen und dann create und delete node refactorn.
 //TODO 3: Kanten dragging so überarbeiten das die kante wirklich da gerade ist wo mein kruser ist
 //auch wenn das bedeutet nen hardcoded coordinated +200 rein zu packen.
+
+//i made the gridSpacing fixed, so there is no need for a global "currentGridSpacing" anymore, because only grid.js used it
+//anyways.
 function visualizeJsonWithD3(jsonData) {
   const svg = createSvgCanvas();
-  currentSvg = svg; //currently only for visual grid needed
-  const gridSpacing = 50;
-  currentGridSpacing = gridSpacing; //currently only for visual grid needed
+
+  const gridSpacing = 50; //ALERT: currently declared twice, once here in visualizer.js and once in grid.js to avoid a global variable
 
   initializeNodeCoordinates(jsonData, gridSpacing * 2); //initiales clipping nutz doppelt so breites gridSpacing
 
@@ -84,9 +72,9 @@ function visualizeJsonWithD3(jsonData) {
 
   handleAllInteractiveDrags(svg, jsonData, gridSpacing);
 
-  handleCreateNewLink(svg, jsonData);
+  handleCreateNewLink(svg, jsonData, gridSpacing);
 
-  handleCreateNewNode(svg, jsonData);
+  handleCreateNewNode(svg, jsonData, gridSpacing);
 
   updatePagJsonDisplay(jsonData);
 }
@@ -693,7 +681,7 @@ function linkInteractiveDrag(svg, jsonData, gridSpacing) {
         updatePagJsonDisplay(jsonData);
       })
       .on("end", function (event, d) {
-        if (isGridClippingEnabled) {
+        if (!svg.selectAll(".grid-line").empty()) {
           const refinedSpacing = gridSpacing / 2;
           d.linkControlX =
             Math.round(d.linkControlX / refinedSpacing) * refinedSpacing;
@@ -743,7 +731,7 @@ function nodeInteractiveDrag(svg, jsonData, gridSpacing) {
         updatePagJsonDisplay(jsonData);
       })
       .on("end", (event, d) => {
-        if (isGridClippingEnabled) {
+        if (!svg.selectAll(".grid-line").empty()) { //checks if grid is activated
           d.x = Math.round(d.x / gridSpacing) * gridSpacing;
           d.y = Math.round(d.y / gridSpacing) * gridSpacing;
         }
@@ -788,7 +776,7 @@ function updatePositions() {
 //TODO: Gucken ob das probleme bereitet, notfalls auskommentieren, andere sachen implementieren
 
 //anstatt let einf const firstNode
-function handleCreateNewLink(svg, jsonData) {
+function handleCreateNewLink(svg, jsonData, gridSpacing) {
   console.log("handleCreateNewLink called");
   let firstNode = null;
 
@@ -820,7 +808,7 @@ function handleCreateNewLink(svg, jsonData) {
 
       drawNewLink(svg, newLink);
 
-      linkInteractiveDrag(svg, jsonData, currentGridSpacing);
+      linkInteractiveDrag(svg, jsonData, gridSpacing);
 
       updatePagJsonDisplay(jsonData);
       firstNode = null;
@@ -947,7 +935,7 @@ function drawNewLink(svg, link) {
 //wenn man auf einlesen Visualisieren klickt man direkt mit dem zeichnen anfangen kann, oder einmal direkt das aufrufen am
 //anfang damit man sofort schon einen canvas hat, auch wenn mit einem noch leeren element.
 //-----------------------------------------------------------------------------
-function handleCreateNewNode(svg, jsonData) {
+function handleCreateNewNode(svg, jsonData, gridSpacing) {
   svg.on("click", function (event) {
     if (event.shiftKey && event.button === 0) {
       console.log("Shift + Left click detected.");
@@ -983,9 +971,9 @@ function handleCreateNewNode(svg, jsonData) {
 
           drawNewLabel(svg, newNode);
 
-          handleAllInteractiveDrags(svg, jsonData, currentGridSpacing);
+          handleAllInteractiveDrags(svg, jsonData, gridSpacing);
 
-          handleCreateNewLink(svg, jsonData);
+          handleCreateNewLink(svg, jsonData, gridSpacing);
 
           updatePagJsonDisplay(jsonData);
           console.log("New node added:", newNode);
