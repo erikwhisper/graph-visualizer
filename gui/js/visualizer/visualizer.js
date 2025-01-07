@@ -66,6 +66,8 @@ function visualizeJsonWithD3(jsonData) {
 
   initializeNodeCoordinates(jsonData, gridSpacing * 2); //initiales clipping nutz doppelt so breites gridSpacing
 
+  setupLayers(svg);
+
   drawEverything(svg, jsonData);
 
   handleAllContextMenus(svg, jsonData);
@@ -77,6 +79,17 @@ function visualizeJsonWithD3(jsonData) {
   handleCreateNewNode(svg, jsonData, gridSpacing);
 
   updatePagJsonDisplay(jsonData);
+}
+
+function setupLayers(svg) {
+  // Ensure clear layers setup
+  svg.selectAll(".layer").remove();
+
+  // Add layers in order from low to high
+  svg.append("g").attr("class", "layer grid"); // Lowest
+  svg.append("g").attr("class", "layer links");
+  svg.append("g").attr("class", "layer nodes");
+  svg.append("g").attr("class", "layer labels"); // Highest
 }
 
 //TODO: Knoten mit Label löschen können + zugehörige Kanten löschen
@@ -154,13 +167,13 @@ function handleAllContextMenus(svg, jsonData) {
   svg.selectAll(".node-label").on("contextmenu", null);
 
   linkContextMenu(svg, jsonData);
-  console.log("Link context menu reinitialized.");
+  console.log("Link context menu initialized.");
 
   nodeContextMenu(svg, jsonData);
-  console.log("Node context menu reinitialized.");
+  console.log("Node context menu initialized.");
 
   labelContextMenu(svg, jsonData);
-  console.log("Label context menu reinitialized.");
+  console.log("Label context menu initialized.");
 }
 
 //calls the functions that implement the leftclick for the three objects
@@ -300,7 +313,7 @@ function drawLabels(svg, jsonData) {
 
 //TODO: anderes wort für setup finden
 function linkContextMenu(svg, jsonData) {
-  console.log("Initializing link context menu...");
+  //console.log("Initializing link context menu...");
   setupContextMenu(
     svg,
     ".link",
@@ -308,15 +321,15 @@ function linkContextMenu(svg, jsonData) {
     "data-link-id",
     (d) => d.linkId // Unique linkId
   );
-  console.log(
+  /*console.log(
     `Total links with context menu: ${svg.selectAll(".link").size()}`
-  );
+  );*/
   setupLinksContextMenuFunctions(svg, jsonData);
   closeContextMenu("link-context-menu");
 }
 
 function nodeContextMenu(svg, jsonData) {
-  console.log("Initializing node context menu...");
+  //console.log("Initializing node context menu...");
   setupContextMenu(
     svg,
     ".node",
@@ -324,15 +337,15 @@ function nodeContextMenu(svg, jsonData) {
     "data-node-id",
     (d) => d.nodeId // Unique nodeId
   );
-  console.log(
+  /*console.log(
     `Total nodes with context menu: ${svg.selectAll(".node").size()}`
-  );
+  );*/
   setupNodesContextMenuFunctions(svg, jsonData);
   closeContextMenu("node-context-menu");
 }
 
 function labelContextMenu(svg, jsonData) {
-  console.log("Initializing label context menu...");
+  //console.log("Initializing label context menu...");
   setupContextMenu(
     svg,
     ".node-label",
@@ -340,9 +353,9 @@ function labelContextMenu(svg, jsonData) {
     "data-label-id",
     (d) => d.nodeId // Unique nodeId for label
   );
-  console.log(
+  /*console.log(
     `Total labels with context menu: ${svg.selectAll(".node-label").size()}`
-  );
+  );*/
   setupLabelsContextMenuFunctions(svg, jsonData);
   closeContextMenu("label-context-menu");
 }
@@ -359,21 +372,41 @@ function labelContextMenu(svg, jsonData) {
 // prettier-ignore
 function setupContextMenu(svg, objectType, contextMenuType, attributeID, calculation) {
   console.log(`Setting up context menu for ${objectType}...`);
-  
-  svg.selectAll(objectType).on("contextmenu", function (event, d) {
+
+  const selection = svg.selectAll(objectType);
+
+  // Log the number of elements selected
+  console.log(`Found ${selection.size()} ${objectType}(s).`);
+
+  // Check if the contextmenu handler already exists
+  selection.each(function () {
+    const existingHandlers = d3.select(this).on("link-context-menu");
+    console.log("was ist überhaupt existingHandlers?: "+ existingHandlers)
+    if (existingHandlers) {
+      console.warn(`Context menu handler already exists for ${objectType}.`);
+    }
+  });
+
+  // Remove any existing contextmenu handlers
+  selection.on("contextmenu", null);
+
+  // Attach the new contextmenu handler
+  selection.on("contextmenu", function (event, d) {
     console.log(`Context menu triggered for ${objectType} with ID: ${calculation(d)}`);
     event.preventDefault();
 
     const menu = document.getElementById(contextMenuType);
     menu.style.display = "block";
-    menu.style.left = `${event.pageX}px`; 
+    menu.style.left = `${event.pageX}px`;
     menu.style.top = `${event.pageY}px`;
 
     menu.setAttribute(attributeID, calculation(d));
   });
 
-  console.log(`Context menu event handlers set for ${svg.selectAll(objectType).size()} ${objectType}(s).`);
+  console.log(`Context menu event handlers set for ${selection.size()} ${objectType}(s).`);
 }
+
+//-------------------------------------//
 
 function closeContextMenu(contextMenuType) {
   console.log(`Setting up close context menu for ${contextMenuType}...`);
@@ -506,7 +539,7 @@ function setupLinksContextMenuFunctions(svg, jsonData) {
     if (linkId) {
       deleteLink(linkId, jsonData);
       if (linkMenu) {
-        linkMenu.style.display = "none"; 
+        linkMenu.style.display = "none";
       }
     }
   });
@@ -540,6 +573,7 @@ function unsetDashed(selectedLink) {
   d3.select(`#link-${selectedLink.linkId}`).attr("stroke-dasharray", null);
 }
 
+//Entfernt Links aus dem jsonData und von svg canvas
 function deleteLink(linkId, jsonData) {
   jsonData.links = jsonData.links.filter((link) => link.linkId !== linkId); //löscht link aus jsonData
 
@@ -628,18 +662,23 @@ function setupNodesContextMenuFunctions(svg, jsonData) {
   setupNodeColorPalette(svg, jsonData);
 }
 
-//TODO: GEHT NOCHT NICHT!
 function deleteNode(nodeId, jsonData) {
-  // Entferne den Knoten aus dem jsonData.nodes-Array
-  jsonData.nodes = jsonData.nodes.filter((node) => node.nodeId !== nodeId);
-  jsonData.links = jsonData.links.filter(
-    (link) => link.source !== nodeId && link.target !== nodeId
+  //Sammelt alle links die mit dem knoten in verbindung stehen
+  const linksToDelete = jsonData.links.filter(
+    (link) => link.source.nodeId === nodeId || link.target.nodeId === nodeId
   );
 
+  //Entfernt zugehörige Links aus dem jsonData und von svg canvas
+  linksToDelete.forEach((link) => {
+    deleteLink(link.linkId, jsonData);
+  });
+
+  d3.select(`#label-${nodeId}`).remove();
+
   d3.select(`#node-${nodeId}`).remove();
-  //TODO: Das löschen von den passenden links funktioniert noch nicht, dafür einf die delete link Funktion
-  //aufrufen oder?
-  d3.selectAll(`[data-source='${nodeId}'], [data-target='${nodeId}']`).remove();
+
+  //Entfernt den Node selbst aus dem jsonData
+  jsonData.nodes = jsonData.nodes.filter((node) => node.nodeId !== nodeId);
 
   updatePagJsonDisplay(jsonData);
 }
@@ -735,7 +774,6 @@ function setupLabelsContextMenuFunctions(svg, jsonData) {
 //oder kann umstrukturiert werden.
 function linkInteractiveDrag(svg, jsonData, gridSpacing) {
   console.log("linkInteractiveDrag called");
-  console.log("I was created!");
   svg.selectAll(".link").call(
     d3
       .drag()
@@ -778,7 +816,8 @@ function calculateLinkPath(d) {
   const { x: x1, y: y1 } = d.source;
   const { x: x2, y: y2 } = d.target;
 
-  if (d.linkControlX === 0 && d.linkControlY === 0) {
+  if (!d.isCurved) {
+    //alternativ kann man hier jetzt auch .isCurved=false nutzen
     d.linkControlX = (x1 + x2) / 2;
     d.linkControlY = (y1 + y2) / 2;
   }
@@ -859,6 +898,7 @@ function handleCreateNewLink(svg, jsonData, gridSpacing) {
   svg.selectAll(".node").on("click", function (event, d) {
     if (!firstNode) {
       firstNode = d;
+      d3.select(`#node-${firstNode.nodeId}`).attr("fill", "green");
       console.log(`First node selected: `, firstNode);
     } else if (d.nodeId !== firstNode.nodeId) {
       const secondNode = d;
@@ -885,8 +925,13 @@ function handleCreateNewLink(svg, jsonData, gridSpacing) {
       linkInteractiveDrag(svg, jsonData, gridSpacing);
 
       updatePagJsonDisplay(jsonData);
+
+      //setze firstNode wieder auf standartfarbe zurück
+      d3.select(`#node-${firstNode.nodeId}`).attr("fill", firstNode.nodeColor);
       firstNode = null;
     } else {
+      //setze firstNode wieder auf standartfarbe zurück
+      d3.select(`#node-${firstNode.nodeId}`).attr("fill", firstNode.nodeColor);
       console.log("Click detected on the same node. Resetting firstNode.");
       firstNode = null;
     }
