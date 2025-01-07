@@ -2,6 +2,9 @@
 /*************START: Type-Conversion Functions**************/
 /***********************************************************/
 
+//Einen hebel einführen wenn links dann erwartet die Matrix eingabe einen Pag, wenn nach rechts wird ein ADMG erwartet
+//dann kann dem entsprechend matrix->json oder json->matrix korrekt für admg oder pag ausgeführt werden
+
 //Listener für PAG matrix
 const pagMatrixReadButton = document.getElementById("pagMatrixReadButton");
 pagMatrixReadButton.addEventListener("click", readPagMatrix);
@@ -15,6 +18,71 @@ const pagDotReadButton = document.getElementById("pagDotReadButton");
 pagDotReadButton.addEventListener("click", readPagDot);
 
 //--------Diese 3 Functions lassen sich zu einer refactorn------------//
+//------------------------------------------------------------------
+//------------------------------------------------------------------
+
+//abhängig vom switch auch die automatischen umwandlungen aus json Einlesen und Dot Einlesen anpassen
+//um zu gucken ob dot->json->pag oder dot->json->admg, sowie dot<-json->pag oder dot<-json->admg
+
+/*
+Direction (Admg) Matrix -> Json
+
+Admg mapping: 
+Keine Kanten:
+"", "A", "B"
+"A", 0, 0
+"B", 0, 0
+----------
+Directed Edge A -> B [1 edge between two nodes]:
+"", "A", "B"
+"A", 0, 1
+"B", 0, 0
+----------
+Directed Edge B -> A [1 edge between two nodes]:
+"", "A", "B"
+"A", 0, 0
+"B", 1, 0
+----------
+Bi-Directed Edge A <-> B (only a Bi-Directed edge, so the same as B <-> A) [1 edge between two nodes]:
+"", "A", "B"
+"A", 0, 2
+"B", 2, 0
+#----------
+Bi-Directed Edge B <-> A (only a Bi-Directed edge, so the same as B <-> A) [1 edge between two nodes]:
+"", "A", "B"
+"A", 0, 2
+"B", 2, 0
+
+From now on remeber A <-> B is the same as B <-> A. 
+----------
+Bi-Directed A <-> B + Directed Edge A -> B [2 edges between two nodes]:
+"", "A", "B"
+"A", 0, 1
+"B", 2, 0
+----------
+Bi-Directed A <-> B + Directed Edge B -> A [2 edges between two nodes]:
+"", "A", "B"
+"A", 0, 2
+"B", 1, 0
+
+those are already all possible mappings for the edges of an admg.
+------------------------------------------------------------------
+Direction Json -> (Admg) Matrix
+
+Zwei mal über alle Edges iterieren.
+
+Erst alle Bi-Directed Edges in die Matrix eintragen, so das überall eine 2 ist wo eine sein muss
+und dann die Directed Edges da ergänzen wo sie hin müssen, das heißt aus 0 0 kann 1 0 oder 0 1 werden
+oder falls es schon eine bidrected kante zwischen den beiden knoten gibt kann aus 2 2 ein 1 2 oder 2 1 werden.
+
+In der jsonData sind bi-directed edges die die arrowhead=normal und arrowtail=normal haben und zusätzlich isDashed = true,
+directed edges sind die die A->B: arrowhead=normal und arrowtail=tail ODER B->A: arrowhead=tail und arrowhead=normal haben
+
+durch zweifaches iterieren spart man sich überprüfen ob man schon irgendwas in die matrix geschrieben hat und kann so
+einf mit den directed edges den aktuellen stand mit nur bidirected edges durch überschreiben ergänzen.
+*/
+//------------------------------------------------------------------
+//------------------------------------------------------------------
 
 //TODO: wie ich hier schon selber sage, diese 3 Functions zu einer
 //refactorn.
@@ -31,8 +99,9 @@ function readPagMatrix() {
       //displayArea.value = event.target.result; //Matrix anzeigen (unformatiert)
 
       //Matrix -> Json -> Dot
-      //Unterscheiden zwischen ADMG Matrix und PAG Matrix wie?
-
+      //Unterscheiden zwischen ADMG Matrix und PAG Matrix bevor ich umwandle, wie?
+      //-> Entsprechend ob der hebel auf ADMG oder PAG liegt werden die entsprechenden funktionen ausgeführt.
+      /*
       const jsonData = pagConvertMatrixToJson(parsePagContent(displayArea.value));
 
       document.getElementById("pagJsonDisplay").value = JSON.stringify(
@@ -43,7 +112,7 @@ function readPagMatrix() {
 
       document.getElementById("pagDotDisplay").value =
         jsonToDotConversion(jsonData);
-
+      */
       //Matrix -> Json -> Dot
     };
     reader.readAsText(fileInput);

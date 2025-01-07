@@ -66,8 +66,6 @@ function visualizeJsonWithD3(jsonData) {
 
   initializeNodeCoordinates(jsonData, gridSpacing * 2); //initiales clipping nutz doppelt so breites gridSpacing
 
-  setupLayers(svg);
-
   drawEverything(svg, jsonData);
 
   handleAllContextMenus(svg, jsonData);
@@ -79,17 +77,6 @@ function visualizeJsonWithD3(jsonData) {
   handleCreateNewNode(svg, jsonData, gridSpacing);
 
   updatePagJsonDisplay(jsonData);
-}
-
-function setupLayers(svg) {
-  // Ensure clear layers setup
-  svg.selectAll(".layer").remove();
-
-  // Add layers in order from low to high
-  svg.append("g").attr("class", "layer grid"); // Lowest
-  svg.append("g").attr("class", "layer links");
-  svg.append("g").attr("class", "layer nodes");
-  svg.append("g").attr("class", "layer labels"); // Highest
 }
 
 //TODO: Knoten mit Label löschen können + zugehörige Kanten löschen
@@ -812,6 +799,8 @@ function linkInteractiveDrag(svg, jsonData, gridSpacing) {
   );
 }
 
+//TODO: Falls zwischen den beiden Knoten schon eine Kante existiert, setze die neue auf isCurved und ihre 
+//d.X und d.Y auf (x1 + x2) / 2 + offsetWert; //das auch beim zeichnen neuer kanten machen.
 function calculateLinkPath(d) {
   const { x: x1, y: y1 } = d.source;
   const { x: x2, y: y2 } = d.target;

@@ -18,7 +18,7 @@
       <!-- Das initiale kleine von links kommende slidemenu, welches auf right-slidemenu-toggle reagiert -->
     <div id="right-slidemenu-minor">
          <div id="right-slidemenu-minor-buttons">
-            <button id="right-slidemenu-minor-button-fileInput">Öffnen PAG</button>
+            <button id="right-slidemenu-minor-button-fileInput">Öffnen</button>
             <button id="right-slidemenu-minor-button-fileOutput">Speichern</button>
             <button id="right-slidemenu-minor-button-fileExport">Exportieren</button>
          </div>
@@ -26,36 +26,36 @@
 
       <!-- Die groeßeren von links kommenden slidemenus, welche auf die verschiedenen right-slidemenu-minor-buttons reagieren -->
     <div class="right-slidemenu-major" id="menu-content-1"> <!--right-slidemenu-major-content-fileInput-->
-         <div class="right-slidemenu-major-content-headline">Öffnen PAG</div>
+         <div class="right-slidemenu-major-content-headline">Öffnen</div>
 
          <!-- PAG Matrix Input Section -->
          <section id="pag-matrix-input-section">
             <input type="file" id="pagMatrixFileInput" accept=".csv, .txt" />
-              <button class="toggle-textarea" data-target="pagMatrixDisplay">Anzeigen/Verbergen</button>
+              <button class="toggle-textarea" data-target="pagMatrixDisplay">Matrix Anzeigen/Verbergen</button>
             <textarea
                id="pagMatrixDisplay"
                placeholder="Matrix wird hier angezeigt..."></textarea>
-            <button id="pagMatrixReadButton">Einlesen</button>
+            <button id="pagMatrixReadButton">Matrix Einlesen</button>
          </section>
 
          <!-- PAG JSON Input Section -->
          <section id="pag-json-input-section">
             <input type="file" id="pagJsonFileInput" accept=".csv, .txt" />
-              <button class="toggle-textarea" data-target="pagJsonDisplay">Anzeigen/Verbergen</button>
+              <button class="toggle-textarea" data-target="pagJsonDisplay">JSON Anzeigen/Verbergen</button>
             <textarea
                id="pagJsonDisplay"
                placeholder="JSON-Daten werden hier angezeigt...">{"nodes": [],"links": []}</textarea>
-            <button id="pagJsonReadButton">Einlesen</button>
+            <button id="pagJsonReadButton">JSON Einlesen</button>
          </section>
          
          <!-- PAG DOT Input Section -->
          <section id="pag-dot-input-section">
             <input type="file" id="pagDotFileInput" accept=".csv, .txt" />
-              <button class="toggle-textarea" data-target="pagDotDisplay">Anzeigen/Verbergen</button>
+              <button class="toggle-textarea" data-target="pagDotDisplay">DOT Anzeigen/Verbergen</button>
             <textarea
                id="pagDotDisplay"
                placeholder="DOT-Syntax wird hier angezeigt..."></textarea>
-            <button id="pagDotReadButton">Einlesen</button>
+            <button id="pagDotReadButton">DOT Einlesen</button>
          </section>
     </div>
 
@@ -64,11 +64,13 @@
         <div class="right-slidemenu-major-content-headline">Speichern</div>
         <section id="pag-conversion-button-section">
             <label><input type="checkbox" id="gridClippingToggle" unchecked />Grid</label>
-            <button id="pagConvertMatrixToJson">Matrix -> JSON</button>
-            <button id="pagConvertJsonToMatrix">JSON -> Matrix</button>
+            <button id="pagConvertMatrixToJson">Matrix -> JSON (respect adgm/pag toggle)</button>
+            <button id="pagConvertJsonToMatrix">JSON -> Matrix (respect adgm/pag toggle)</button>
             <button id="pagConvertDotToJson">DOT -> JSON</button>
             <button id="pagConvertJsonToDot">JSON -> DOT</button>
             <button id="pagVisualizeJsonWithD3">Visualiser</button>
+            <button id="todoButton1">(todo: download admg/pag matrix)</button>
+            <button id="todoButton2">(todo: download dot)</button>
         </section>
     </div>
 
