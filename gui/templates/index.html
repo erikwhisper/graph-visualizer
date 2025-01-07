@@ -30,6 +30,17 @@
 
          <!-- PAG Matrix Input Section -->
          <section id="pag-matrix-input-section">
+
+         <!--is there a way to have "ADMG" on the right of the switch and "PAg" on the left?-->
+         <div style="display: flex; align-items: center;">
+          <span style="margin-right: 8px;">PAG</span>
+          <label class="switch">
+            <input type="checkbox" id="matrixTypeToggle">
+            <span class="slider round"></span>
+          </label>
+          <span style="margin-left: 8px;">ADMG</span>
+        </div>
+
             <input type="file" id="pagMatrixFileInput" accept=".csv, .txt" />
               <button class="toggle-textarea" data-target="pagMatrixDisplay">Matrix Anzeigen/Verbergen</button>
             <textarea

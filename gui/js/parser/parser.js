@@ -37,21 +37,29 @@ Directed Edge A -> B [1 edge between two nodes]:
 "", "A", "B"
 "A", 0, 1
 "B", 0, 0
+
+json: arrowhead: normal arrowtail: tail
 ----------
 Directed Edge B -> A [1 edge between two nodes]:
 "", "A", "B"
 "A", 0, 0
 "B", 1, 0
+
+json: arrowhead: tail arrowtail: normal
 ----------
 Bi-Directed Edge A <-> B (only a Bi-Directed edge, so the same as B <-> A) [1 edge between two nodes]:
 "", "A", "B"
 "A", 0, 2
 "B", 2, 0
+
+json: arrowhead: normal arrowtail: normal isDashed: true
 #----------
 Bi-Directed Edge B <-> A (only a Bi-Directed edge, so the same as B <-> A) [1 edge between two nodes]:
 "", "A", "B"
 "A", 0, 2
 "B", 2, 0
+
+json: arrowhead: normal arrowtail: normal isDashed: true
 
 From now on remeber A <-> B is the same as B <-> A. 
 ----------
@@ -59,11 +67,18 @@ Bi-Directed A <-> B + Directed Edge A -> B [2 edges between two nodes]:
 "", "A", "B"
 "A", 0, 1
 "B", 2, 0
+
+json: 
+Edge 1: arrowhead: normal arrowtail: normal isDashed: true
+Edge 2: arrowhead: normal arrowtail: tail
 ----------
 Bi-Directed A <-> B + Directed Edge B -> A [2 edges between two nodes]:
 "", "A", "B"
 "A", 0, 2
 "B", 1, 0
+
+Edge 1: arrowhead: normal arrowtail: normal isDashed: true
+Edge 2: arrowhead: tail arrowtail: nornmal
 
 those are already all possible mappings for the edges of an admg.
 ------------------------------------------------------------------
@@ -91,6 +106,7 @@ einf mit den directed edges den aktuellen stand mit nur bidirected edges durch �
 function readPagMatrix() {
   const fileInput = document.getElementById("pagMatrixFileInput").files[0];
   const displayArea = document.getElementById("pagMatrixDisplay");
+  const isAdmg = document.getElementById("matrixTypeToggle").checked;
   if (fileInput) {
     const reader = new FileReader();
     reader.onload = function (event) {
@@ -99,20 +115,36 @@ function readPagMatrix() {
       //displayArea.value = event.target.result; //Matrix anzeigen (unformatiert)
 
       //Matrix -> Json -> Dot
-      //Unterscheiden zwischen ADMG Matrix und PAG Matrix bevor ich umwandle, wie?
-      //-> Entsprechend ob der hebel auf ADMG oder PAG liegt werden die entsprechenden funktionen ausgeführt.
-      /*
-      const jsonData = pagConvertMatrixToJson(parsePagContent(displayArea.value));
+      if (isAdmg) {
+        console.log("Converting ADMG matrix to JSON...");
+        const jsonData = admgConvertMatrixToJson(
+          parsePagContent(displayArea.value)
+        );
 
-      document.getElementById("pagJsonDisplay").value = JSON.stringify(
-        jsonData,
-        null,
-        2
-      );
+        document.getElementById("pagJsonDisplay").value = JSON.stringify(
+          jsonData,
+          null,
+          2
+        );
 
-      document.getElementById("pagDotDisplay").value =
-        jsonToDotConversion(jsonData);
-      */
+        document.getElementById("pagDotDisplay").value =
+          jsonToDotConversion(jsonData);
+      } else {
+        console.log("Converting PAG matrix to JSON...");
+        const jsonData = pagConvertMatrixToJson(
+          parsePagContent(displayArea.value)
+        );
+
+        document.getElementById("pagJsonDisplay").value = JSON.stringify(
+          jsonData,
+          null,
+          2
+        );
+
+        document.getElementById("pagDotDisplay").value =
+          jsonToDotConversion(jsonData);
+      }
+
       //Matrix -> Json -> Dot
     };
     reader.readAsText(fileInput);
@@ -130,17 +162,22 @@ function pagFormatMatrix(csvContent) {
 function readPagJson() {
   const fileInput = document.getElementById("pagJsonFileInput").files[0];
   const displayArea = document.getElementById("pagJsonDisplay");
+  const isAdmg = document.getElementById("matrixTypeToggle").checked;
   if (fileInput) {
     const reader = new FileReader();
     reader.onload = function (event) {
       displayArea.value = event.target.result;
       //Json -> Matrix & Json -> Dot
-      //Unterscheiden zwischen ADMG Matrix und PAG Matrix wie?
 
       const jsonData = JSON.parse(displayArea.value);
-
-      document.getElementById("pagMatrixDisplay").value =
-        pagConvertJsonToMatrix(jsonData);
+      
+      if (isAdmg) {
+        document.getElementById("pagMatrixDisplay").value =
+          admgConvertJsonToMatrix(jsonData);
+      } else {
+        document.getElementById("pagMatrixDisplay").value =
+          pagConvertJsonToMatrix(jsonData);
+      }
 
       document.getElementById("pagDotDisplay").value =
         jsonToDotConversion(jsonData);
@@ -157,6 +194,7 @@ function readPagJson() {
 function readPagDot() {
   const fileInput = document.getElementById("pagDotFileInput").files[0];
   const displayArea = document.getElementById("pagDotDisplay");
+  const isAdmg = document.getElementById("matrixTypeToggle").checked;
   if (fileInput) {
     const reader = new FileReader();
     reader.onload = function (event) {
@@ -172,8 +210,13 @@ function readPagDot() {
         2
       );
 
-      document.getElementById("pagMatrixDisplay").value =
-        pagConvertJsonToMatrix(jsonData);
+      if (isAdmg) {
+        document.getElementById("pagMatrixDisplay").value =
+          admgConvertJsonToMatrix(jsonData);
+      } else {
+        document.getElementById("pagMatrixDisplay").value =
+          pagConvertJsonToMatrix(jsonData);
+      }
 
       //Dot -> Json -> Matrix
     };
@@ -201,6 +244,25 @@ pagConvertMatrixToJsonButton.addEventListener(
   "click",
   pagMatrixToJsonConversion
 );
+
+function pagMatrixToJsonConversion() {
+  const currentPagMatrix = document.getElementById("pagMatrixDisplay").value;
+  const parsedPagMatrix = parsePagContent(currentPagMatrix);
+  const jsonData = pagConvertMatrixToJson(parsedPagMatrix);
+
+  document.getElementById("pagJsonDisplay").value = JSON.stringify(
+    jsonData,
+    null,
+    2
+  );
+}
+
+function parsePagContent(csvContent) {
+  return csvContent
+    .trim()
+    .split("\n")
+    .map((row) => row.split(",").map((cell) => cell.replace(/"/g, "").trim()));
+}
 
 function pagConvertMatrixToJson(parsedPagMatrix) {
   const knotenMap = new Map(); //alle knoten in menge
@@ -251,25 +313,6 @@ function pagConvertMatrixToJson(parsedPagMatrix) {
   return { nodes, links };
 }
 
-function pagMatrixToJsonConversion() {
-  const currentPagMatrix = document.getElementById("pagMatrixDisplay").value;
-  const parsedPagMatrix = parsePagContent(currentPagMatrix);
-  const jsonData = pagConvertMatrixToJson(parsedPagMatrix);
-
-  document.getElementById("pagJsonDisplay").value = JSON.stringify(
-    jsonData,
-    null,
-    2
-  );
-}
-
-function parsePagContent(csvContent) {
-  return csvContent
-    .trim()
-    .split("\n")
-    .map((row) => row.split(",").map((cell) => cell.replace(/"/g, "").trim()));
-}
-
 function pagCreateJsonLinks(quellId, zielId, kantenTypFromTo, kantenTypToFrom) {
   const edgeMap = {
     0: "none",
@@ -283,9 +326,6 @@ function pagCreateJsonLinks(quellId, zielId, kantenTypFromTo, kantenTypToFrom) {
     return null;
   }
 
-  //TODO: remove:
-  //i really dont need to fill the values for source and target here
-  //thats overkill and destroys seperations of concern.
   return {
     linkId: uuid.v4(),
     linkColor: "black",
@@ -312,6 +352,109 @@ function pagCreateJsonLinks(quellId, zielId, kantenTypFromTo, kantenTypToFrom) {
     isCurved: false,
     isDashed: false,
   };
+}
+
+//----------------START: MATRIX -> JSON (ADMG)------------------------//
+
+//Das hier muss ich auf jeden Fall mir nochmal genauer angucken um keine fehler bei conversions drin zu haben
+//sobald ich etwas mehr zeit hab.
+function admgConvertMatrixToJson(parsedAdmgMatrix) {
+  const knotenMap = new Map();
+  const links = [];
+
+  // Extract node names
+  const knotenNamen = parsedAdmgMatrix[0].slice(1);
+
+  knotenNamen.forEach((name) => {
+    knotenMap.set(name, uuid.v4());
+  });
+
+  // Iterate over matrix for edges
+  for (let i = 1; i < parsedAdmgMatrix.length; i++) {
+    const quellKnotenName = parsedAdmgMatrix[i][0];
+    for (let j = i + 1; j < parsedAdmgMatrix[i].length; j++) {
+      const kantenTypFromTo = parseInt(parsedAdmgMatrix[i][j]);
+      const kantenTypToFrom = parseInt(parsedAdmgMatrix[j][i]);
+      const zielKnotenName = knotenNamen[j - 1];
+
+      const newLinks = admgCreateJsonLinks(
+        knotenMap.get(quellKnotenName),
+        knotenMap.get(zielKnotenName),
+        kantenTypFromTo,
+        kantenTypToFrom
+      );
+
+      if (newLinks) {
+        links.push(...newLinks); //is der ... operator nötig? //100% nicht, remove das
+      }
+    }
+  }
+
+  const nodes = Array.from(knotenMap.entries()).map(([name, nodeId]) => ({
+    nodeId,
+    name,
+    nodeColor: "whitesmoke",
+    x: null,
+    y: null,
+    labelOffsetX: 0,
+    labelOffsetY: 0,
+  }));
+
+  return { nodes, links };
+}
+
+function admgCreateJsonLinks(
+  quellId,
+  zielId,
+  kantenTypFromTo,
+  kantenTypToFrom
+) {
+  const admgEdgeMap = {
+    "0_0": null,
+    "1_0": [{ arrowhead: "normal", arrowtail: "tail", isDashed: false }],
+    "0_1": [{ arrowhead: "tail", arrowtail: "normal", isDashed: false }],
+    "2_2": [{ arrowhead: "normal", arrowtail: "normal", isDashed: true }],
+    "2_1": [
+      { arrowhead: "normal", arrowtail: "normal", isDashed: true },
+      { arrowhead: "tail", arrowtail: "normal", isDashed: false },
+    ],
+    "1_2": [
+      { arrowhead: "normal", arrowtail: "normal", isDashed: true },
+      { arrowhead: "normal", arrowtail: "tail", isDashed: false },
+    ],
+  };
+
+  const key = `${kantenTypFromTo}_${kantenTypToFrom}`;
+  const edgePropsArray = admgEdgeMap[key];
+
+  if (!edgePropsArray) return null;
+
+  return edgePropsArray.map((edgeProps) => ({
+    linkId: uuid.v4(),
+    linkColor: "black",
+    source: {
+      nodeId: quellId,
+      nodeColor: "whitesmoke",
+      x: null,
+      y: null,
+      labelOffsetX: 0,
+      labelOffsetY: 0,
+    },
+    target: {
+      nodeId: zielId,
+      nodeColor: "whitesmoke",
+      x: null,
+      y: null,
+      labelOffsetX: 0,
+      labelOffsetY: 0,
+    },
+    arrowhead: edgeProps.arrowhead,
+    arrowtail: edgeProps.arrowtail,
+    linkControlX: 0,
+    linkControlY: 0,
+    isCurved: false,
+    isDashed: edgeProps.isDashed,
+  }));
 }
 
 //----------------START: JSON -> MATRIX (PAG)------------------------//
@@ -412,6 +555,74 @@ function pagConvertJsonToMatrix(jsonData) {
     );
     matrix[sourceIndex][targetIndex] = edgeTypeForward;
     matrix[targetIndex][sourceIndex] = edgeTypeReverse;
+  });
+
+  return matrix.map((row) => row.join(", ")).join("\n");
+}
+
+//----------------START: JSON -> MATRIX (ADMG)------------------------//
+
+//auch nochmal angucken aber scheint zu funktionieren.
+function admgConvertJsonToMatrix(jsonData) {
+  // Map node IDs to names
+  const mapNodeIdToNodeName = Object.fromEntries(
+    jsonData.nodes.map((node) => [node.nodeId, node.name])
+  );
+
+  // Extract node IDs
+  const nodes = jsonData.nodes.map((node) => node.nodeId);
+  const matrixSize = nodes.length;
+
+  // Initialize the matrix
+  const matrix = Array.from({ length: matrixSize + 1 }, () =>
+    Array(matrixSize + 1).fill(0)
+  );
+
+  // Set node names in the first row and column
+  matrix[0][0] = '""'; // Top-left corner
+  nodes.forEach((nodeId, index) => {
+    matrix[0][index + 1] = `"${mapNodeIdToNodeName[nodeId]}"`;
+    matrix[index + 1][0] = `"${mapNodeIdToNodeName[nodeId]}"`;
+  });
+
+  // First pass: Add bi-directed edges (2_2)
+  jsonData.links.forEach((link) => {
+    if (
+      link.arrowhead === "normal" &&
+      link.arrowtail === "normal" &&
+      link.isDashed
+    ) {
+      const sourceIndex = nodes.indexOf(link.source.nodeId) + 1;
+      const targetIndex = nodes.indexOf(link.target.nodeId) + 1;
+
+      // Set bi-directed edge
+      matrix[sourceIndex][targetIndex] = 2;
+      matrix[targetIndex][sourceIndex] = 2;
+    }
+  });
+
+  // Second pass: Add directed edges (1_0, 0_1) or overwrite bi-directed edges
+  jsonData.links.forEach((link) => {
+    const sourceIndex = nodes.indexOf(link.source.nodeId) + 1;
+    const targetIndex = nodes.indexOf(link.target.nodeId) + 1;
+
+    if (
+      link.arrowhead === "normal" &&
+      link.arrowtail === "tail" &&
+      !link.isDashed
+    ) {
+      // A -> B
+      matrix[sourceIndex][targetIndex] = 1;
+      //matrix[targetIndex][sourceIndex] = 0; //wofür die null ist doch eh immer null
+    } else if (
+      link.arrowhead === "tail" &&
+      link.arrowtail === "normal" &&
+      !link.isDashed
+    ) {
+      // B -> A
+      //matrix[sourceIndex][targetIndex] = 0; //wofür die null ist doch eh immer null
+      matrix[targetIndex][sourceIndex] = 1;
+    }
   });
 
   return matrix.map((row) => row.join(", ")).join("\n");
