@@ -207,14 +207,19 @@ function drawLinks(svg, jsonData) {
     .attr("marker-start", (d) => {
       if (d.arrowtail) {
         const markerId = `marker-${d.linkId}-start`;
-        setupArrowMarker(svg, markerId, d.arrowtail, d.linkColor, "auto-start-reverse");
+        setupArrowMarker(
+          svg,
+          markerId,
+          d.arrowtail,
+          d.linkColor,
+          "auto-start-reverse"
+        );
         return `url(#${markerId})`;
       }
       return null;
     })
     .attr("d", (d) => calculateLinkPath(d));
 }
-
 
 function setupArrowMarker(svg, id, type, color, orient) {
   svg.select(`#${id}`).remove(); //alte arrowmarker löschen
@@ -231,10 +236,7 @@ function setupArrowMarker(svg, id, type, color, orient) {
     .attr("orient", orient);
 
   if (type === "normal") {
-    marker
-      .append("path")
-      .attr("d", "M0,-5L10,0L0,5")
-      .attr("fill", color);
+    marker.append("path").attr("d", "M0,-5L10,0L0,5").attr("fill", color);
   } else if (type === "odot") {
     marker
       .append("circle")
@@ -394,12 +396,12 @@ function closeContextMenu(contextMenuType) {
 //TODO: refactor redrawing of arrowhead/arrowtail...
 function setupLinksContextMenuFunctions(svg, jsonData) {
   console.log("Link Contextmenu called");
-  
+
   function handleArrowheadClick(arrowheadType) {
     const linkMenu = document.getElementById("link-context-menu");
     const linkId = linkMenu.getAttribute("data-link-id");
     const selectedLink = jsonData.links.find((link) => link.linkId === linkId);
-  
+
     if (selectedLink) {
       selectedLink.arrowhead = arrowheadType;
 
@@ -412,23 +414,31 @@ function setupLinksContextMenuFunctions(svg, jsonData) {
         "auto"
       );
 
-      d3.select(`#link-${selectedLink.linkId}`)
-        .attr("marker-end", `url(#${markerId})`);
+      d3.select(`#link-${selectedLink.linkId}`).attr(
+        "marker-end",
+        `url(#${markerId})`
+      );
 
       updatePagJsonDisplay(jsonData);
       console.log(`Arrowhead updated to '${arrowheadType}' for link ${linkId}`);
     }
   }
 
-  document.getElementById("arrowhead-normal").addEventListener("click", () => handleArrowheadClick("normal"));
-  document.getElementById("arrowhead-odot").addEventListener("click", () => handleArrowheadClick("odot"));
-  document.getElementById("arrowhead-tail").addEventListener("click", () => handleArrowheadClick("tail"));
+  document
+    .getElementById("arrowhead-normal")
+    .addEventListener("click", () => handleArrowheadClick("normal"));
+  document
+    .getElementById("arrowhead-odot")
+    .addEventListener("click", () => handleArrowheadClick("odot"));
+  document
+    .getElementById("arrowhead-tail")
+    .addEventListener("click", () => handleArrowheadClick("tail"));
 
   function handleArrowtailClick(arrowtailType) {
     const linkMenu = document.getElementById("link-context-menu");
     const linkId = linkMenu.getAttribute("data-link-id");
     const selectedLink = jsonData.links.find((link) => link.linkId === linkId);
-  
+
     if (selectedLink) {
       selectedLink.arrowtail = arrowtailType;
 
@@ -441,17 +451,25 @@ function setupLinksContextMenuFunctions(svg, jsonData) {
         "auto-start-reverse"
       );
 
-      d3.select(`#link-${selectedLink.linkId}`)
-        .attr("marker-start", `url(#${markerId})`);
+      d3.select(`#link-${selectedLink.linkId}`).attr(
+        "marker-start",
+        `url(#${markerId})`
+      );
 
       updatePagJsonDisplay(jsonData);
       console.log(`Arrowtail updated to '${arrowtailType}' for link ${linkId}`);
     }
   }
 
-  document.getElementById("arrowtail-normal").addEventListener("click", () => handleArrowtailClick("normal"));
-  document.getElementById("arrowtail-odot").addEventListener("click", () => handleArrowtailClick("odot"));
-  document.getElementById("arrowtail-tail").addEventListener("click", () => handleArrowtailClick("tail"));
+  document
+    .getElementById("arrowtail-normal")
+    .addEventListener("click", () => handleArrowtailClick("normal"));
+  document
+    .getElementById("arrowtail-odot")
+    .addEventListener("click", () => handleArrowtailClick("odot"));
+  document
+    .getElementById("arrowtail-tail")
+    .addEventListener("click", () => handleArrowtailClick("tail"));
 
   //TODO: Kann man anstatt mit selected Link wie bei delete-link nicht direkt mit linkId arbeiten?
   document.getElementById("straighten-link").addEventListener("click", () => {
@@ -488,13 +506,13 @@ function setupLinksContextMenuFunctions(svg, jsonData) {
     if (linkId) {
       deleteLink(linkId, jsonData);
       if (linkMenu) {
-        linkMenu.style.display = "none";
+        linkMenu.style.display = "none"; 
       }
     }
   });
+
+  setupLinkColorPalette(svg, jsonData);
 }
-
-
 
 function resetLinkCurve(selectedLink) {
   const sourceNode = selectedLink.source;
@@ -530,6 +548,61 @@ function deleteLink(linkId, jsonData) {
   updatePagJsonDisplay(jsonData); //passt displayed jsondata auf actual jsondata an
 }
 
+function setupLinkColorPalette(svg, jsonData) {
+  const linkColorPalette = document.getElementById("link-color-palette");
+  linkColorPalette.innerHTML = "";
+
+  allowedColors.forEach((color) => {
+    const colorSwatch = document.createElement("div");
+    colorSwatch.className = "color-swatch";
+    colorSwatch.style.backgroundColor = color;
+
+    colorSwatch.addEventListener("click", () => {
+      const linkMenu = document.getElementById("link-context-menu");
+      const linkId = linkMenu.getAttribute("data-link-id");
+
+      if (linkId) {
+        changeLinkColor(linkId, color, jsonData, svg);
+      }
+    });
+
+    linkColorPalette.appendChild(colorSwatch);
+  });
+}
+
+function changeLinkColor(linkId, color, jsonData, svg) {
+  const link = jsonData.links.find((l) => l.linkId === linkId);
+  if (link) {
+    // Update JSON data
+    link.linkColor = color;
+
+    // Update the link's stroke color
+    const selectedLink = d3.select(`#link-${linkId}`);
+    selectedLink.attr("stroke", color);
+
+    // Update arrow markers if applicable
+    if (link.arrowhead) {
+      const markerId = `marker-${linkId}-end`;
+      setupArrowMarker(svg, markerId, link.arrowhead, color, "auto");
+      selectedLink.attr("marker-end", `url(#${markerId})`);
+    }
+    if (link.arrowtail) {
+      const markerId = `marker-${linkId}-start`;
+      setupArrowMarker(
+        svg,
+        markerId,
+        link.arrowtail,
+        color,
+        "auto-start-reverse"
+      );
+      selectedLink.attr("marker-start", `url(#${markerId})`);
+    }
+
+    // Synchronize with JSON display
+    updatePagJsonDisplay(jsonData);
+  }
+}
+
 //----------END: linkContextMenu === CONTEXTMENU LINKS UNIQUE FUNCTIONS--------------//
 
 //-------------------------------------------------------------------//
@@ -540,35 +613,6 @@ function deleteLink(linkId, jsonData) {
 //automatically
 function setupNodesContextMenuFunctions(svg, jsonData) {
   console.log("Node Contextmenu called");
-  const colorPalette = document.getElementById("color-palette");
-
-  colorPalette.innerHTML = "";
-  //all css-colors with names from W3Schools
-  // prettier-ignore
-
-  allowedColors.forEach((color) => {
-    const colorSwatch = document.createElement("div");
-    colorSwatch.className = "color-swatch";
-    colorSwatch.style.backgroundColor = color;
-
-    colorSwatch.addEventListener("click", () => {
-      const nodeMenu = document.getElementById("node-context-menu");
-      const nodeId = nodeMenu.getAttribute("data-node-id");
-
-      const node = jsonData.nodes.find((n) => n.nodeId === nodeId);
-      if (node) {
-        node.nodeColor = color;
-        //TODO: Hier auch css.escape, sonst können knoten mit sonderzeichen im namen nicht
-        //korrekt im svg canvas gefärbt werden und es geht nur in der jsonData
-        const selectedNode = d3.select(`#node-${nodeId}`);
-        selectedNode.attr("fill", color).style("fill", color);
-
-        updatePagJsonDisplay(jsonData);
-      }
-    });
-
-    colorPalette.appendChild(colorSwatch);
-  });
 
   document.getElementById("delete-node").addEventListener("click", () => {
     const nodeMenu = document.getElementById("node-context-menu");
@@ -580,6 +624,8 @@ function setupNodesContextMenuFunctions(svg, jsonData) {
       }
     }
   });
+
+  setupNodeColorPalette(svg, jsonData);
 }
 
 //TODO: GEHT NOCHT NICHT!
@@ -596,6 +642,33 @@ function deleteNode(nodeId, jsonData) {
   d3.selectAll(`[data-source='${nodeId}'], [data-target='${nodeId}']`).remove();
 
   updatePagJsonDisplay(jsonData);
+}
+
+function setupNodeColorPalette(svg, jsonData) {
+  const nodeColorPalette = document.getElementById("node-color-palette");
+  nodeColorPalette.innerHTML = "";
+
+  allowedColors.forEach((color) => {
+    const colorSwatch = document.createElement("div");
+    colorSwatch.className = "color-swatch";
+    colorSwatch.style.backgroundColor = color;
+
+    colorSwatch.addEventListener("click", () => {
+      const nodeMenu = document.getElementById("node-context-menu");
+      const nodeId = nodeMenu.getAttribute("data-node-id");
+
+      const node = jsonData.nodes.find((n) => n.nodeId === nodeId);
+      if (node) {
+        node.nodeColor = color;
+        const selectedNode = d3.select(`#node-${nodeId}`);
+        selectedNode.attr("fill", color).style("fill", color);
+
+        updatePagJsonDisplay(jsonData);
+      }
+    });
+
+    nodeColorPalette.appendChild(colorSwatch);
+  });
 }
 
 //----------END: NodeContextMenu === CONTEXTMENU NODES UNIQUE FUNCTIONS--------------//
@@ -731,7 +804,8 @@ function nodeInteractiveDrag(svg, jsonData, gridSpacing) {
         updatePagJsonDisplay(jsonData);
       })
       .on("end", (event, d) => {
-        if (!svg.selectAll(".grid-line").empty()) { //checks if grid is activated
+        if (!svg.selectAll(".grid-line").empty()) {
+          //checks if grid is activated
           d.x = Math.round(d.x / gridSpacing) * gridSpacing;
           d.y = Math.round(d.y / gridSpacing) * gridSpacing;
         }
@@ -866,7 +940,13 @@ function drawNewLink(svg, link) {
     .attr("marker-start", (d) => {
       if (d.arrowtail) {
         const markerId = `marker-${d.linkId}-start`;
-        setupArrowMarker(svg, markerId, d.arrowtail, d.linkColor, "auto-start-reverse");
+        setupArrowMarker(
+          svg,
+          markerId,
+          d.arrowtail,
+          d.linkColor,
+          "auto-start-reverse"
+        );
         return `url(#${markerId})`;
       }
       return null;
@@ -1052,4 +1132,3 @@ function updatePagJsonDisplay(jsonData) {
 }
 
 //----------END: UPDATE JSONDATA TEXTAREA--------------//
-

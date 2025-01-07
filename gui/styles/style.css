@@ -187,7 +187,7 @@ body {
   z-index: 1000;
 }
 
-#color-palette {
+#node-color-palette {
   display: grid;
   grid-template-columns: repeat(auto-fill, 15px);
   gap: 0;
@@ -199,7 +199,7 @@ body {
   border: 0;
 }
 
-#color-palette .color-swatch {
+#node-color-palette .color-swatch {
   width: 15px;
   height: 15px;
   cursor: pointer;
@@ -207,7 +207,31 @@ body {
   margin: 0;
 }
 
-#color-palette .color-swatch:hover {
+#node-color-palette .color-swatch:hover {
+  box-shadow: inset 0 0 0 1px black;
+}
+
+#link-color-palette {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, 15px);
+  gap: 0;
+  max-height: 100px;
+  overflow-x: scroll;
+  padding: 1px;
+  margin-top: 10%;
+  background: #b4a877;
+  border: 0;
+}
+
+#link-color-palette .color-swatch {
+  width: 15px;
+  height: 15px;
+  cursor: pointer;
+  box-sizing: border-box;
+  margin: 0;
+}
+
+#link-color-palette .color-swatch:hover {
   box-shadow: inset 0 0 0 1px black;
 }
 
