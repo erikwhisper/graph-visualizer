@@ -41,10 +41,10 @@
           <span style="margin-left: 8px;">ADMG</span>
         </div>
 
-            <input type="file" id="pagMatrixFileInput" accept=".csv, .txt" />
-              <button class="toggle-textarea" data-target="pagMatrixDisplay">Matrix Anzeigen/Verbergen</button>
+            <input type="file" id="matrixFileInput" accept=".csv, .txt" />
+              <button class="toggle-textarea" data-target="matrixDisplay">Matrix Anzeigen/Verbergen</button>
             <textarea
-               id="pagMatrixDisplay"
+               id="matrixDisplay"
                placeholder="Matrix wird hier angezeigt..."></textarea>
             <button id="pagMatrixReadButton">Matrix Einlesen</button>
          </section>
@@ -61,10 +61,10 @@
          
          <!-- PAG DOT Input Section -->
          <section id="pag-dot-input-section">
-            <input type="file" id="pagDotFileInput" accept=".csv, .txt" />
-              <button class="toggle-textarea" data-target="pagDotDisplay">DOT Anzeigen/Verbergen</button>
+            <input type="file" id="dotFileInput" accept=".csv, .txt" />
+              <button class="toggle-textarea" data-target="dotDisplay">DOT Anzeigen/Verbergen</button>
             <textarea
-               id="pagDotDisplay"
+               id="dotDisplay"
                placeholder="DOT-Syntax wird hier angezeigt..."></textarea>
             <button id="pagDotReadButton">DOT Einlesen</button>
          </section>
@@ -75,10 +75,9 @@
         <div class="right-slidemenu-major-content-headline">Speichern</div>
         <section id="pag-conversion-button-section">
             <label><input type="checkbox" id="gridClippingToggle" unchecked />Grid</label>
-            <button id="convertMatrixToJson">Matrix -> JSON</button>
-            <button id="convertJsonToMatrix">JSON -> Matrix (respect adgm/pag toggle)</button>
-            <button id="pagConvertDotToJson">DOT -> JSON</button>
-            <button id="pagConvertJsonToDot">JSON -> DOT</button>
+            <button id="updateFromMatrixButton">DOT <- JSON <- Matrix</button>
+            <button id="updateFromJsonButton">DOT <- JSON -> Matrix</button>
+            <button id="updateFromDotButton">DOT -> JSON -> Matrix</button>
             <button id="pagVisualizeJsonWithD3">Visualiser</button>
             <button id="todoButton1">(todo: download admg/pag matrix)</button>
             <button id="todoButton2">(todo: download dot)</button>
@@ -148,12 +147,15 @@
       <!--gui-->
       <script src="../js/gui/gui.js"></script>
       <!--parser-->
-      <script src="../js/parser/eventhandlers/parser.js"></script>
+      <!--<script src="../js/parser/eventhandlers/parser.js"></script>-->
       <script src="../js/parser/eventhandlers/utils.js"></script>
       <!--eventhandlers--> 
       <script src="../js/parser/eventhandlers/handleMatrixInput.js"></script>
       <script src="../js/parser/eventhandlers/handleJsonInput.js"></script>
       <script src="../js/parser/eventhandlers/handleDotInput.js"></script>
+      <script src="../js/parser/eventhandlers/handleManuelMatrixTextareaUpdate.js"></script>
+      <script src="../js/parser/eventhandlers/handleManuelJsonTextareaUpdate.js"></script>
+      <script src="../js/parser/eventhandlers/handleManuelDotTextareaUpdate.js"></script>
       <!--converters-->
       <script src="../js/parser/converters/jsonToDotConversion.js"></script>
       <script src="../js/parser/converters/dotToJsonConversion.js"></script>

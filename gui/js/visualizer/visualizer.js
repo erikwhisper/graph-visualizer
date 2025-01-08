@@ -2,6 +2,13 @@
 /***********START: jsonData Visulization for PAG************/
 /***********************************************************/
 
+//PARSER TODO:
+//TODO 1: Erst die funktionen handleManuel...() ausführen und dann für jeden typ das gewünschte file runterladen.
+
+//TODO 2: Wenn import/export verstanden anfangen den visualizer auseinander zu reissen.
+
+/////////////////////////////////////////////////////////////////////////////////
+
 //funktion die geil wäre, alles auf dem canvas auswählen können
 //also nodes, labels, links so wie sie sind und zsm per
 //drag and drop bewegen, erst frei, dann mit grid

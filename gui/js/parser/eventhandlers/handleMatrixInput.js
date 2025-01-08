@@ -4,8 +4,8 @@ pagMatrixReadButton.addEventListener("click", handleMatrixInput);
 
 //Fuktion für PAG matrix
 function handleMatrixInput() {
-  const fileInput = document.getElementById("pagMatrixFileInput").files[0];
-  const displayArea = document.getElementById("pagMatrixDisplay");
+  const fileInput = document.getElementById("matrixFileInput").files[0];
+  const displayArea = document.getElementById("matrixDisplay");
   const isAdmg = document.getElementById("matrixTypeToggle").checked;
   if (fileInput) {
     const reader = new FileReader();
@@ -26,7 +26,7 @@ function handleMatrixInput() {
           2
         );
 
-        document.getElementById("pagDotDisplay").value =
+        document.getElementById("dotDisplay").value =
           jsonToDotConversion(jsonData);
       } else {
         console.log("Converting PAG matrix to JSON...");
@@ -40,7 +40,7 @@ function handleMatrixInput() {
           2
         );
 
-        document.getElementById("pagDotDisplay").value =
+        document.getElementById("dotDisplay").value =
           jsonToDotConversion(jsonData);
       }
 

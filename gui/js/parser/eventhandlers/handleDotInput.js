@@ -4,8 +4,8 @@ pagDotReadButton.addEventListener("click", handleDotInput);
 
 //Fuktion für PAG dotSyntax
 function handleDotInput() {
-  const fileInput = document.getElementById("pagDotFileInput").files[0];
-  const displayArea = document.getElementById("pagDotDisplay");
+  const fileInput = document.getElementById("dotFileInput").files[0];
+  const displayArea = document.getElementById("dotDisplay");
   const isAdmg = document.getElementById("matrixTypeToggle").checked;
   if (fileInput) {
     const reader = new FileReader();
@@ -22,11 +22,12 @@ function handleDotInput() {
         2
       );
 
+      console.log("what is admg" + isAdmg);
       if (isAdmg) {
-        document.getElementById("pagMatrixDisplay").value =
+        document.getElementById("matrixDisplay").value =
           jsonToAdmgMatrixConversion(jsonData);
       } else {
-        document.getElementById("pagMatrixDisplay").value =
+        document.getElementById("matrixDisplay").value =
           jsonToPagMatrixConversion(jsonData);
       }
 

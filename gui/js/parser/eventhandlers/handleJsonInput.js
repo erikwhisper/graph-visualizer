@@ -16,14 +16,14 @@ function handleJsonInput() {
       const jsonData = JSON.parse(displayArea.value);
 
       if (isAdmg) {
-        document.getElementById("pagMatrixDisplay").value =
+        document.getElementById("matrixDisplay").value =
           jsonToAdmgMatrixConversion(jsonData);
       } else {
-        document.getElementById("pagMatrixDisplay").value =
+        document.getElementById("matrixDisplay").value =
           jsonToPagMatrixConversion(jsonData);
       }
 
-      document.getElementById("pagDotDisplay").value =
+      document.getElementById("dotDisplay").value =
         jsonToDotConversion(jsonData);
 
       //Json -> Matrix & Json -> Dot

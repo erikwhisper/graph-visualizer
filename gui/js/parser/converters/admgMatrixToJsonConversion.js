@@ -10,14 +10,12 @@ function admgMatrixToJsonConversion(parsedAdmgMatrix) {
   const knotenMap = new Map();
   const links = [];
 
-  // Extract node names
   const knotenNamen = parsedAdmgMatrix[0].slice(1);
 
   knotenNamen.forEach((name) => {
     knotenMap.set(name, uuid.v4());
   });
 
-  // Iterate over matrix for edges
   for (let i = 1; i < parsedAdmgMatrix.length; i++) {
     const quellKnotenName = parsedAdmgMatrix[i][0];
     for (let j = i + 1; j < parsedAdmgMatrix[i].length; j++) {
