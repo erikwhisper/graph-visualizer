@@ -96,6 +96,9 @@ directed edges sind die die A->B: arrowhead=normal und arrowtail=tail ODER B->A:
 durch zweifaches iterieren spart man sich überprüfen ob man schon irgendwas in die matrix geschrieben hat und kann so
 einf mit den directed edges den aktuellen stand mit nur bidirected edges durch überschreiben ergänzen.
 */
+
+//TODO 1: Überprüfen das die Admg->Json und Json->Admg conversion nicht nur kacke ist
+//TODO 2:dieses isAdmg bei den Buttons zur conversion und bei den zukünftigen download as matrix einfügen.
 //------------------------------------------------------------------
 //------------------------------------------------------------------
 
@@ -170,7 +173,7 @@ function readPagJson() {
       //Json -> Matrix & Json -> Dot
 
       const jsonData = JSON.parse(displayArea.value);
-      
+
       if (isAdmg) {
         document.getElementById("pagMatrixDisplay").value =
           admgConvertJsonToMatrix(jsonData);
@@ -237,13 +240,31 @@ function readPagDot() {
 
 //aus den conversion buttons download buttons machen, es reicht dann json->matrix für download matrix
 //json->dot für download dot und download json selbst
+
 const pagConvertMatrixToJsonButton = document.getElementById(
   "pagConvertMatrixToJson"
 );
-pagConvertMatrixToJsonButton.addEventListener(
-  "click",
-  pagMatrixToJsonConversion
-);
+
+pagConvertMatrixToJsonButton.addEventListener("click", () => {
+  const isAdmg = document.getElementById("matrixTypeToggle").checked;
+  if (isAdmg) {
+    admgMatrixToJsonConversion();
+  } else {
+    pagMatrixToJsonConversion();
+  }
+});
+
+function admgMatrixToJsonConversion() {
+  const currentPagMatrix = document.getElementById("pagMatrixDisplay").value;
+  const parsedPagMatrix = parsePagContent(currentPagMatrix);
+  const jsonData = admgConvertMatrixToJson(parsedPagMatrix);
+
+  document.getElementById("pagJsonDisplay").value = JSON.stringify(
+    jsonData,
+    null,
+    2
+  );
+}
 
 function pagMatrixToJsonConversion() {
   const currentPagMatrix = document.getElementById("pagMatrixDisplay").value;
@@ -459,16 +480,21 @@ function admgCreateJsonLinks(
 
 //----------------START: JSON -> MATRIX (PAG)------------------------//
 
-//der eventlistener geht doch einfache oder?
 const pagConvertJsonToMatrixButton = document.getElementById(
   "pagConvertJsonToMatrix"
 );
 pagConvertJsonToMatrixButton.addEventListener("click", () => {
+  const isAdmg = document.getElementById("matrixTypeToggle").checked;
   const jsonInput = document.getElementById("pagJsonDisplay").value;
   const jsonData = JSON.parse(jsonInput);
-  const matrixCsv = pagConvertJsonToMatrix(jsonData);
 
-  document.getElementById("pagMatrixDisplay").value = matrixCsv;
+  if (isAdmg) {
+    const matrixCsv = admgConvertJsonToMatrix(jsonData);
+    document.getElementById("pagMatrixDisplay").value = matrixCsv;
+  } else {
+    const matrixCsv = pagConvertJsonToMatrix(jsonData);
+    document.getElementById("pagMatrixDisplay").value = matrixCsv;
+  }
 });
 
 //alle mappings der richtung jsonData -> Matrix
