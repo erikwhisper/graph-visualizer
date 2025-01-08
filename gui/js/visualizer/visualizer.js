@@ -29,7 +29,7 @@ document
   .addEventListener("click", () => {
     resetCheckBoxes();
 
-    const jsonInput = document.getElementById("pagJsonDisplay").value;
+    const jsonInput = document.getElementById("jsonDisplay").value;
     const jsonData = JSON.parse(jsonInput);
 
     visualizeJsonWithD3(jsonData);
@@ -1161,7 +1161,7 @@ function drawNewLabel(svg, node) {
 //----------START: UPDATE JSONDATA TEXTAREA--------------//
 
 function updatePagJsonDisplay(jsonData) {
-  const jsonDisplay = document.getElementById("pagJsonDisplay");
+  const jsonDisplay = document.getElementById("jsonDisplay");
   jsonDisplay.value = JSON.stringify(jsonData, null, 2);
 }
 

@@ -52,9 +52,9 @@
          <!-- PAG JSON Input Section -->
          <section id="pag-json-input-section">
             <input type="file" id="pagJsonFileInput" accept=".csv, .txt" />
-              <button class="toggle-textarea" data-target="pagJsonDisplay">JSON Anzeigen/Verbergen</button>
+              <button class="toggle-textarea" data-target="jsonDisplay">JSON Anzeigen/Verbergen</button>
             <textarea
-               id="pagJsonDisplay"
+               id="jsonDisplay"
                placeholder="JSON-Daten werden hier angezeigt...">{"nodes": [],"links": []}</textarea>
             <button id="pagJsonReadButton">JSON Einlesen</button>
          </section>
@@ -75,8 +75,8 @@
         <div class="right-slidemenu-major-content-headline">Speichern</div>
         <section id="pag-conversion-button-section">
             <label><input type="checkbox" id="gridClippingToggle" unchecked />Grid</label>
-            <button id="pagConvertMatrixToJson">Matrix -> JSON (respect adgm/pag toggle)</button>
-            <button id="pagConvertJsonToMatrix">JSON -> Matrix (respect adgm/pag toggle)</button>
+            <button id="convertMatrixToJson">Matrix -> JSON</button>
+            <button id="convertJsonToMatrix">JSON -> Matrix (respect adgm/pag toggle)</button>
             <button id="pagConvertDotToJson">DOT -> JSON</button>
             <button id="pagConvertJsonToDot">JSON -> DOT</button>
             <button id="pagVisualizeJsonWithD3">Visualiser</button>
@@ -148,13 +148,19 @@
       <!--gui-->
       <script src="../js/gui/gui.js"></script>
       <!--parser-->
-      <script src="../js/parser/parser.js"></script>
-      <script src="../js/parser/jsonToDotConversion.js"></script>
-      <script src="../js/parser/dotToJsonConversion.js"></script>
-      <script src="../js/parser/jsonToPagMatrixConversion.js"></script>
-      <script src="../js/parser/jsonToAdmgMatrixConversion.js"></script>
-      <script src="../js/parser/admgMatrixToJsonConversion.js"></script>
-      <script src="../js/parser/pagMatrixToJsonConversion.js"></script>
+      <script src="../js/parser/eventhandlers/parser.js"></script>
+      <script src="../js/parser/eventhandlers/utils.js"></script>
+      <!--eventhandlers--> 
+      <script src="../js/parser/eventhandlers/handleMatrixInput.js"></script>
+      <script src="../js/parser/eventhandlers/handleJsonInput.js"></script>
+      <script src="../js/parser/eventhandlers/handleDotInput.js"></script>
+      <!--converters-->
+      <script src="../js/parser/converters/jsonToDotConversion.js"></script>
+      <script src="../js/parser/converters/dotToJsonConversion.js"></script>
+      <script src="../js/parser/converters/jsonToPagMatrixConversion.js"></script>
+      <script src="../js/parser/converters/jsonToAdmgMatrixConversion.js"></script>
+      <script src="../js/parser/converters/admgMatrixToJsonConversion.js"></script>
+      <script src="../js/parser/converters/pagMatrixToJsonConversion.js"></script>
       <!--visualizer-->
       <script src="../js/visualizer/visualizer.js"></script>
       <!--grid-->
