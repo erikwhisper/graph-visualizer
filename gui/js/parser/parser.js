@@ -120,7 +120,7 @@ function readPagMatrix() {
       //Matrix -> Json -> Dot
       if (isAdmg) {
         console.log("Converting ADMG matrix to JSON...");
-        const jsonData = admgConvertMatrixToJson(
+        const jsonData = admgMatrixToJsonConversion(
           parsePagContent(displayArea.value)
         );
 
@@ -134,7 +134,7 @@ function readPagMatrix() {
           jsonToDotConversion(jsonData);
       } else {
         console.log("Converting PAG matrix to JSON...");
-        const jsonData = pagConvertMatrixToJson(
+        const jsonData = pagMatrixToJsonConversion(
           parsePagContent(displayArea.value)
         );
 
@@ -176,10 +176,10 @@ function readPagJson() {
 
       if (isAdmg) {
         document.getElementById("pagMatrixDisplay").value =
-          admgConvertJsonToMatrix(jsonData);
+          jsonToAdmgMatrixConversion(jsonData);
       } else {
         document.getElementById("pagMatrixDisplay").value =
-          pagConvertJsonToMatrix(jsonData);
+          jsonToPagMatrixConversion(jsonData);
       }
 
       document.getElementById("pagDotDisplay").value =
@@ -205,7 +205,7 @@ function readPagDot() {
       //Dot -> Json -> Matrix
       //Unterscheiden zwischen ADMG Matrix und PAG Matrix wie?
 
-      const jsonData = pagDotToJsonConversion(displayArea.value);
+      const jsonData = dotToJsonConversion(displayArea.value);
 
       document.getElementById("pagJsonDisplay").value = JSON.stringify(
         jsonData,
@@ -215,10 +215,10 @@ function readPagDot() {
 
       if (isAdmg) {
         document.getElementById("pagMatrixDisplay").value =
-          admgConvertJsonToMatrix(jsonData);
+          jsonToAdmgMatrixConversion(jsonData);
       } else {
         document.getElementById("pagMatrixDisplay").value =
-          pagConvertJsonToMatrix(jsonData);
+          jsonToPagMatrixConversion(jsonData);
       }
 
       //Dot -> Json -> Matrix
@@ -257,7 +257,7 @@ pagConvertMatrixToJsonButton.addEventListener("click", () => {
 function admgMatrixToJsonConversion() {
   const currentPagMatrix = document.getElementById("pagMatrixDisplay").value;
   const parsedPagMatrix = parsePagContent(currentPagMatrix);
-  const jsonData = admgConvertMatrixToJson(parsedPagMatrix);
+  const jsonData = admgMatrixToJsonConversion(parsedPagMatrix);
 
   document.getElementById("pagJsonDisplay").value = JSON.stringify(
     jsonData,
@@ -269,7 +269,7 @@ function admgMatrixToJsonConversion() {
 function pagMatrixToJsonConversion() {
   const currentPagMatrix = document.getElementById("pagMatrixDisplay").value;
   const parsedPagMatrix = parsePagContent(currentPagMatrix);
-  const jsonData = pagConvertMatrixToJson(parsedPagMatrix);
+  const jsonData = pagMatrixToJsonConversion(parsedPagMatrix);
 
   document.getElementById("pagJsonDisplay").value = JSON.stringify(
     jsonData,
@@ -285,198 +285,10 @@ function parsePagContent(csvContent) {
     .map((row) => row.split(",").map((cell) => cell.replace(/"/g, "").trim()));
 }
 
-function pagConvertMatrixToJson(parsedPagMatrix) {
-  const knotenMap = new Map(); //alle knoten in menge
-  const links = []; //alle edges
-
-  //knoten auslesen und einmalig übernehmen
-  const knotenNamen = parsedPagMatrix[0].slice(1);
-
-  knotenNamen.forEach((name) => {
-    console.log("Log: " + knotenNamen);
-    knotenMap.set(name, uuid.v4());
-  });
-
-  for (let i = 1; i < parsedPagMatrix.length; i++) {
-    const quellKnotenName = parsedPagMatrix[i][0];
-    for (let j = i + 1; j < parsedPagMatrix[i].length; j++) {
-      const kantenTypFromTo = parseInt(parsedPagMatrix[i][j]);
-      const kantenTypToFrom = parseInt(parsedPagMatrix[j][i]);
-      const zielKnotenName = knotenNamen[j - 1];
-
-      //knotenSet.add(quellKnotenName);
-      //knotenSet.add(zielKnotenName);
-
-      const link = pagCreateJsonLinks(
-        knotenMap.get(quellKnotenName),
-        knotenMap.get(zielKnotenName),
-        kantenTypFromTo,
-        kantenTypToFrom
-        //,knotenFarbe
-      );
-      if (link) {
-        links.push(link);
-      }
-    }
-  }
-
-  //knoten in jsonFormat
-  const nodes = Array.from(knotenMap.entries()).map(([name, nodeId]) => ({
-    nodeId, // ID aus der Map
-    name, // Name aus der Map
-    nodeColor: "whitesmoke",
-    x: null,
-    y: null,
-    labelOffsetX: 0,
-    labelOffsetY: 0,
-  }));
-
-  return { nodes, links };
-}
-
-function pagCreateJsonLinks(quellId, zielId, kantenTypFromTo, kantenTypToFrom) {
-  const edgeMap = {
-    0: "none",
-    1: "odot",
-    2: "normal",
-    3: "tail",
-  };
-
-  //Wenn beide Edges 0, dann existiert keine Edge
-  if (kantenTypFromTo === 0 && kantenTypToFrom === 0) {
-    return null;
-  }
-
-  return {
-    linkId: uuid.v4(),
-    linkColor: "black",
-    source: {
-      nodeId: quellId,
-      nodeColor: "whitesmoke",
-      x: null,
-      y: null,
-      labelOffsetX: 0,
-      labelOffsetY: 0,
-    },
-    target: {
-      nodeId: zielId,
-      nodeColor: "whitesmoke",
-      x: null,
-      y: null,
-      labelOffsetX: 0,
-      labelOffsetY: 0,
-    },
-    arrowhead: edgeMap[kantenTypFromTo] || "none", //none falls zahl unbekannt
-    arrowtail: edgeMap[kantenTypToFrom] || "none", //none falls zahl unbekannt
-    linkControlX: 0,
-    linkControlY: 0,
-    isCurved: false,
-    isDashed: false,
-  };
-}
 
 //----------------START: MATRIX -> JSON (ADMG)------------------------//
 
-//Das hier muss ich auf jeden Fall mir nochmal genauer angucken um keine fehler bei conversions drin zu haben
-//sobald ich etwas mehr zeit hab.
-function admgConvertMatrixToJson(parsedAdmgMatrix) {
-  const knotenMap = new Map();
-  const links = [];
-
-  // Extract node names
-  const knotenNamen = parsedAdmgMatrix[0].slice(1);
-
-  knotenNamen.forEach((name) => {
-    knotenMap.set(name, uuid.v4());
-  });
-
-  // Iterate over matrix for edges
-  for (let i = 1; i < parsedAdmgMatrix.length; i++) {
-    const quellKnotenName = parsedAdmgMatrix[i][0];
-    for (let j = i + 1; j < parsedAdmgMatrix[i].length; j++) {
-      const kantenTypFromTo = parseInt(parsedAdmgMatrix[i][j]);
-      const kantenTypToFrom = parseInt(parsedAdmgMatrix[j][i]);
-      const zielKnotenName = knotenNamen[j - 1];
-
-      const newLinks = admgCreateJsonLinks(
-        knotenMap.get(quellKnotenName),
-        knotenMap.get(zielKnotenName),
-        kantenTypFromTo,
-        kantenTypToFrom
-      );
-
-      if (newLinks) {
-        links.push(...newLinks); //is der ... operator nötig? //100% nicht, remove das
-      }
-    }
-  }
-
-  const nodes = Array.from(knotenMap.entries()).map(([name, nodeId]) => ({
-    nodeId,
-    name,
-    nodeColor: "whitesmoke",
-    x: null,
-    y: null,
-    labelOffsetX: 0,
-    labelOffsetY: 0,
-  }));
-
-  return { nodes, links };
-}
-
-function admgCreateJsonLinks(
-  quellId,
-  zielId,
-  kantenTypFromTo,
-  kantenTypToFrom
-) {
-  const admgEdgeMap = {
-    "0_0": null,
-    "1_0": [{ arrowhead: "normal", arrowtail: "tail", isDashed: false }],
-    "0_1": [{ arrowhead: "tail", arrowtail: "normal", isDashed: false }],
-    "2_2": [{ arrowhead: "normal", arrowtail: "normal", isDashed: true }],
-    "2_1": [
-      { arrowhead: "normal", arrowtail: "normal", isDashed: true },
-      { arrowhead: "tail", arrowtail: "normal", isDashed: false },
-    ],
-    "1_2": [
-      { arrowhead: "normal", arrowtail: "normal", isDashed: true },
-      { arrowhead: "normal", arrowtail: "tail", isDashed: false },
-    ],
-  };
-
-  const key = `${kantenTypFromTo}_${kantenTypToFrom}`;
-  const edgePropsArray = admgEdgeMap[key];
-
-  if (!edgePropsArray) return null;
-
-  return edgePropsArray.map((edgeProps) => ({
-    linkId: uuid.v4(),
-    linkColor: "black",
-    source: {
-      nodeId: quellId,
-      nodeColor: "whitesmoke",
-      x: null,
-      y: null,
-      labelOffsetX: 0,
-      labelOffsetY: 0,
-    },
-    target: {
-      nodeId: zielId,
-      nodeColor: "whitesmoke",
-      x: null,
-      y: null,
-      labelOffsetX: 0,
-      labelOffsetY: 0,
-    },
-    arrowhead: edgeProps.arrowhead,
-    arrowtail: edgeProps.arrowtail,
-    linkControlX: 0,
-    linkControlY: 0,
-    isCurved: false,
-    isDashed: edgeProps.isDashed,
-  }));
-}
+//hier war mal die admg matrix nach json conversion drin
 
 //----------------START: JSON -> MATRIX (PAG)------------------------//
 
@@ -489,170 +301,19 @@ pagConvertJsonToMatrixButton.addEventListener("click", () => {
   const jsonData = JSON.parse(jsonInput);
 
   if (isAdmg) {
-    const matrixCsv = admgConvertJsonToMatrix(jsonData);
+    const matrixCsv = jsonToAdmgMatrixConversion(jsonData);
     document.getElementById("pagMatrixDisplay").value = matrixCsv;
   } else {
-    const matrixCsv = pagConvertJsonToMatrix(jsonData);
+    const matrixCsv = jsonToPagMatrixConversion(jsonData);
     document.getElementById("pagMatrixDisplay").value = matrixCsv;
   }
 });
 
-//alle mappings der richtung jsonData -> Matrix
-function mapEdgeToType(arrowhead, arrowtail) {
-  const edgeMap = {
-    none: 0,
-    odot: 1,
-    normal: 2,
-    tail: 3,
-  };
 
-  if (arrowhead === "odot" && arrowtail === "odot")
-    return [edgeMap["odot"], edgeMap["odot"]];
-  if (arrowhead === "odot" && arrowtail === "normal")
-    return [edgeMap["odot"], edgeMap["normal"]];
-  if (arrowhead === "odot" && arrowtail === "tail")
-    return [edgeMap["odot"], edgeMap["tail"]];
-  if (arrowhead === "odot" && arrowtail === "none")
-    return [edgeMap["odot"], edgeMap["none"]];
-
-  if (arrowhead === "normal" && arrowtail === "odot")
-    return [edgeMap["normal"], edgeMap["odot"]];
-  if (arrowhead === "normal" && arrowtail === "normal")
-    return [edgeMap["normal"], edgeMap["normal"]];
-  if (arrowhead === "normal" && arrowtail === "tail")
-    return [edgeMap["normal"], edgeMap["tail"]];
-  if (arrowhead === "normal" && arrowtail === "none")
-    return [edgeMap["normal"], edgeMap["none"]];
-
-  if (arrowhead === "tail" && arrowtail === "odot")
-    return [edgeMap["tail"], edgeMap["odot"]];
-  if (arrowhead === "tail" && arrowtail === "normal")
-    return [edgeMap["tail"], edgeMap["normal"]];
-  if (arrowhead === "tail" && arrowtail === "tail")
-    return [edgeMap["tail"], edgeMap["tail"]];
-  if (arrowhead === "tail" && arrowtail === "none")
-    return [edgeMap["tail"], edgeMap["none"]];
-
-  if (arrowhead === "none" && arrowtail === "odot")
-    return [edgeMap["none"], edgeMap["odot"]];
-  if (arrowhead === "none" && arrowtail === "normal")
-    return [edgeMap["none"], edgeMap["normal"]];
-  if (arrowhead === "none" && arrowtail === "tail")
-    return [edgeMap["none"], edgeMap["tail"]];
-
-  return [edgeMap["none"], edgeMap["none"]];
-}
-
-//JSON -> Matrix
-//TODO: Funktioniert, aber:
-//   const idToName = Object.fromEntries(jsonData.nodes.map((node) => [node.id, node.name]));
-//warum muss ich node.id auf node.name so mappen, ist das die normalste lösung? ich meine zu jedem node.id
-//gehört ja auch immer ein node.name, gibt es nicht soetwas wie jsonData.nodes.name[id], oder so?
-
-//Erstmal so lassen, als nächstes kommt Json->DOT und DOT->Json,
-//dann müssen stück für stück alle funktionen angepasst weden, das sie jetzt die neue id nutzen
-//und falls sie den namen brauchen jetzt über node.name und nicht mehr node.id gehen.
-function pagConvertJsonToMatrix(jsonData) {
-  //das geht safe besser
-  const mapNodeIdToNodeName = Object.fromEntries(
-    jsonData.nodes.map((node) => [node.nodeId, node.name])
-  );
-
-  const knoten = jsonData.nodes.map((node) => node.nodeId);
-  const matrixSize = knoten.length;
-
-  const matrix = Array.from({ length: matrixSize + 1 }, () =>
-    Array(matrixSize + 1).fill(0)
-  );
-
-  matrix[0][0] = '""'; // Ecke hardcoded
-  knoten.forEach((nodeId, index) => {
-    matrix[0][index + 1] = `"${mapNodeIdToNodeName[nodeId]}"`;
-    matrix[index + 1][0] = `"${mapNodeIdToNodeName[nodeId]}"`;
-  });
-
-  jsonData.links.forEach((link) => {
-    const sourceIndex = knoten.indexOf(link.source.nodeId) + 1;
-    const targetIndex = knoten.indexOf(link.target.nodeId) + 1;
-
-    const [edgeTypeForward, edgeTypeReverse] = mapEdgeToType(
-      link.arrowhead,
-      link.arrowtail
-    );
-    matrix[sourceIndex][targetIndex] = edgeTypeForward;
-    matrix[targetIndex][sourceIndex] = edgeTypeReverse;
-  });
-
-  return matrix.map((row) => row.join(", ")).join("\n");
-}
 
 //----------------START: JSON -> MATRIX (ADMG)------------------------//
 
-//auch nochmal angucken aber scheint zu funktionieren.
-function admgConvertJsonToMatrix(jsonData) {
-  // Map node IDs to names
-  const mapNodeIdToNodeName = Object.fromEntries(
-    jsonData.nodes.map((node) => [node.nodeId, node.name])
-  );
-
-  // Extract node IDs
-  const nodes = jsonData.nodes.map((node) => node.nodeId);
-  const matrixSize = nodes.length;
-
-  // Initialize the matrix
-  const matrix = Array.from({ length: matrixSize + 1 }, () =>
-    Array(matrixSize + 1).fill(0)
-  );
-
-  // Set node names in the first row and column
-  matrix[0][0] = '""'; // Top-left corner
-  nodes.forEach((nodeId, index) => {
-    matrix[0][index + 1] = `"${mapNodeIdToNodeName[nodeId]}"`;
-    matrix[index + 1][0] = `"${mapNodeIdToNodeName[nodeId]}"`;
-  });
-
-  // First pass: Add bi-directed edges (2_2)
-  jsonData.links.forEach((link) => {
-    if (
-      link.arrowhead === "normal" &&
-      link.arrowtail === "normal" &&
-      link.isDashed
-    ) {
-      const sourceIndex = nodes.indexOf(link.source.nodeId) + 1;
-      const targetIndex = nodes.indexOf(link.target.nodeId) + 1;
-
-      // Set bi-directed edge
-      matrix[sourceIndex][targetIndex] = 2;
-      matrix[targetIndex][sourceIndex] = 2;
-    }
-  });
-
-  // Second pass: Add directed edges (1_0, 0_1) or overwrite bi-directed edges
-  jsonData.links.forEach((link) => {
-    const sourceIndex = nodes.indexOf(link.source.nodeId) + 1;
-    const targetIndex = nodes.indexOf(link.target.nodeId) + 1;
-
-    if (
-      link.arrowhead === "normal" &&
-      link.arrowtail === "tail" &&
-      !link.isDashed
-    ) {
-      // A -> B
-      matrix[sourceIndex][targetIndex] = 1;
-      //matrix[targetIndex][sourceIndex] = 0; //wofür die null ist doch eh immer null
-    } else if (
-      link.arrowhead === "tail" &&
-      link.arrowtail === "normal" &&
-      !link.isDashed
-    ) {
-      // B -> A
-      //matrix[sourceIndex][targetIndex] = 0; //wofür die null ist doch eh immer null
-      matrix[targetIndex][sourceIndex] = 1;
-    }
-  });
-
-  return matrix.map((row) => row.join(", ")).join("\n");
-}
+//hier war mal die json nach admg matrix conversion drin
 
 //----------------START: DOT -> JSON (PAG)------------------------//
 
@@ -661,7 +322,7 @@ const pagConvertDotToJsonButton = document.getElementById(
 );
 pagConvertDotToJsonButton.addEventListener("click", () => {
   const dotInput = document.getElementById("pagDotDisplay").value;
-  const jsonData = pagDotToJsonConversion(dotInput);
+  const jsonData = dotToJsonConversion(dotInput);
 
   document.getElementById("pagJsonDisplay").value = JSON.stringify(
     jsonData,
@@ -669,95 +330,6 @@ pagConvertDotToJsonButton.addEventListener("click", () => {
     2
   );
 });
-
-function pagDotToJsonConversion(dotSyntax) {
-  const knoten = new Map();
-  const links = [];
-
-  const edgeRegex =
-    /"([^"]+)"\s*->\s*"([^"]+)"\s*\[\s*dir\s*=\s*both[,\s]*arrowhead\s*=\s*([^,\s]+)[,\s]*arrowtail\s*=\s*([^,\s]+)(?:[,\s]*style\s*=\s*([^,\]]+))?(?:[,\s]*color\s*=\s*([^,\]]+))?\s*\];/g;
-
-  const nodeRegex = /"([^"]+)"\s*\[.*?fillcolor=([^,\]]+).*?\];/g;
-
-  let match;
-
-  //guckt sich alle knoten an für die farbe definiert wurde
-  while ((match = nodeRegex.exec(dotSyntax)) !== null) {
-    const nodeName = match[1];
-    const nodeColor = match[2].trim();
-
-    if (!knoten.has(nodeName)) {
-      knoten.set(nodeName, {
-        nodeId: uuid.v4(),
-        name: nodeName,
-        nodeColor: nodeColor || "whitesmoke",
-        x: null,
-        y: null,
-        labelOffsetX: 0,
-        labelOffsetY: 0,
-      });
-    }
-  }
-
-  //guckt sich alles andere an
-  while ((match = edgeRegex.exec(dotSyntax)) !== null) {
-    const sourceName = match[1];
-    const targetName = match[2];
-    const arrowhead = match[3].trim();
-    const arrowtail = match[4].trim();
-    const style = match[5]?.trim();
-    const color = match[6]?.trim() || "black";
-
-    //prüfen ob sourceName oder targetName zsm fassen und im if case dafür dann nach name prüfen und setzen
-    if (!knoten.has(sourceName)) {
-      knoten.set(sourceName, {
-        nodeId: uuid.v4(),
-        name: sourceName,
-        nodeColor: "whitesmoke",
-        x: null,
-        y: null,
-        labelOffsetX: 0,
-        labelOffsetY: 0,
-      });
-    }
-
-    if (!knoten.has(targetName)) {
-      knoten.set(targetName, {
-        nodeId: uuid.v4(),
-        name: targetName,
-        nodeColor: "whitesmoke",
-        x: null,
-        y: null,
-        labelOffsetX: 0,
-        labelOffsetY: 0,
-      });
-    }
-
-    const validatedColor = allowedColors.includes(color) ? color : "black";
-
-    links.push({
-      linkId: uuid.v4(),
-      linkColor: validatedColor,
-      source: knoten.get(sourceName),
-      target: knoten.get(targetName),
-      arrowhead: arrowhead,
-      arrowtail: arrowtail,
-      linkControlX: 0,
-      linkControlY: 0,
-      isCurved: false,
-      isDashed: style === "dashed",
-    });
-  }
-
-  const nodesArray = Array.from(knoten.values());
-
-  const jsonData = {
-    nodes: nodesArray,
-    links: links,
-  };
-
-  return jsonData;
-}
 
 //----------------START: JSON -> DOT (PAG)------------------------//
 
@@ -774,46 +346,6 @@ pagConvertJsonToDotButton.addEventListener("click", () => {
   const dotSyntax = jsonToDotConversion(jsonData);
   document.getElementById("pagDotDisplay").value = dotSyntax;
 });
-
-function jsonToDotConversion(jsonData) {
-  let dotOutput = "digraph PAG {\n";
-
-  const mapNodeIdToNodeName = Object.fromEntries(
-    jsonData.nodes.map((node) => [node.nodeId, node.name])
-  );
-
-  jsonData.links.forEach((link) => {
-    const source = mapNodeIdToNodeName[link.source.nodeId];
-    const target = mapNodeIdToNodeName[link.target.nodeId];
-    const arrowhead = link.arrowhead;
-    const arrowtail = link.arrowtail;
-    const style = link.isDashed ? ", style=dashed" : "";
-    const color =
-      allowedColors.includes(link.linkColor) && link.linkColor !== "black"
-        ? `, color=${link.linkColor}`
-        : "";
-
-    dotOutput += `"${source}" -> "${target}" [dir=both, arrowhead=${arrowhead}, arrowtail=${arrowtail}${style}${color}];\n`;
-  });
-
-  jsonData.nodes.forEach((node) => {
-    //falls node alleinsetehend ist, wird er auch in dot-syntaxt übersetzt
-    const nodeIsInLinks = jsonData.links.some(
-      (link) =>
-        link.source.nodeId === node.nodeId || link.target.nodeId === node.nodeId
-    );
-
-    if (node.nodeColor !== "whitesmoke" || !nodeIsInLinks) {
-      dotOutput += `"${
-        mapNodeIdToNodeName[node.nodeId]
-      }" [style=filled, fillcolor=${node.nodeColor}];\n`;
-    }
-  });
-
-  dotOutput += "}";
-
-  return dotOutput;
-}
 
 /***********************************************************/
 /**************END: Type-Conversion Functions***************/
