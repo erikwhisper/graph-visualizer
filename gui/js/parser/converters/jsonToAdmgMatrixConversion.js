@@ -1,4 +1,10 @@
 //TODO: auch nochmal angucken aber scheint zu funktionieren. Kommentare removen
+//TODO: handelt es sich hier um ein json object oder einen json string als input?
+/**
+ * @description Turns the graph written as a JSON Object into a Admg Matrix
+ * @param {JSON} jsonData 
+ * @returns {string} matrix
+ */
 function jsonToAdmgMatrixConversion(jsonData) {
   // Map node IDs to names
   const mapNodeIdToNodeName = Object.fromEntries(

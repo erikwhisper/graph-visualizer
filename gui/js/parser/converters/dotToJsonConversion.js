@@ -1,3 +1,8 @@
+/**
+ * @description Turns the graph written in DOT into a JSON Object
+ * @param {string} dotSyntax 
+ * @returns {JSON} jsonData
+ */
 function dotToJsonConversion(dotSyntax) {
   const knoten = new Map();
   const links = [];

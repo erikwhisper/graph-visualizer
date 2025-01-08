@@ -1,3 +1,9 @@
+//TODO: handelt es sich hier um ein json object oder einen json string als input?
+/**
+ * @description Turns the graph written as a JSON Object into a DOT Syntax string
+ * @param {JSON} jsonData 
+ * @returns {string} dotOutput
+ */
 function jsonToDotConversion(jsonData) {
   const isAdmg = document.getElementById("matrixTypeToggle").checked;
   let dotOutput;

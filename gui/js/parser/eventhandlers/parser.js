@@ -10,6 +10,8 @@
 //TODO 2:
 //Erst die neue funktion aus todo 1 ausführen und dann für jeden typ das gewünschte file runterladen
 
+//TODO 3: Wenn import/export verstanden anfangen den visualizer auseinander zu reissen.
+
 //////////////////////////////////////////////////
 
 //----------------START: MATRIX -> JSON (PAG)------------------------//

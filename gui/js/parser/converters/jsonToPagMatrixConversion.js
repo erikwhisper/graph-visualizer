@@ -3,6 +3,13 @@
 //warum muss ich node.id auf node.name so mappen, ist das die normalste lösung? ich meine zu jedem node.id
 //gehört ja auch immer ein node.name, gibt es nicht soetwas wie jsonData.nodes.name[id], oder so?
 
+
+//TODO: handelt es sich hier um ein json object oder einen json string als input?
+/**
+ * @description Turns the graph written as a JSON Object into a Pag Matrix
+ * @param {JSON} jsonData 
+ * @returns {string} matrix
+ */
 function jsonToPagMatrixConversion(jsonData) {
   //das geht safe besser
   const mapNodeIdToNodeName = Object.fromEntries(

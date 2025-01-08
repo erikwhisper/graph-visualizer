@@ -1,3 +1,8 @@
+/**
+ * @description Turns the graph written as a Pag Matrix into a JSON Object
+ * @param {string} parsedPagMatrix 
+ * @returns {JSON} jsonData
+ */
 function pagMatrixToJsonConversion(parsedPagMatrix) {
   const knotenMap = new Map(); //alle knoten in menge
   const links = []; //alle edges

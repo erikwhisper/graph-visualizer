@@ -1,5 +1,11 @@
 //Das hier muss ich auf jeden Fall mir nochmal genauer angucken um keine fehler bei conversions drin zu haben
-//sobald ich etwas mehr zeit hab.
+//sobald ich etwas mehr zeit hab. Sieht aber gut aus.
+
+/**
+ * @description Turns the graph written as a Admg Matrix into a JSON Object
+ * @param {string} parsedPagMatrix
+ * @returns {JSON} jsonData
+ */
 function admgMatrixToJsonConversion(parsedAdmgMatrix) {
   const knotenMap = new Map();
   const links = [];
@@ -67,11 +73,10 @@ function admgCreateJsonLinks(
   };
 
   const key = `${kantenTypFromTo}_${kantenTypToFrom}`;
-  const edgePropsArray = admgEdgeMap[key];
 
-  if (!edgePropsArray) return null;
+  if (!admgEdgeMap[key]) return null;
 
-  return edgePropsArray.map((edgeProps) => ({
+  return admgEdgeMap[key].map((edgeProps) => ({
     linkId: uuid.v4(),
     linkColor: "black",
     source: {
