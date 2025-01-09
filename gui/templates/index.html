@@ -12,6 +12,8 @@
     <div id="navigation-header">
       <h1>CausalGraph Visualiser</h1>
       <button>Button 1</button>
+      <label><input type="checkbox" id="gridClippingToggle" unchecked />Grid</label>
+      <button id="pagVisualizeJsonWithD3">Visualiser</button>
       <button id="right-slidemenu-toggle">Menu</button> <!-- aktuell nur platzhalter -->
     </div>
 
@@ -74,11 +76,11 @@
     <div class="right-slidemenu-major" id="menu-content-2"> <!--right-slidemenu-major-content-fileOutput-->
         <div class="right-slidemenu-major-content-headline">Speichern</div>
         <section id="pag-conversion-button-section">
-            <label><input type="checkbox" id="gridClippingToggle" unchecked />Grid</label>
+            
             <button id="updateFromMatrixButton">DOT <- JSON <- Matrix</button>
             <button id="updateFromJsonButton">DOT <- JSON -> Matrix</button>
             <button id="updateFromDotButton">DOT -> JSON -> Matrix</button>
-            <button id="pagVisualizeJsonWithD3">Visualiser</button>
+            
             <button id="todoButton1">(todo: download admg/pag matrix)</button>
             <button id="todoButton2">(todo: download dot)</button>
         </section>

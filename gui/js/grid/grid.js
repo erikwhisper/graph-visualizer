@@ -2,6 +2,7 @@
 /******************START: Grid Functions********************/
 /***********************************************************/
 //Eventlistener for grid clipping
+//TODO: woher kommt dieses helle ease-in effekt vom grid wenn ich einen neuen knoten erstelle?
 document
   .getElementById("gridClippingToggle")
   .addEventListener("change", (event) => {

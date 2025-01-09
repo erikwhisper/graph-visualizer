@@ -1,4 +1,7 @@
-//Listener für PAG jsonData
+/**
+ * @description Handles the Input of a file containing the graph in the JSON Format and 
+ * calls the conversion functions, do display the graph as Matrix, JSON and DOT
+ */
 const pagJsonReadButton = document.getElementById("pagJsonReadButton");
 pagJsonReadButton.addEventListener("click", handleJsonInput);
 

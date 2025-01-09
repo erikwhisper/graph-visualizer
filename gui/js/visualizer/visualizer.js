@@ -390,9 +390,12 @@ function setupContextMenu(svg, objectType, contextMenuType, attributeID, calcula
     event.preventDefault();
 
     const menu = document.getElementById(contextMenuType);
+    //TODO: okay now i gotta make sure its visually closed when i press on another one so they dont overlap
     menu.style.display = "block";
-    menu.style.left = `${event.pageX}px`;
-    menu.style.top = `${event.pageY}px`;
+    menu.style.left = `0px`;
+    menu.style.top = `10%`;
+    //menu.style.left = `${event.pageX}px`;
+    //menu.style.top = `${event.pageY}px`;
 
     menu.setAttribute(attributeID, calculation(d));
   });

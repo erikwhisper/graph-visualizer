@@ -178,15 +178,19 @@ body {
 
 /*----- START: Context Menus -----*/
 
+/*contextmenu an die rechte seite packen*/
 .context-menus {
   display: none;
-  position: absolute;
+  position: fixed;
+  width: 15%;
+  height: 100vh;
   background: #978d64;
   border: 1px solid black;
   padding: 10px;
   z-index: 1000;
 }
 
+/*die colorpallets mit #node-color-pallate, #link-color-pallate zusammenpacken*/
 #node-color-palette {
   display: grid;
   grid-template-columns: repeat(auto-fill, 15px);
