@@ -5,13 +5,7 @@
 //PARSER TODO:
 //TODO 1: Erst die funktionen handleManuel...() ausführen und dann für jeden typ das gewünschte file runterladen.
 
-//TODO 2: Wenn import/export verstanden anfangen den visualizer auseinander zu reissen.
-
 /////////////////////////////////////////////////////////////////////////////////
-
-//funktion die geil wäre, alles auf dem canvas auswählen können
-//also nodes, labels, links so wie sie sind und zsm per
-//drag and drop bewegen, erst frei, dann mit grid
 
 //-> Label, also nodeNames ganz oben im contextmenu anzeigen und
 //edititierbar machen, dann jsonDataDisplay aktualisieren
@@ -26,7 +20,6 @@
 //knotengröße anpassen können, bedeutet label, arrowmarker
 //alles dynamisch daran anpassen müssen
 
-//-->Dann den ganzen scheiss für den admg auch.
 
 //----------START: BASIC VISUALIZATION + DRAG&DROP --------------//
 
@@ -60,12 +53,6 @@ function resetCheckBoxes() {
 //einmal diese funktion aufgerufen hab, dadrin rufe ich dann einmal alle contextmenu funktionen auf und dann
 //danach halt nie wieder, oder ist das problematisch?
 
-//TODO 2: Jetzt mit deleteNode im node contextmenu anfangen und dann create und delete node refactorn.
-//TODO 3: Kanten dragging so überarbeiten das die kante wirklich da gerade ist wo mein kruser ist
-//auch wenn das bedeutet nen hardcoded coordinated +200 rein zu packen.
-
-//i made the gridSpacing fixed, so there is no need for a global "currentGridSpacing" anymore, because only grid.js used it
-//anyways.
 function visualizeJsonWithD3(jsonData) {
   const svg = initializeSvgCanvas();
 
@@ -85,9 +72,6 @@ function visualizeJsonWithD3(jsonData) {
 
   updatePagJsonDisplay(jsonData);
 }
-
-//TODO: Knoten mit Label löschen können + zugehörige Kanten löschen
-//TODO Matrix->JSON, JSON->Matrix for Admg
 
 //----------START: NOCH KEINEN NAMEN HIERFUEHR --------------//
 
@@ -109,14 +93,11 @@ function drawEverything(svg, jsonData) {
 //Ich glaube "svg.selectAll(".link").on("contextmenu", null);" ist deadcode und kann weg
 //wenn das link dingen iwo gecleared wird dann in der addNewLink Function
 //die handleAllContextMenus wird doch eh nie wieder aufgerufen
-
-//calls the functions that implement the contextmenu for the three objects
 function handleAllContextMenus(svg, jsonData) {
-  svg.selectAll(".link").on("contextmenu", null); //hier maybe link-context-menu und node-context-menu? das ist ja deren id eig?
-
-  svg.selectAll(".node").on("contextmenu", null);
-
-  svg.selectAll(".node-label").on("contextmenu", null);
+  //svg.selectAll(".contextmenu").on("link-context-menu", null); //hier maybe link-context-menu und node-context-menu? das ist ja deren id eig?
+  //svg.selectAll(".contextmenu").on("link-context-menu", null); //bringt allex nix
+  //svg.selectAll(".label").on("contextmenu", null);
+  //svg.selectAll("link-context-menu").on("link-context-menu", null);
 
   linkContextMenu(svg, jsonData);
   console.log("Link context menu initialized.");
@@ -145,10 +126,6 @@ function handleAllInteractiveDrags(svg, jsonData, gridSpacing) {
 
 //----------START: drawEverything() === DRAW LINKS + DRAW NODES + DRAW LABELS --------------//
 
-//TODO: Aktuell werden kanten die zwischen den selben knoten sind bei Matrix->Json oder
-//DOT->Json auf dem selben strich initialisiert, überlegnung wäre da ein kleines offset
-//einzuführen damit man dies immer sieht, genauer überlegen wenn admg implementierung.
-
 //----------END: DRAW LINKS + DRAW NODES + DRAW LABELS --------------//
 
 //-------------------------------------------------------------------//
@@ -158,6 +135,7 @@ function handleAllInteractiveDrags(svg, jsonData, gridSpacing) {
 //TODO: anderes wort für setup finden
 function linkContextMenu(svg, jsonData) {
   //console.log("Initializing link context menu...");
+  //wenn ein kontextmenu geöffnet wird sollen die anderen beiden falls offen geschlossen werden.
   setupContextMenu(
     svg,
     ".link",
@@ -212,8 +190,7 @@ function labelContextMenu(svg, jsonData) {
 
 //----------START: CONTEXTMENU GENERAL FUNCTIONS--------------//
 
-//TODO: brauch ich menu.style.left und menu.sytle.top wirklich?
-// prettier-ignore
+//TODO: Anzeige des Kontetxmenüs schöner machen
 function setupContextMenu(svg, objectType, contextMenuType, attributeID, calculation) {
   console.log(`Setting up context menu for ${objectType}...`);
 
@@ -492,6 +469,14 @@ function changeLinkColor(linkId, color, jsonData, svg) {
 
 //TODO: Adapt labelcolor, add labelcolor maybe, and change to black or white, according to the brightness of the color
 //automatically
+
+//die funktion abbrechen wenn ich einen leftclick auf den node mache um das kontextmenu zu öffnen, was wir 
+  //bei einem delete baren knoten vermeiden wollen
+  //TODO 6: Knoten löschen können, wenn daran links hängen diese mit löschen, daher delete link, nicht nur
+//im kontextmenü unterbringen sondern den wichtigsten teil in aufrufbare funktion versetzen.
+//-> bei deletenode muss ich laufende processe wie "einen node ausgewählt" und dann lösche ich diesen knoten
+//und dann drücke ich auf den zweiten und will eine kante zeichnen, dann würde mir das um die ohren fliegen
+//das iwie absichern.
 function setupNodesContextMenuFunctions(svg, jsonData) {
   console.log("Node Contextmenu called");
 
@@ -649,10 +634,6 @@ function calculateLinkPath(d) {
 
 //----------START: handleAllEditOperations === ALL ADD NEW LINK UNIQUE FUNCTION--------------//
 
-//TODO: Gucken ob das probleme bereitet, notfalls auskommentieren, andere sachen implementieren
-//anstatt let einf const firstNode
-
-
 //TODO 4: Labels über knotextmenu namen verändern können?
 
 //TODO 6: Knoten löschen können, wenn daran links hängen diese mit löschen, daher delete link, nicht nur
@@ -660,11 +641,6 @@ function calculateLinkPath(d) {
 //-> bei deletenode muss ich laufende processe wie "einen node ausgewählt" und dann lösche ich diesen knoten
 //und dann drücke ich auf den zweiten und will eine kante zeichnen, dann würde mir das um die ohren fliegen
 //das iwie absichern.
-
-//The helper function needs to get helper functions, gotta refactor that shit
-//idk if calling the "linkInteractiveDrag" function is unstable beeing called every time a edge is created
-
-
 
 //----------END: handleAllEditOperations === ALL ADD NEW LINK UNIQUE FUNCTION--------------//
 
@@ -686,31 +662,14 @@ function calculateLinkPath(d) {
 //bei neuen nodes, mal gucken ob die contextMenuLabel function nen problem hat oder was es sonst
 //sein könnte + LabelOffset dynamisch an radius anpassen.
 
-//TODO 2.1: Beim zeichnen von neuen kanten brauche ich ein offset, falls schon n+1 kante vorhanden ist
-//zwischen den beiden knoten
-
-//TODO 3: deleteNode in contextmenu hinzufügen
 //TODO 3: Kantenlänge anpassen, damit neue kanten nicht immer so turbo lang drüber sind
 //TODO 4: Label/Node namen ändern können
 //TODO 5: Knotenradius ändern könnnen (dynamisch mit kantenlänge und labelOffset machen)
-//TODO 5: ADMG support
-//TODO 6: Alles auf canvas moven können
 //TODO 7: Pdf export an graphen größe anpassen
 
-//-> TODO 0: Aktuell erstmal contextmenu für color change von links adden und gucken wie ich die arrowmarker
-//von den spezifischen links colorchange, bitte nicht noch eine id... Dann um das labels-nodes problem kümmern
-//so wie ich das seh muss ich dann ja das ganze links/arrowmarker ding anders mach, weil wenn ich revisualisiere
-//gehört ja kein arrowmarker zu einem link so direkt oder wie.
-
-//-> link colorChange ContextMenu, nodes löschen können
-
-//add a field to the jsonData with nodes, links and maybe type: pag or admg? to determine into what matrice to
-//turn it into again?
-
-//TODO 0.1: Beim initialen laden der seite jsonData textfield mit nem leeren jsonData implementieren, damit
-//wenn man auf einlesen Visualisieren klickt man direkt mit dem zeichnen anfangen kann, oder einmal direkt das aufrufen am
-//anfang damit man sofort schon einen canvas hat, auch wenn mit einem noch leeren element.
 //-----------------------------------------------------------------------------
+
+
 function handleCreateNewNode(svg, jsonData, gridSpacing) {
   svg.on("click", function (event) {
     if (event.shiftKey && event.button === 0) {

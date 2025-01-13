@@ -11,7 +11,7 @@ body {
 #navigation-header {
   height: 10%;
   width: 100%;
-  background-color: #a0956a;
+  background-color: #8d90cc;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -30,7 +30,7 @@ body {
   right: -10%;
   width: 10%;
   height: 100%;
-  background-color: #a0956a;
+  background-color: #8083c7;
   display: flex;
   flex-direction: column;
   align-items: flex-start;
@@ -58,7 +58,7 @@ body {
   font-weight: bold;
   width: 100%;
   height: 60px;
-  background-color: #b4a877;
+  background-color: #9497d3;
   color: black;
   border: none;
   border-radius: 0;
@@ -68,7 +68,7 @@ body {
 }
 
 #right-slidemenu-minor-buttons button:hover {
-  background-color: #978d64;
+  background-color: #686cc4;
 }
 
 /*----- ENDE: Side Menu Minor -----*/
@@ -84,7 +84,7 @@ body {
   right: -40%;
   width: 30%;
   height: 90%;
-  background-color: #978d64;
+  background-color: #9497d3;
   display: flex;
   flex-direction: column;
   justify-content: flex-start;
@@ -115,7 +115,7 @@ body {
   font-weight: bold;
   margin-bottom: 20px;
   color: black;
-  background-color: #857c58;
+  background-color: #8083c7;
   padding: 10px 15px;
   border-radius: 5px;
   text-align: center;
@@ -156,7 +156,7 @@ body {
 .right-slidemenu-major button {
   width: 100%;
   height: 50px;
-  background-color: #938961;
+  background-color: #8083c7;
   color: black;
   font-size: 1rem;
   font-weight: bold;
@@ -167,7 +167,7 @@ body {
 }
 
 .right-slidemenu-major button:hover {
-  background-color: #b4a877;
+  background-color: #686cc4;
 }
 
 
@@ -184,7 +184,7 @@ body {
   position: fixed;
   width: 15%;
   height: 100vh;
-  background: #978d64;
+  background: #9497d3;
   border: 1px solid black;
   padding: 10px;
   z-index: 1000;
@@ -199,7 +199,7 @@ body {
   overflow-x: scroll;
   padding: 1px;
   margin-top: 10%;
-  background: #b4a877;
+  background: #9497d3;
   border: 0;
 }
 
@@ -223,7 +223,7 @@ body {
   overflow-x: scroll;
   padding: 1px;
   margin-top: 10%;
-  background: #b4a877;
+  background: #9497d3;
   border: 0;
 }
 
@@ -250,7 +250,7 @@ body {
   height: calc(
     100vh - 60px
   ); /*das muss 100% einf oder? -10% heder, wie kann man das besser machen*/
-  background-color: whitesmoke;
+  background-color: white;
   margin-top: 60px;
   box-sizing: border-box;
 }
