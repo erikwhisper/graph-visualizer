@@ -191,114 +191,6 @@ function handleAllInteractiveDrags(svg, jsonData, gridSpacing) {
 //DOT->Json auf dem selben strich initialisiert, überlegnung wäre da ein kleines offset
 //einzuführen damit man dies immer sieht, genauer überlegen wenn admg implementierung.
 
-function drawLinks(svg, jsonData) {
-  svg
-    .selectAll(".link")
-    .data(jsonData.links, (d) => d.linkId)
-    .enter()
-    .append("path")
-    .attr("class", "link")
-    .attr("id", (d) => `link-${d.linkId}`)
-    .attr("stroke", (d) => d.linkColor)
-    .attr("stroke-width", 2)
-    .attr("fill", "none")
-    .attr("stroke-dasharray", (d) => (d.isDashed ? "4 2" : null))
-    .attr("marker-end", (d) => {
-      if (d.arrowhead) {
-        const markerId = `marker-${d.linkId}-end`;
-        setupArrowMarker(svg, markerId, d.arrowhead, d.linkColor, "auto");
-        return `url(#${markerId})`;
-      }
-      return null;
-    })
-    .attr("marker-start", (d) => {
-      if (d.arrowtail) {
-        const markerId = `marker-${d.linkId}-start`;
-        setupArrowMarker(
-          svg,
-          markerId,
-          d.arrowtail,
-          d.linkColor,
-          "auto-start-reverse"
-        );
-        return `url(#${markerId})`;
-      }
-      return null;
-    })
-    .attr("d", (d) => calculateLinkPath(d));
-}
-
-function setupArrowMarker(svg, id, type, color, orient) {
-  svg.select(`#${id}`).remove(); //alte arrowmarker löschen
-
-  const marker = svg
-    .append("defs")
-    .append("marker")
-    .attr("id", id)
-    .attr("viewBox", "0 -5 10 10")
-    .attr("refX", 21.5)
-    .attr("refY", 0)
-    .attr("markerWidth", 6)
-    .attr("markerHeight", 6)
-    .attr("orient", orient);
-
-  if (type === "normal") {
-    marker.append("path").attr("d", "M0,-5L10,0L0,5").attr("fill", color);
-  } else if (type === "odot") {
-    marker
-      .append("circle")
-      .attr("cx", 5)
-      .attr("cy", 0)
-      .attr("r", 4)
-      .attr("fill", "white")
-      .attr("stroke", color)
-      .attr("stroke-width", 2);
-  } else if (type === "tail") {
-    marker
-      .append("rect")
-      .attr("x", 0)
-      .attr("y", -5)
-      .attr("width", 0)
-      .attr("height", 0)
-      .attr("fill", color);
-  }
-}
-
-function drawNodes(svg, jsonData) {
-  svg
-    .selectAll(".node")
-    .data(jsonData.nodes)
-    .enter()
-    .append("circle")
-    .attr("id", (d) => `node-${d.nodeId}`)
-    .attr("class", "node")
-    .attr("r", 15)
-    .attr("fill", (d) => d.nodeColor)
-    .attr("stroke", "black")
-    .attr("stroke-width", 1)
-    .attr("cx", (d) => d.x)
-    .attr("cy", (d) => d.y);
-}
-
-function drawLabels(svg, jsonData) {
-  svg
-    .selectAll(".node-label")
-    .data(jsonData.nodes)
-    .enter()
-    .append("text")
-    .attr("id", (d) => `label-${d.nodeId}`) //ist erreichbar über label + die nodeId
-    .attr("class", "node-label")
-    .attr("x", (d) => d.x + d.labelOffsetX) //idk if needed
-    .attr("y", (d) => d.y + d.labelOffsetY) //idk if needed
-    .attr("dy", 5)
-    .attr("text-anchor", "middle")
-    .text((d) => d.name) //nutzt d.name als anzeige name
-    .attr("fill", "black")
-    .style("font-size", "15px")
-    .style("pointer-events", "all")
-    .style("user-select", "none");
-}
-
 //----------END: DRAW LINKS + DRAW NODES + DRAW LABELS --------------//
 
 //-------------------------------------------------------------------//
@@ -372,7 +264,7 @@ function setupContextMenu(svg, objectType, contextMenuType, attributeID, calcula
   // Log the number of elements selected
   console.log(`Found ${selection.size()} ${objectType}(s).`);
 
-  // Check if the contextmenu handler already exists
+  // Check if the contextmenu handler already exists // link context menu ist hier immer undefined
   selection.each(function () {
     const existingHandlers = d3.select(this).on("link-context-menu");
     console.log("was ist überhaupt existingHandlers?: "+ existingHandlers)
@@ -957,62 +849,7 @@ function handleCreateNewLink(svg, jsonData, gridSpacing) {
 //The helper function needs to get helper functions, gotta refactor that shit
 //idk if calling the "linkInteractiveDrag" function is unstable beeing called every time a edge is created
 
-function drawNewLink(svg, link) {
-  console.log("drawNewLink called for link:", link);
 
-  const linkSelection = svg
-    .append("path")
-    .datum(link)
-    .attr("class", "link")
-    .attr("id", `link-${link.linkId}`)
-    .attr("stroke", (d) => d.linkColor)
-    .attr("stroke-width", 2)
-    .attr("fill", "none")
-    .each(function (d) {
-      if (d.isDashed) {
-        d3.select(this).attr("stroke-dasharray", "4 2");
-      }
-    })
-    .attr("marker-end", (d) => {
-      if (d.arrowhead) {
-        const markerId = `marker-${d.linkId}-end`;
-        setupArrowMarker(svg, markerId, d.arrowhead, d.linkColor, "auto");
-        return `url(#${markerId})`;
-      }
-      return null;
-    })
-    .attr("marker-start", (d) => {
-      if (d.arrowtail) {
-        const markerId = `marker-${d.linkId}-start`;
-        setupArrowMarker(
-          svg,
-          markerId,
-          d.arrowtail,
-          d.linkColor,
-          "auto-start-reverse"
-        );
-        return `url(#${markerId})`;
-      }
-      return null;
-    })
-    .attr("d", calculateLinkPath(link));
-
-  console.log("New link added to SVG:", link);
-
-  linkSelection.on("contextmenu", function (event, d) {
-    console.log(`Context menu triggered for link with ID: ${d.linkId}`);
-    event.preventDefault();
-
-    const menu = document.getElementById("link-context-menu");
-    menu.style.display = "block";
-    menu.style.left = `${event.pageX}px`;
-    menu.style.top = `${event.pageY}px`;
-
-    menu.setAttribute("data-link-id", d.linkId);
-  });
-
-  console.log(`Context menu set up for new link: ${link.linkId}`);
-}
 
 //----------END: handleAllEditOperations === ALL ADD NEW LINK UNIQUE FUNCTION--------------//
 
@@ -1091,6 +928,7 @@ function handleCreateNewNode(svg, jsonData, gridSpacing) {
           };
 
           jsonData.nodes.push(newNode);
+
           drawNewNode(svg, newNode);
 
           drawNewLabel(svg, newNode);
@@ -1107,70 +945,12 @@ function handleCreateNewNode(svg, jsonData, gridSpacing) {
   });
 }
 
-function drawNewNode(svg, node) {
-  const newNode = svg
-    .append("circle")
-    .datum(node)
-    .attr("id", `node-${node.nodeId}`)
-    .attr("class", "node")
-    .attr("r", 15)
-    .attr("fill", node.nodeColor)
-    .attr("stroke", "black")
-    .attr("stroke-width", 1)
-    .attr("cx", node.x)
-    .attr("cy", node.y);
-
-  console.log("New node added to SVG with data:", node);
-
-  newNode.on("contextmenu", function (event, d) {
-    console.log(`Context menu triggered for node with ID: ${d.nodeId}`);
-    event.preventDefault();
-
-    const menu = document.getElementById("node-context-menu");
-    menu.style.display = "block";
-    menu.style.left = `${event.pageX}px`;
-    menu.style.top = `${event.pageY}px`;
-
-    menu.setAttribute("data-node-id", d.nodeId);
-  });
-}
-
-function drawNewLabel(svg, node) {
-  const newLabel = svg
-    .append("text")
-    .datum(node)
-    .attr("id", `label-${node.nodeId}`)
-    .attr("class", "node-label")
-    .attr("x", node.x + node.labelOffsetX)
-    .attr("y", node.y + node.labelOffsetY)
-    .attr("dy", 5)
-    .attr("text-anchor", "middle")
-    .text(node.name)
-    .attr("fill", "black")
-    .style("font-size", "15px")
-    .style("pointer-events", "all")
-    .style("user-select", "none");
-
-  console.log("New label added to SVG with data:", node);
-
-  newLabel.on("contextmenu", function (event, d) {
-    console.log(`Context menu triggered for label with ID: ${d.nodeId}`);
-    event.preventDefault();
-
-    const menu = document.getElementById("label-context-menu");
-    menu.style.display = "block";
-    menu.style.left = `${event.pageX}px`;
-    menu.style.top = `${event.pageY}px`;
-
-    menu.setAttribute("data-label-id", d.nodeId);
-  });
-}
-
 //-------------------------------------------------------------------//
 
 //----------START: UPDATE JSONDATA TEXTAREA--------------//
 
 function updatePagJsonDisplay(jsonData) {
+  //maybe add instant conversion to dot and matrix!!
   const jsonDisplay = document.getElementById("jsonDisplay");
   jsonDisplay.value = JSON.stringify(jsonData, null, 2);
 }
