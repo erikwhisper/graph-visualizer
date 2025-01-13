@@ -125,6 +125,7 @@ function initializeNodeCoordinates(jsonData, gridSpacing) {
     }
   });
 
+  //SOWAS BRAUCH ICH DANN DOCH LOWKEY ARE FÜR NODEID und NEUE LINKID, dann passt das doch?
   jsonData.links.forEach((link) => {
     link.source = jsonData.nodes.find(
       (node) => node.nodeId === link.source.nodeId
@@ -172,8 +173,8 @@ function handleAllContextMenus(svg, jsonData) {
 
 //calls the functions that implement the leftclick for the three objects
 function handleAllInteractiveDrags(svg, jsonData, gridSpacing) {
-  svg.selectAll(".link").on(".drag", null);
-  svg.selectAll(".node").on(".drag", null);
+  svg.selectAll(".link").on(".drag", null); //das geht doch eh nicht? aber ist auch egal oder?
+  svg.selectAll(".node").on(".drag", null); //das geht doch eh nicht? aber ist auch egal oder?
   linkInteractiveDrag(svg, jsonData, gridSpacing);
   nodeInteractiveDrag(svg, jsonData, gridSpacing);
   //labelInteractiveClick(svg, jsonData, gridSpacing); //man könnte lowkey nen drag&drop für labelOffsexX/Y einfügen
@@ -659,50 +660,12 @@ function setupLabelsContextMenuFunctions(svg, jsonData) {
 
 //----------START: allInteractiveClicks === LEFTCLICK LINK UNIQUE FUNCTIONS--------------//
 
-//TODO: Hier ist bestimmt so gottlos viel überflüssig
-//oder kann umstrukturiert werden.
-function linkInteractiveDrag(svg, jsonData, gridSpacing) {
-  console.log("linkInteractiveDrag called");
-  svg.selectAll(".link").call(
-    d3
-      .drag()
-      .on("drag", function (event, d) {
-        d.isCurved = true;
-        d.linkControlX = event.x;
-        d.linkControlY = event.y;
-        console.log("drag!");
-        const link = jsonData.links.find((link) => link.linkId === d.linkId);
-        if (link) {
-          link.linkControlX = d.linkControlX;
-          link.linkControlY = d.linkControlY;
-        }
-
-        d3.select(this).attr("d", calculateLinkPath(d));
-        updatePagJsonDisplay(jsonData);
-      })
-      .on("end", function (event, d) {
-        if (!svg.selectAll(".grid-line").empty()) {
-          const refinedSpacing = gridSpacing / 2;
-          d.linkControlX =
-            Math.round(d.linkControlX / refinedSpacing) * refinedSpacing;
-          d.linkControlY =
-            Math.round(d.linkControlY / refinedSpacing) * refinedSpacing;
-        }
-
-        const link = jsonData.links.find((link) => link.linkId === d.linkId);
-        if (link) {
-          link.linkControlX = d.linkControlX;
-          link.linkControlY = d.linkControlY;
-        }
-
-        d3.select(this).attr("d", calculateLinkPath(d));
-        updatePagJsonDisplay(jsonData);
-      })
-  );
-}
 
 //TODO: Falls zwischen den beiden Knoten schon eine Kante existiert, setze die neue auf isCurved und ihre 
 //d.X und d.Y auf (x1 + x2) / 2 + offsetWert; //das auch beim zeichnen neuer kanten machen.
+//Muss in utils funktion, wird für contextmenu und drag genutzt //ist eig nicht auf calculate Link Path bezogen  oder?
+//Was ist denn fürs zeichnen verantworklich? initial und bei handleAddNewLink
+
 function calculateLinkPath(d) {
   const { x: x1, y: y1 } = d.source;
   const { x: x2, y: y2 } = d.target;
@@ -722,54 +685,6 @@ function calculateLinkPath(d) {
 
 //----------START: allInteractiveClicks === LEFTCLICK NODE UNIQUE FUNCTIONS--------------//
 
-function nodeInteractiveDrag(svg, jsonData, gridSpacing) {
-  console.log("nodeInteractiveDrag called");
-  svg.selectAll(".node").call(
-    d3
-      .drag()
-      .on("drag", (event, d) => {
-        d.x = event.x;
-        d.y = event.y;
-        updatePositions();
-        updatePagJsonDisplay(jsonData);
-      })
-      .on("end", (event, d) => {
-        if (!svg.selectAll(".grid-line").empty()) {
-          //checks if grid is activated
-          d.x = Math.round(d.x / gridSpacing) * gridSpacing;
-          d.y = Math.round(d.y / gridSpacing) * gridSpacing;
-        }
-        updatePositions();
-        updatePagJsonDisplay(jsonData);
-      })
-  );
-}
-
-//updaed ALLE positionen, sehr unperformant
-function updatePositions() {
-  //update node position
-  d3.selectAll(".node")
-    .attr("cx", (d) => d.x)
-    .attr("cy", (d) => d.y);
-
-  //update link position
-  d3.selectAll(".link").attr("d", (d) => {
-    const { x: x1, y: y1 } = d.source;
-    const { x: x2, y: y2 } = d.target;
-
-    if (!d.isCurved) {
-      d.linkControlX = (x1 + x2) / 2;
-      d.linkControlY = (y1 + y2) / 2;
-    }
-
-    return `M ${x1},${y1} Q ${d.linkControlX},${d.linkControlY} ${x2},${y2}`;
-  });
-
-  //update label position
-  d3.selectAll(".node-label")
-    .attr("x", (d) => d.x + d.labelOffsetX)
-    .attr("y", (d) => d.y + d.labelOffsetY);
-}
 
 //----------START: allInteractiveClicks === LEFTCLICK NODE UNIQUE FUNCTIONS--------------//
 
