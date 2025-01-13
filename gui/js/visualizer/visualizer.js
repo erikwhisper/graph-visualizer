@@ -67,7 +67,7 @@ function resetCheckBoxes() {
 //i made the gridSpacing fixed, so there is no need for a global "currentGridSpacing" anymore, because only grid.js used it
 //anyways.
 function visualizeJsonWithD3(jsonData) {
-  const svg = createSvgCanvas();
+  const svg = initializeSvgCanvas();
 
   const gridSpacing = 50; //ALERT: currently declared twice, once here in visualizer.js and once in grid.js to avoid a global variable
 
@@ -79,7 +79,7 @@ function visualizeJsonWithD3(jsonData) {
 
   handleAllInteractiveDrags(svg, jsonData, gridSpacing);
 
-  handleCreateNewLink(svg, jsonData, gridSpacing);
+  addNewLink(svg, jsonData, gridSpacing);
 
   handleCreateNewNode(svg, jsonData, gridSpacing);
 
@@ -91,50 +91,7 @@ function visualizeJsonWithD3(jsonData) {
 
 //----------START: NOCH KEINEN NAMEN HIERFUEHR --------------//
 
-function createSvgCanvas() {
-  const containerId = "#graph-container";
 
-  d3.select(containerId).selectAll("*").remove();
-
-  const width = d3.select(containerId).node().offsetWidth;
-  const height = d3.select(containerId).node().offsetHeight;
-
-  const svg = d3
-    .select(containerId)
-    .append("svg")
-    .attr("width", width)
-    .attr("height", height)
-    .on("contextmenu", (event) => {
-      event.preventDefault(); //stelle standart contextmenu vom browser aus
-    });
-
-  return svg;
-}
-
-function initializeNodeCoordinates(jsonData, gridSpacing) {
-  const amoutOfColumns = Math.ceil(Math.sqrt(jsonData.nodes.length));
-
-  if (jsonData.nodes.length > 35) {
-    gridSpacing = gridSpacing / 2;
-  }
-
-  jsonData.nodes.forEach((node, index) => {
-    if (node.x === null || node.y === null) {
-      node.x = (index % amoutOfColumns) * gridSpacing + gridSpacing;
-      node.y = Math.floor(index / amoutOfColumns) * gridSpacing + gridSpacing;
-    }
-  });
-
-  //SOWAS BRAUCH ICH DANN DOCH LOWKEY ARE FÜR NODEID und NEUE LINKID, dann passt das doch?
-  jsonData.links.forEach((link) => {
-    link.source = jsonData.nodes.find(
-      (node) => node.nodeId === link.source.nodeId
-    );
-    link.target = jsonData.nodes.find(
-      (node) => node.nodeId === link.target.nodeId
-    );
-  });
-}
 
 //----------END: NOCH KEINEN NAMEN HIERFUEHR --------------//
 
@@ -693,65 +650,8 @@ function calculateLinkPath(d) {
 //----------START: handleAllEditOperations === ALL ADD NEW LINK UNIQUE FUNCTION--------------//
 
 //TODO: Gucken ob das probleme bereitet, notfalls auskommentieren, andere sachen implementieren
-
 //anstatt let einf const firstNode
-function handleCreateNewLink(svg, jsonData, gridSpacing) {
-  console.log("handleCreateNewLink called");
-  let firstNode = null;
 
-  svg.selectAll(".node").on("click", null);
-
-  svg.selectAll(".node").on("click", function (event, d) {
-    if (!firstNode) {
-      firstNode = d;
-      d3.select(`#node-${firstNode.nodeId}`).attr("fill", "green");
-      console.log(`First node selected: `, firstNode);
-    } else if (d.nodeId !== firstNode.nodeId) {
-      const secondNode = d;
-      console.log(`Second node selected: `, secondNode);
-
-      const newLink = {
-        linkId: uuid.v4(),
-        linkColor: "black",
-        source: firstNode,
-        target: secondNode,
-        arrowhead: "normal",
-        arrowtail: "tail",
-        linkControlX: (firstNode.x + secondNode.x) / 2,
-        linkControlY: (firstNode.y + secondNode.y) / 2,
-        isCurved: false,
-        isDashed: false,
-      };
-      console.log("Creating new link:", newLink);
-
-      jsonData.links.push(newLink);
-
-      drawNewLink(svg, newLink);
-
-      linkInteractiveDrag(svg, jsonData, gridSpacing);
-
-      updatePagJsonDisplay(jsonData);
-
-      //setze firstNode wieder auf standartfarbe zurück
-      d3.select(`#node-${firstNode.nodeId}`).attr("fill", firstNode.nodeColor);
-      firstNode = null;
-    } else {
-      //setze firstNode wieder auf standartfarbe zurück
-      d3.select(`#node-${firstNode.nodeId}`).attr("fill", firstNode.nodeColor);
-      console.log("Click detected on the same node. Resetting firstNode.");
-      firstNode = null;
-    }
-  });
-}
-
-//TODO 1: Hinzufügen das ich meine knoten auswahl auch abbrechen kann, das ganze visuell darstellen.
-//-> Fehlt noch, also node färben wenn ausgewählt
-
-//TODO 2: Jetzt die Knoten nochmal neu zeichnen, so das sie durch eine formel passen gekürzt werden,
-//damit das mit den arrowmarkern nicht immer so krampfhaft aussieht, frage ist nur, geht mir mein
-//clipping und so dann kaputt oder sieht das weiterhin schön aus weil ich die verkürzte kantenform
-//irgendwie basierend auf den mittelpunkten der referenzierten knoten zeichnen kann?
-//-> Fehlt noch, stattdessen aber kanten einf initial kürzer machen, dann spar ich mir neuzeichenn
 
 //TODO 4: Labels über knotextmenu namen verändern können?
 
@@ -850,7 +750,7 @@ function handleCreateNewNode(svg, jsonData, gridSpacing) {
 
           handleAllInteractiveDrags(svg, jsonData, gridSpacing);
 
-          handleCreateNewLink(svg, jsonData, gridSpacing);
+          addNewLink(svg, jsonData, gridSpacing);
 
           updatePagJsonDisplay(jsonData);
           console.log("New node added:", newNode);
