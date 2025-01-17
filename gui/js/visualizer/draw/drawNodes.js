@@ -2,8 +2,8 @@
 //und verbinde die beiden dann einfach miteinander, das würde das ändern des namens vielleicht auch vereifachen
 //oder auch das mapping aufeinander was beim verschieben von labels ja iwie nicht funktioniert.
 
-function drawNodes(svg, jsonData) {
-    svg
+function drawNodes(svg) {
+    const newNode = svg
       .selectAll(".node")
       .data(jsonData.nodes)
       .enter()
@@ -16,4 +16,16 @@ function drawNodes(svg, jsonData) {
       .attr("stroke-width", 1)
       .attr("cx", (d) => d.x)
       .attr("cy", (d) => d.y);
+
+      newNode.on("contextmenu", function (event, d) {
+        console.log(`Context menu triggered for node with ID: ${d.nodeId}`);
+        event.preventDefault();
+    
+        const menu = document.getElementById("node-context-menu");
+        menu.style.display = "block";
+        menu.style.left = `0px`;
+        menu.style.top = `10%`;
+    
+        menu.setAttribute("data-node-id", d.nodeId);
+      });
   }

@@ -1,4 +1,4 @@
-function linkInteractiveDrag(svg, jsonData, gridSpacing) {
+function linkInteractiveDrag(svg, gridSpacing) {
     console.log("linkInteractiveDrag called");
     svg.selectAll(".link").call(
       d3
@@ -15,7 +15,7 @@ function linkInteractiveDrag(svg, jsonData, gridSpacing) {
           }
   
           d3.select(this).attr("d", calculateLinkPath(d));
-          updatePagJsonDisplay(jsonData);
+          updatePagJsonDisplay();
         })
         .on("end", function (event, d) {
           if (!svg.selectAll(".grid-line").empty()) {
@@ -33,7 +33,7 @@ function linkInteractiveDrag(svg, jsonData, gridSpacing) {
           }
   
           d3.select(this).attr("d", calculateLinkPath(d));
-          updatePagJsonDisplay(jsonData);
+          updatePagJsonDisplay();
         })
     );
   }

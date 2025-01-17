@@ -4,7 +4,7 @@
 //irgendwie basierend auf den mittelpunkten der referenzierten knoten zeichnen kann?
 //-> Fehlt noch, stattdessen aber kanten einf initial kürzer machen, dann spar ich mir neuzeichenn
 
-function addNewLink(svg, jsonData, gridSpacing) {
+function addNewLink(svg, gridSpacing) {
   console.log("addNewLink called");
   let firstNode = null;
 
@@ -37,9 +37,9 @@ function addNewLink(svg, jsonData, gridSpacing) {
 
       drawNewLink(svg, newLink);
 
-      linkInteractiveDrag(svg, jsonData, gridSpacing);
+      linkInteractiveDrag(svg, gridSpacing);
 
-      updatePagJsonDisplay(jsonData);
+      updatePagJsonDisplay();
 
       //setze firstNode wieder auf standartfarbe zurück
       d3.select(`#node-${firstNode.nodeId}`).attr("fill", firstNode.nodeColor);

@@ -23,15 +23,20 @@
 //----------START: BASIC VISUALIZATION + DRAG&DROP --------------//
 
 //Eventlistener for basic visualization
+
+let jsonData = null;
+let contextMenusInitialized = false;
+
 document
   .getElementById("pagVisualizeJsonWithD3")
   .addEventListener("click", () => {
     resetCheckBoxes();
 
+    // Get the JSON input from the DOM
     const jsonInput = document.getElementById("jsonDisplay").value;
-    const jsonData = JSON.parse(jsonInput);
+    jsonData = JSON.parse(jsonInput); // Assign to global variable
 
-    visualizeJsonWithD3(jsonData);
+    visualizeJsonWithD3(); // Pass the global variable
   });
 
 function resetCheckBoxes() {
@@ -52,27 +57,29 @@ function resetCheckBoxes() {
 //einmal diese funktion aufgerufen hab, dadrin rufe ich dann einmal alle contextmenu funktionen auf und dann
 //danach halt nie wieder, oder ist das problematisch?
 
-function visualizeJsonWithD3(jsonData) {
-
+function visualizeJsonWithD3() {
   //clear current jsonData if existing, then do this:...
 
   const svg = initializeSvgCanvas();
 
   const gridSpacing = 50; //ALERT: currently declared twice, once here in visualizer.js and once in grid.js to avoid a global variable
 
-  initializeNodeCoordinates(jsonData, gridSpacing * 2); //initiales clipping nutz doppelt so breites gridSpacing
+  initializeNodeCoordinates(gridSpacing * 2); //initiales clipping nutz doppelt so breites gridSpacing
 
-  drawEverything(svg, jsonData);
+  drawEverything(svg);
 
-  handleAllContextMenus(svg, jsonData);
+  if (!contextMenusInitialized) {
+    handleAllContextMenus(svg);
+    contextMenusInitialized = true; // Setze das Flag auf true, um die Kontextmenü-Erstellung zu verhindern
+  }
 
-  handleAllInteractiveDrags(svg, jsonData, gridSpacing);
+  handleAllInteractiveDrags(svg, gridSpacing);
 
-  addNewLink(svg, jsonData, gridSpacing);
+  addNewLink(svg, gridSpacing);
 
-  handleCreateNewNode(svg, jsonData, gridSpacing);
+  handleCreateNewNode(svg, gridSpacing);
 
-  updatePagJsonDisplay(jsonData);
+  updatePagJsonDisplay();
 }
 
 //----------START: NOCH KEINEN NAMEN HIERFUEHR --------------//
@@ -84,37 +91,33 @@ function visualizeJsonWithD3(jsonData) {
 //----------START: SETUP SUPERIOR DRAWING FUNCTIONS, CONTEXTMENUS, LEFT-CLICKS --------------//
 
 //calls the functions that draw the three objects
-function drawEverything(svg, jsonData) {
-  drawLinks(svg, jsonData);
-  drawNodes(svg, jsonData);
-  drawLabels(svg, jsonData);
+function drawEverything(svg) {
+  drawLinks(svg);
+  drawNodes(svg);
+  drawLabels(svg);
 }
 
 //Ich glaube "svg.selectAll(".link").on("contextmenu", null);" ist deadcode und kann weg
 //wenn das link dingen iwo gecleared wird dann in der addNewLink Function
 //die handleAllContextMenus wird doch eh nie wieder aufgerufen
-function handleAllContextMenus(svg, jsonData) {
-  //svg.selectAll(".contextmenu").on("link-context-menu", null); //hier maybe link-context-menu und node-context-menu? das ist ja deren id eig?
-  //svg.selectAll(".contextmenu").on("link-context-menu", null); //bringt allex nix
-  //svg.selectAll(".label").on("contextmenu", null);
-  //svg.selectAll("link-context-menu").on("link-context-menu", null);
+function handleAllContextMenus(svg) {
 
-  linkContextMenu(svg, jsonData);
+  linkContextMenu(svg);
   console.log("Link context menu initialized.");
 
-  nodeContextMenu(svg, jsonData);
+  nodeContextMenu(svg);
   console.log("Node context menu initialized.");
 
-  labelContextMenu(svg, jsonData);
+  labelContextMenu(svg);
   console.log("Label context menu initialized.");
 }
 
 //calls the functions that implement the leftclick for the three objects
-function handleAllInteractiveDrags(svg, jsonData, gridSpacing) {
+function handleAllInteractiveDrags(svg, gridSpacing) {
   svg.selectAll(".link").on(".drag", null); //das geht doch eh nicht? aber ist auch egal oder?
   svg.selectAll(".node").on(".drag", null); //das geht doch eh nicht? aber ist auch egal oder?
-  linkInteractiveDrag(svg, jsonData, gridSpacing);
-  nodeInteractiveDrag(svg, jsonData, gridSpacing);
+  linkInteractiveDrag(svg, gridSpacing);
+  nodeInteractiveDrag(svg, gridSpacing);
   //labelInteractiveClick(svg, jsonData, gridSpacing); //man könnte lowkey nen drag&drop für labelOffsexX/Y einfügen
   //der wandert beim moven vom node dann ja immer einf mit dem nodePosition+offset mit, und wenn grid an wird clipping
   //genommen, eig easy.
@@ -133,7 +136,7 @@ function handleAllInteractiveDrags(svg, jsonData, gridSpacing) {
 //----------START: allContextMenus() === CONTEXTMENU ORGANIZATION--------------//
 
 //TODO: anderes wort für setup finden
-function linkContextMenu(svg, jsonData) {
+function linkContextMenu(svg) {
   //console.log("Initializing link context menu...");
   //wenn ein kontextmenu geöffnet wird sollen die anderen beiden falls offen geschlossen werden.
   setupContextMenu(
@@ -143,14 +146,11 @@ function linkContextMenu(svg, jsonData) {
     "data-link-id",
     (d) => d.linkId // Unique linkId
   );
-  /*console.log(
-    `Total links with context menu: ${svg.selectAll(".link").size()}`
-  );*/
-  setupLinksContextMenuFunctions(svg, jsonData);
+  implementLinksContextMenu();
   closeContextMenu("link-context-menu");
 }
 
-function nodeContextMenu(svg, jsonData) {
+function nodeContextMenu(svg) {
   //console.log("Initializing node context menu...");
   setupContextMenu(
     svg,
@@ -159,14 +159,11 @@ function nodeContextMenu(svg, jsonData) {
     "data-node-id",
     (d) => d.nodeId // Unique nodeId
   );
-  /*console.log(
-    `Total nodes with context menu: ${svg.selectAll(".node").size()}`
-  );*/
-  setupNodesContextMenuFunctions(svg, jsonData);
+  implementNodesContextMenu();
   closeContextMenu("node-context-menu");
 }
 
-function labelContextMenu(svg, jsonData) {
+function labelContextMenu(svg) {
   //console.log("Initializing label context menu...");
   setupContextMenu(
     svg,
@@ -175,10 +172,7 @@ function labelContextMenu(svg, jsonData) {
     "data-label-id",
     (d) => d.nodeId // Unique nodeId for label
   );
-  /*console.log(
-    `Total labels with context menu: ${svg.selectAll(".node-label").size()}`
-  );*/
-  setupLabelsContextMenuFunctions(svg, jsonData);
+  implementLabelsContextMenu();
   closeContextMenu("label-context-menu");
 }
 
@@ -249,7 +243,7 @@ function closeContextMenu(contextMenuType) {
     const menu = document.getElementById(contextMenuType);
     if (!menu.contains(event.target)) {
       menu.style.display = "none";
-      console.log(`${contextMenuType} hidden.`);
+      //console.log(`${contextMenuType} hidden.`);
     }
   });
 }
@@ -261,7 +255,7 @@ function closeContextMenu(contextMenuType) {
 //----------START: linkContextMenu === CONTEXTMENU LINKS UNIQUE FUNCTIONS--------------//
 
 //TODO: refactor redrawing of arrowhead/arrowtail...
-function setupLinksContextMenuFunctions(svg, jsonData) {
+function implementLinksContextMenu() {
   console.log("Link Contextmenu called");
 
   function handleArrowheadClick(arrowheadType) {
@@ -270,6 +264,9 @@ function setupLinksContextMenuFunctions(svg, jsonData) {
     const selectedLink = jsonData.links.find((link) => link.linkId === linkId);
 
     if (selectedLink) {
+      console.log(
+        "hier weiß er was der arrowhead ist: " + selectedLink.arrowhead
+      );
       selectedLink.arrowhead = arrowheadType;
 
       const markerId = `marker-${selectedLink.linkId}-end`;
@@ -286,7 +283,7 @@ function setupLinksContextMenuFunctions(svg, jsonData) {
         `url(#${markerId})`
       );
 
-      updatePagJsonDisplay(jsonData);
+      updatePagJsonDisplay();
       console.log(`Arrowhead updated to '${arrowheadType}' for link ${linkId}`);
     }
   }
@@ -323,7 +320,7 @@ function setupLinksContextMenuFunctions(svg, jsonData) {
         `url(#${markerId})`
       );
 
-      updatePagJsonDisplay(jsonData);
+      updatePagJsonDisplay();
       console.log(`Arrowtail updated to '${arrowtailType}' for link ${linkId}`);
     }
   }
@@ -345,7 +342,7 @@ function setupLinksContextMenuFunctions(svg, jsonData) {
     const selectedLink = jsonData.links.find((link) => link.linkId === linkId);
     if (selectedLink) {
       resetLinkCurve(selectedLink);
-      updatePagJsonDisplay(jsonData);
+      updatePagJsonDisplay();
     }
   });
 
@@ -359,10 +356,10 @@ function setupLinksContextMenuFunctions(svg, jsonData) {
       );
       if (selectedLink && !selectedLink.isDashed) {
         setDashed(selectedLink);
-        updatePagJsonDisplay(jsonData);
+        updatePagJsonDisplay();
       } else if (selectedLink && selectedLink.isDashed) {
         unsetDashed(selectedLink);
-        updatePagJsonDisplay(jsonData);
+        updatePagJsonDisplay();
       }
     });
 
@@ -371,14 +368,14 @@ function setupLinksContextMenuFunctions(svg, jsonData) {
     const linkMenu = document.getElementById("link-context-menu");
     const linkId = linkMenu.getAttribute("data-link-id");
     if (linkId) {
-      deleteLink(linkId, jsonData);
+      deleteLink(linkId);
       if (linkMenu) {
         linkMenu.style.display = "none";
       }
     }
   });
 
-  setupLinkColorPalette(svg, jsonData);
+  setupLinkColorPalette();
 }
 
 function resetLinkCurve(selectedLink) {
@@ -408,15 +405,15 @@ function unsetDashed(selectedLink) {
 }
 
 //Entfernt Links aus dem jsonData und von svg canvas
-function deleteLink(linkId, jsonData) {
+function deleteLink(linkId) {
   jsonData.links = jsonData.links.filter((link) => link.linkId !== linkId); //löscht link aus jsonData
 
   d3.select(`#link-${linkId}`).remove(); //löscht link von svg canvas
 
-  updatePagJsonDisplay(jsonData); //passt displayed jsondata auf actual jsondata an
+  updatePagJsonDisplay(); //passt displayed jsondata auf actual jsondata an
 }
 
-function setupLinkColorPalette(svg, jsonData) {
+function setupLinkColorPalette() {
   const linkColorPalette = document.getElementById("link-color-palette");
   linkColorPalette.innerHTML = "";
 
@@ -430,7 +427,7 @@ function setupLinkColorPalette(svg, jsonData) {
       const linkId = linkMenu.getAttribute("data-link-id");
 
       if (linkId) {
-        changeLinkColor(linkId, color, jsonData, svg);
+        changeLinkColor(linkId, color);
       }
     });
 
@@ -438,36 +435,45 @@ function setupLinkColorPalette(svg, jsonData) {
   });
 }
 
-function changeLinkColor(linkId, color, jsonData, svg) {
-  const link = jsonData.links.find((l) => l.linkId === linkId);
-  if (link) {
-    // Update JSON data
-    link.linkColor = color;
+function changeLinkColor(linkId, color) {
+  const selectedLink = jsonData.links.find((link) => link.linkId === linkId);
 
-    // Update the link's stroke color
-    const selectedLink = d3.select(`#link-${linkId}`);
-    selectedLink.attr("stroke", color);
+  if (selectedLink) {
+    selectedLink.linkColor = color;
 
-    // Update arrow markers if applicable
-    if (link.arrowhead) {
-      const markerId = `marker-${linkId}-end`;
-      setupArrowMarker(svg, markerId, link.arrowhead, color, "auto");
-      selectedLink.attr("marker-end", `url(#${markerId})`);
-    }
-    if (link.arrowtail) {
-      const markerId = `marker-${linkId}-start`;
+    const svgLink = d3.select(`#link-${linkId}`);
+    svgLink.attr("stroke", color);
+
+    if (selectedLink.arrowhead) {
+      const markerId = `marker-${selectedLink.linkId}-end`;
       setupArrowMarker(
-        svg,
+        d3.select("svg"),
         markerId,
-        link.arrowtail,
+        selectedLink.arrowhead,
+        color,
+        "auto"
+      );
+      d3.select(`#link-${selectedLink.linkId}`).attr(
+        "marker-end",
+        `url(#${markerId})`
+      );
+    }
+
+    if (selectedLink.arrowtail) {
+      const markerId = `marker-${selectedLink.linkId}-start`;
+      setupArrowMarker(
+        d3.select("svg"),
+        markerId,
+        selectedLink.arrowtail,
         color,
         "auto-start-reverse"
       );
-      selectedLink.attr("marker-start", `url(#${markerId})`);
+      d3.select(`#link-${selectedLink.linkId}`).attr(
+        "marker-start",
+        `url(#${markerId})`
+      );
     }
-
-    // Synchronize with JSON display
-    updatePagJsonDisplay(jsonData);
+    updatePagJsonDisplay();
   }
 }
 
@@ -487,24 +493,24 @@ function changeLinkColor(linkId, color, jsonData, svg) {
 //-> bei deletenode muss ich laufende processe wie "einen node ausgewählt" und dann lösche ich diesen knoten
 //und dann drücke ich auf den zweiten und will eine kante zeichnen, dann würde mir das um die ohren fliegen
 //das iwie absichern.
-function setupNodesContextMenuFunctions(svg, jsonData) {
+function implementNodesContextMenu() {
   console.log("Node Contextmenu called");
 
   document.getElementById("delete-node").addEventListener("click", () => {
     const nodeMenu = document.getElementById("node-context-menu");
     const nodeId = nodeMenu.getAttribute("data-node-id");
     if (nodeId) {
-      deleteNode(nodeId, jsonData);
+      deleteNode(nodeId);
       if (nodeMenu) {
         nodeMenu.style.display = "none";
       }
     }
   });
 
-  setupNodeColorPalette(svg, jsonData);
+  setupNodeColorPalette();
 }
 
-function deleteNode(nodeId, jsonData) {
+function deleteNode(nodeId) {
   //Sammelt alle links die mit dem knoten in verbindung stehen
   const linksToDelete = jsonData.links.filter(
     (link) => link.source.nodeId === nodeId || link.target.nodeId === nodeId
@@ -512,7 +518,7 @@ function deleteNode(nodeId, jsonData) {
 
   //Entfernt zugehörige Links aus dem jsonData und von svg canvas
   linksToDelete.forEach((link) => {
-    deleteLink(link.linkId, jsonData);
+    deleteLink(link.linkId);
   });
 
   d3.select(`#label-${nodeId}`).remove();
@@ -522,10 +528,10 @@ function deleteNode(nodeId, jsonData) {
   //Entfernt den Node selbst aus dem jsonData
   jsonData.nodes = jsonData.nodes.filter((node) => node.nodeId !== nodeId);
 
-  updatePagJsonDisplay(jsonData);
+  updatePagJsonDisplay();
 }
 
-function setupNodeColorPalette(svg, jsonData) {
+function setupNodeColorPalette() {
   const nodeColorPalette = document.getElementById("node-color-palette");
   nodeColorPalette.innerHTML = "";
 
@@ -544,7 +550,7 @@ function setupNodeColorPalette(svg, jsonData) {
         const selectedNode = d3.select(`#node-${nodeId}`);
         selectedNode.attr("fill", color).style("fill", color);
 
-        updatePagJsonDisplay(jsonData);
+        updatePagJsonDisplay();
       }
     });
 
@@ -558,56 +564,103 @@ function setupNodeColorPalette(svg, jsonData) {
 
 //----------START: labelContextMenu === CONTEXTMENU LABEL UNIQUE FUNCTIONS--------------//
 
-//try to change this maybe? so it works a bit differently
-function setupLabelsContextMenuFunctions(svg, jsonData) {
-  console.log("nodes known:" + jsonData.nodes);
-  console.log("Label Contextmenu called");
-  const menuActions = {
-    center: (label, jsonData, nodeId) => {
-      label.attr("x", (d) => d.x).attr("y", (d) => d.y);
-      const node = jsonData.nodes.find((n) => n.nodeId === nodeId);
-      node.labelOffsetX = 0;
-      node.labelOffsetY = 0;
-    },
-    above: (label, jsonData, nodeId) => {
-      label.attr("y", (d) => d.y - 25);
-      const node = jsonData.nodes.find((n) => n.nodeId === nodeId);
-      node.labelOffsetY = -25;
-    },
-    below: (label, jsonData, nodeId) => {
-      label.attr("y", (d) => d.y + 25);
-      const node = jsonData.nodes.find((n) => n.nodeId === nodeId);
-      node.labelOffsetY = 25;
-    },
-    left: (label, jsonData, nodeId) => {
-      label.attr("x", (d) => d.x - 25);
-      const node = jsonData.nodes.find((n) => n.nodeId === nodeId);
-      node.labelOffsetX = -25;
-    },
-    right: (label, jsonData, nodeId) => {
-      label.attr("x", (d) => d.x + 25);
-      const node = jsonData.nodes.find((n) => n.nodeId === nodeId);
-      node.labelOffsetX = 25;
-    },
-  };
+//TODO: ACHTUNG DIESER SCHNIPSEL IST EINE WICHTIGE IDEE!!
+/*const linkMenu = document.getElementById("link-context-menu");
+    const nodeMenu = document.getElementById("node-context-menu");
+    if (nodeMenu) {
+      nodeMenu.style.display = "none";
+    }
+    if (linkMenu) {
+      linkMenu.style.display = "none";
+    }
+    iwo sowas hin das wenn ich ein contextmenü anklicke die anderen sich schließen!!!  
+    */
 
-  Object.entries(menuActions).forEach(([action, handler]) => {
-    document.getElementById(`menu-${action}`).addEventListener("click", () => {
-      const labelId = document
-        .getElementById("label-context-menu")
-        .getAttribute("data-label-id");
+//setup label komplett neu machen, wenn ich radius hinzugefügt hab?! sonst klappt alles mit global jetzt!!!
+function implementLabelsContextMenu() {
+  
 
-      const label = svg
-        .selectAll(".node-label")
-        .filter((d) => d.nodeId === labelId);
+  document.getElementById("menu-center").addEventListener("click", () => {
+    const labelMenu = document.getElementById("label-context-menu");
+    const labelId = labelMenu.getAttribute("data-label-id");
+    if (labelId) {
+      //TODO: hier nodeMenu und link Menu = "none" machen, damit nur immer eins offen ist!
+      const node = jsonData.nodes.find((n) => n.nodeId === labelId);
+      node.labelOffsetX = 0; //später radius hier + iwas 
+      node.labelOffsetY = 0; //später radius hier + iwas 
+      const selectedLabel = d3.select(`#label-${node.nodeId}`);
 
-      handler(label, jsonData, labelId);
-
-      updatePagJsonDisplay(jsonData);
-    });
+        selectedLabel.attr("x", (d) => d.x + node.labelOffsetX);
+        selectedLabel.attr("y", (d) => d.y + node.labelOffsetY);
+      if (labelMenu) {
+        //labelMenu.style.display = "none";
+      }
+    }
+    updatePagJsonDisplay();
   });
-}
 
+  document.getElementById("menu-above").addEventListener("click", () => {
+    const labelMenu = document.getElementById("label-context-menu");
+    const labelId = labelMenu.getAttribute("data-label-id");
+    if (labelId) {
+      //TODO: hier nodeMenu und link Menu = "none" machen, damit nur immer eins offen ist!
+      const node = jsonData.nodes.find((n) => n.nodeId === labelId);
+      node.labelOffsetX = 0; //später radius hier + iwas 
+      node.labelOffsetY = -25; //später radius hier + iwas 
+      const selectedLabel = d3.select(`#label-${node.nodeId}`);
+
+        selectedLabel.attr("y", (d) => d.y + node.labelOffsetY);
+    }
+    updatePagJsonDisplay();
+  });
+
+
+document.getElementById("menu-below").addEventListener("click", () => {
+  const labelMenu = document.getElementById("label-context-menu");
+  const labelId = labelMenu.getAttribute("data-label-id");
+  if (labelId) {
+    //TODO: hier nodeMenu und link Menu = "none" machen, damit nur immer eins offen ist!
+    const node = jsonData.nodes.find((n) => n.nodeId === labelId);
+    node.labelOffsetX = 0; //später radius hier + iwas 
+    node.labelOffsetY = 25; //später radius hier + iwas 
+    const selectedLabel = d3.select(`#label-${node.nodeId}`);
+
+      selectedLabel.attr("y", (d) => d.y + node.labelOffsetY);
+  }
+  updatePagJsonDisplay();
+});
+
+document.getElementById("menu-left").addEventListener("click", () => {
+  const labelMenu = document.getElementById("label-context-menu");
+  const labelId = labelMenu.getAttribute("data-label-id");
+  if (labelId) {
+    //TODO: hier nodeMenu und link Menu = "none" machen, damit nur immer eins offen ist!
+    const node = jsonData.nodes.find((n) => n.nodeId === labelId);
+    node.labelOffsetX = -25; //später radius hier + iwas 
+    node.labelOffsetY = 0; //später radius hier + iwas 
+    const selectedLabel = d3.select(`#label-${node.nodeId}`);
+
+      selectedLabel.attr("x", (d) => d.x + node.labelOffsetX);
+  }
+  updatePagJsonDisplay();
+});
+
+document.getElementById("menu-right").addEventListener("click", () => {
+  const labelMenu = document.getElementById("label-context-menu");
+  const labelId = labelMenu.getAttribute("data-label-id");
+  if (labelId) {
+    //TODO: hier nodeMenu und link Menu = "none" machen, damit nur immer eins offen ist!
+    const node = jsonData.nodes.find((n) => n.nodeId === labelId);
+    node.labelOffsetX = 25; //später radius hier + iwas 
+    node.labelOffsetY = 0; //später radius hier + iwas 
+    const selectedLabel = d3.select(`#label-${node.nodeId}`);
+
+      selectedLabel.attr("x", (d) => d.x + node.labelOffsetX);
+  }
+  updatePagJsonDisplay();
+});
+
+}
 //----------END: labelContextMenu === CONTEXTMENU LABEL UNIQUE FUNCTIONS--------------//
 
 //-------------------------------------------------------------------//
@@ -679,7 +732,7 @@ function calculateLinkPath(d) {
 
 //-----------------------------------------------------------------------------
 
-function handleCreateNewNode(svg, jsonData, gridSpacing) {
+function handleCreateNewNode(svg, gridSpacing) {
   svg.on("click", function (event) {
     if (event.shiftKey && event.button === 0) {
       console.log("Shift + Left click detected.");
@@ -716,11 +769,11 @@ function handleCreateNewNode(svg, jsonData, gridSpacing) {
 
           drawNewLabel(svg, newNode);
 
-          handleAllInteractiveDrags(svg, jsonData, gridSpacing);
+          handleAllInteractiveDrags(svg, gridSpacing);
 
-          addNewLink(svg, jsonData, gridSpacing);
+          addNewLink(svg, gridSpacing);
 
-          updatePagJsonDisplay(jsonData);
+          updatePagJsonDisplay();
           console.log("New node added:", newNode);
         }
       }
@@ -732,7 +785,7 @@ function handleCreateNewNode(svg, jsonData, gridSpacing) {
 
 //----------START: UPDATE JSONDATA TEXTAREA--------------//
 
-function updatePagJsonDisplay(jsonData) {
+function updatePagJsonDisplay() {
   //maybe add instant conversion to dot and matrix!!
   const jsonDisplay = document.getElementById("jsonDisplay");
   jsonDisplay.value = JSON.stringify(jsonData, null, 2);

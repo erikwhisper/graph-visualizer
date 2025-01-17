@@ -1,5 +1,5 @@
 //TODO: hab das grid jetzt genauso fein gemacht wie für links
-function nodeInteractiveDrag(svg, jsonData, gridSpacing) {
+function nodeInteractiveDrag(svg, gridSpacing) {
     console.log("nodeInteractiveDrag called");
     svg.selectAll(".node").call(
       d3
@@ -8,7 +8,7 @@ function nodeInteractiveDrag(svg, jsonData, gridSpacing) {
           d.x = event.x;
           d.y = event.y;
           updatePositions();
-          updatePagJsonDisplay(jsonData);
+          updatePagJsonDisplay();
         })
         .on("end", (event, d) => {
           if (!svg.selectAll(".grid-line").empty()) {
@@ -18,7 +18,7 @@ function nodeInteractiveDrag(svg, jsonData, gridSpacing) {
             d.y = Math.round(d.y / refinedSpacing) * refinedSpacing;
           }
           updatePositions();
-          updatePagJsonDisplay(jsonData);
+          updatePagJsonDisplay();
         })
     );
   }

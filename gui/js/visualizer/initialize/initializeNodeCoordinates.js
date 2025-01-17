@@ -1,4 +1,4 @@
-function initializeNodeCoordinates(jsonData, gridSpacing) {
+function initializeNodeCoordinates(gridSpacing) {
   const amoutOfColumns = Math.ceil(Math.sqrt(jsonData.nodes.length));
 
   if (jsonData.nodes.length > 35) {
