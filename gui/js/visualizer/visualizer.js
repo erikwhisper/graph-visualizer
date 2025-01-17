@@ -77,7 +77,7 @@ function visualizeJsonWithD3() {
 
   addNewLink(svg, gridSpacing);
 
-  handleCreateNewNode(svg, gridSpacing);
+  addNewNode(svg, gridSpacing);
 
   updatePagJsonDisplay();
 }
@@ -101,7 +101,6 @@ function drawEverything(svg) {
 //wenn das link dingen iwo gecleared wird dann in der addNewLink Function
 //die handleAllContextMenus wird doch eh nie wieder aufgerufen
 function handleAllContextMenus(svg) {
-
   linkContextMenu(svg);
   console.log("Link context menu initialized.");
 
@@ -136,45 +135,11 @@ function handleAllInteractiveDrags(svg, gridSpacing) {
 //----------START: allContextMenus() === CONTEXTMENU ORGANIZATION--------------//
 
 //TODO: anderes wort für setup finden
-function linkContextMenu(svg) {
-  //console.log("Initializing link context menu...");
-  //wenn ein kontextmenu geöffnet wird sollen die anderen beiden falls offen geschlossen werden.
-  setupContextMenu(
-    svg,
-    ".link",
-    "link-context-menu",
-    "data-link-id",
-    (d) => d.linkId // Unique linkId
-  );
-  implementLinksContextMenu();
-  closeContextMenu("link-context-menu");
-}
 
-function nodeContextMenu(svg) {
-  //console.log("Initializing node context menu...");
-  setupContextMenu(
-    svg,
-    ".node",
-    "node-context-menu",
-    "data-node-id",
-    (d) => d.nodeId // Unique nodeId
-  );
-  implementNodesContextMenu();
-  closeContextMenu("node-context-menu");
-}
 
-function labelContextMenu(svg) {
-  //console.log("Initializing label context menu...");
-  setupContextMenu(
-    svg,
-    ".node-label",
-    "label-context-menu",
-    "data-label-id",
-    (d) => d.nodeId // Unique nodeId for label
-  );
-  implementLabelsContextMenu();
-  closeContextMenu("label-context-menu");
-}
+
+
+
 
 //TODO: anderes wort für setup finden
 
@@ -185,68 +150,10 @@ function labelContextMenu(svg) {
 //----------START: CONTEXTMENU GENERAL FUNCTIONS--------------//
 
 //TODO: Anzeige des Kontetxmenüs schöner machen
-function setupContextMenu(
-  svg,
-  objectType,
-  contextMenuType,
-  attributeID,
-  calculation
-) {
-  console.log(`Setting up context menu for ${objectType}...`);
-
-  const selection = svg.selectAll(objectType);
-
-  // Log the number of elements selected
-  console.log(`Found ${selection.size()} ${objectType}(s).`);
-
-  // Check if the contextmenu handler already exists // link context menu ist hier immer undefined
-  selection.each(function () {
-    const existingHandlers = d3.select(this).on("link-context-menu");
-    console.log("was ist überhaupt existingHandlers?: " + existingHandlers);
-    if (existingHandlers) {
-      console.warn(`Context menu handler already exists for ${objectType}.`);
-    }
-  });
-
-  // Remove any existing contextmenu handlers
-  selection.on("contextmenu", null);
-
-  // Attach the new contextmenu handler
-  selection.on("contextmenu", function (event, d) {
-    console.log(
-      `Context menu triggered for ${objectType} with ID: ${calculation(d)}`
-    );
-    event.preventDefault();
-
-    const menu = document.getElementById(contextMenuType);
-    //TODO: okay now i gotta make sure its visually closed when i press on another one so they dont overlap
-    menu.style.display = "block";
-    menu.style.left = `0px`;
-    menu.style.top = `10%`;
-    //menu.style.left = `${event.pageX}px`;
-    //menu.style.top = `${event.pageY}px`;
-
-    menu.setAttribute(attributeID, calculation(d));
-  });
-
-  console.log(
-    `Context menu event handlers set for ${selection.size()} ${objectType}(s).`
-  );
-}
 
 //-------------------------------------//
 
-function closeContextMenu(contextMenuType) {
-  console.log(`Setting up close context menu for ${contextMenuType}...`);
 
-  document.addEventListener("click", (event) => {
-    const menu = document.getElementById(contextMenuType);
-    if (!menu.contains(event.target)) {
-      menu.style.display = "none";
-      //console.log(`${contextMenuType} hidden.`);
-    }
-  });
-}
 
 //----------END: CONTEXTMENU GENERAL FUNCTIONS--------------//
 
@@ -255,227 +162,7 @@ function closeContextMenu(contextMenuType) {
 //----------START: linkContextMenu === CONTEXTMENU LINKS UNIQUE FUNCTIONS--------------//
 
 //TODO: refactor redrawing of arrowhead/arrowtail...
-function implementLinksContextMenu() {
-  console.log("Link Contextmenu called");
 
-  function handleArrowheadClick(arrowheadType) {
-    const linkMenu = document.getElementById("link-context-menu");
-    const linkId = linkMenu.getAttribute("data-link-id");
-    const selectedLink = jsonData.links.find((link) => link.linkId === linkId);
-
-    if (selectedLink) {
-      console.log(
-        "hier weiß er was der arrowhead ist: " + selectedLink.arrowhead
-      );
-      selectedLink.arrowhead = arrowheadType;
-
-      const markerId = `marker-${selectedLink.linkId}-end`;
-      setupArrowMarker(
-        d3.select("svg"),
-        markerId,
-        arrowheadType,
-        selectedLink.linkColor,
-        "auto"
-      );
-
-      d3.select(`#link-${selectedLink.linkId}`).attr(
-        "marker-end",
-        `url(#${markerId})`
-      );
-
-      updatePagJsonDisplay();
-      console.log(`Arrowhead updated to '${arrowheadType}' for link ${linkId}`);
-    }
-  }
-
-  document
-    .getElementById("arrowhead-normal")
-    .addEventListener("click", () => handleArrowheadClick("normal"));
-  document
-    .getElementById("arrowhead-odot")
-    .addEventListener("click", () => handleArrowheadClick("odot"));
-  document
-    .getElementById("arrowhead-tail")
-    .addEventListener("click", () => handleArrowheadClick("tail"));
-
-  function handleArrowtailClick(arrowtailType) {
-    const linkMenu = document.getElementById("link-context-menu");
-    const linkId = linkMenu.getAttribute("data-link-id");
-    const selectedLink = jsonData.links.find((link) => link.linkId === linkId);
-
-    if (selectedLink) {
-      selectedLink.arrowtail = arrowtailType;
-
-      const markerId = `marker-${selectedLink.linkId}-start`;
-      setupArrowMarker(
-        d3.select("svg"),
-        markerId,
-        arrowtailType,
-        selectedLink.linkColor,
-        "auto-start-reverse"
-      );
-
-      d3.select(`#link-${selectedLink.linkId}`).attr(
-        "marker-start",
-        `url(#${markerId})`
-      );
-
-      updatePagJsonDisplay();
-      console.log(`Arrowtail updated to '${arrowtailType}' for link ${linkId}`);
-    }
-  }
-
-  document
-    .getElementById("arrowtail-normal")
-    .addEventListener("click", () => handleArrowtailClick("normal"));
-  document
-    .getElementById("arrowtail-odot")
-    .addEventListener("click", () => handleArrowtailClick("odot"));
-  document
-    .getElementById("arrowtail-tail")
-    .addEventListener("click", () => handleArrowtailClick("tail"));
-
-  //TODO: Kann man anstatt mit selected Link wie bei delete-link nicht direkt mit linkId arbeiten?
-  document.getElementById("straighten-link").addEventListener("click", () => {
-    const linkMenu = document.getElementById("link-context-menu");
-    const linkId = linkMenu.getAttribute("data-link-id");
-    const selectedLink = jsonData.links.find((link) => link.linkId === linkId);
-    if (selectedLink) {
-      resetLinkCurve(selectedLink);
-      updatePagJsonDisplay();
-    }
-  });
-
-  document
-    .getElementById("toggle-dashed-link")
-    .addEventListener("click", () => {
-      const linkMenu = document.getElementById("link-context-menu");
-      const linkId = linkMenu.getAttribute("data-link-id");
-      const selectedLink = jsonData.links.find(
-        (link) => link.linkId === linkId
-      );
-      if (selectedLink && !selectedLink.isDashed) {
-        setDashed(selectedLink);
-        updatePagJsonDisplay();
-      } else if (selectedLink && selectedLink.isDashed) {
-        unsetDashed(selectedLink);
-        updatePagJsonDisplay();
-      }
-    });
-
-  //wird halt so oft ausgeführt wie oft "visualize" button gedrückt wurde... was macht man dagegen
-  document.getElementById("delete-link").addEventListener("click", () => {
-    const linkMenu = document.getElementById("link-context-menu");
-    const linkId = linkMenu.getAttribute("data-link-id");
-    if (linkId) {
-      deleteLink(linkId);
-      if (linkMenu) {
-        linkMenu.style.display = "none";
-      }
-    }
-  });
-
-  setupLinkColorPalette();
-}
-
-function resetLinkCurve(selectedLink) {
-  const sourceNode = selectedLink.source;
-  const targetNode = selectedLink.target;
-
-  selectedLink.linkControlX = (sourceNode.x + targetNode.x) / 2;
-  selectedLink.linkControlY = (sourceNode.y + targetNode.y) / 2;
-  selectedLink.isCurved = false;
-
-  d3.select(`#link-${selectedLink.linkId}`).attr(
-    "d",
-    calculateLinkPath(selectedLink)
-  );
-}
-
-function setDashed(selectedLink) {
-  selectedLink.isDashed = true;
-
-  d3.select(`#link-${selectedLink.linkId}`).attr("stroke-dasharray", "4 2");
-}
-
-function unsetDashed(selectedLink) {
-  selectedLink.isDashed = false;
-
-  d3.select(`#link-${selectedLink.linkId}`).attr("stroke-dasharray", null);
-}
-
-//Entfernt Links aus dem jsonData und von svg canvas
-function deleteLink(linkId) {
-  jsonData.links = jsonData.links.filter((link) => link.linkId !== linkId); //löscht link aus jsonData
-
-  d3.select(`#link-${linkId}`).remove(); //löscht link von svg canvas
-
-  updatePagJsonDisplay(); //passt displayed jsondata auf actual jsondata an
-}
-
-function setupLinkColorPalette() {
-  const linkColorPalette = document.getElementById("link-color-palette");
-  linkColorPalette.innerHTML = "";
-
-  allowedColors.forEach((color) => {
-    const colorSwatch = document.createElement("div");
-    colorSwatch.className = "color-swatch";
-    colorSwatch.style.backgroundColor = color;
-
-    colorSwatch.addEventListener("click", () => {
-      const linkMenu = document.getElementById("link-context-menu");
-      const linkId = linkMenu.getAttribute("data-link-id");
-
-      if (linkId) {
-        changeLinkColor(linkId, color);
-      }
-    });
-
-    linkColorPalette.appendChild(colorSwatch);
-  });
-}
-
-function changeLinkColor(linkId, color) {
-  const selectedLink = jsonData.links.find((link) => link.linkId === linkId);
-
-  if (selectedLink) {
-    selectedLink.linkColor = color;
-
-    const svgLink = d3.select(`#link-${linkId}`);
-    svgLink.attr("stroke", color);
-
-    if (selectedLink.arrowhead) {
-      const markerId = `marker-${selectedLink.linkId}-end`;
-      setupArrowMarker(
-        d3.select("svg"),
-        markerId,
-        selectedLink.arrowhead,
-        color,
-        "auto"
-      );
-      d3.select(`#link-${selectedLink.linkId}`).attr(
-        "marker-end",
-        `url(#${markerId})`
-      );
-    }
-
-    if (selectedLink.arrowtail) {
-      const markerId = `marker-${selectedLink.linkId}-start`;
-      setupArrowMarker(
-        d3.select("svg"),
-        markerId,
-        selectedLink.arrowtail,
-        color,
-        "auto-start-reverse"
-      );
-      d3.select(`#link-${selectedLink.linkId}`).attr(
-        "marker-start",
-        `url(#${markerId})`
-      );
-    }
-    updatePagJsonDisplay();
-  }
-}
 
 //----------END: linkContextMenu === CONTEXTMENU LINKS UNIQUE FUNCTIONS--------------//
 
@@ -493,70 +180,6 @@ function changeLinkColor(linkId, color) {
 //-> bei deletenode muss ich laufende processe wie "einen node ausgewählt" und dann lösche ich diesen knoten
 //und dann drücke ich auf den zweiten und will eine kante zeichnen, dann würde mir das um die ohren fliegen
 //das iwie absichern.
-function implementNodesContextMenu() {
-  console.log("Node Contextmenu called");
-
-  document.getElementById("delete-node").addEventListener("click", () => {
-    const nodeMenu = document.getElementById("node-context-menu");
-    const nodeId = nodeMenu.getAttribute("data-node-id");
-    if (nodeId) {
-      deleteNode(nodeId);
-      if (nodeMenu) {
-        nodeMenu.style.display = "none";
-      }
-    }
-  });
-
-  setupNodeColorPalette();
-}
-
-function deleteNode(nodeId) {
-  //Sammelt alle links die mit dem knoten in verbindung stehen
-  const linksToDelete = jsonData.links.filter(
-    (link) => link.source.nodeId === nodeId || link.target.nodeId === nodeId
-  );
-
-  //Entfernt zugehörige Links aus dem jsonData und von svg canvas
-  linksToDelete.forEach((link) => {
-    deleteLink(link.linkId);
-  });
-
-  d3.select(`#label-${nodeId}`).remove();
-
-  d3.select(`#node-${nodeId}`).remove();
-
-  //Entfernt den Node selbst aus dem jsonData
-  jsonData.nodes = jsonData.nodes.filter((node) => node.nodeId !== nodeId);
-
-  updatePagJsonDisplay();
-}
-
-function setupNodeColorPalette() {
-  const nodeColorPalette = document.getElementById("node-color-palette");
-  nodeColorPalette.innerHTML = "";
-
-  allowedColors.forEach((color) => {
-    const colorSwatch = document.createElement("div");
-    colorSwatch.className = "color-swatch";
-    colorSwatch.style.backgroundColor = color;
-
-    colorSwatch.addEventListener("click", () => {
-      const nodeMenu = document.getElementById("node-context-menu");
-      const nodeId = nodeMenu.getAttribute("data-node-id");
-
-      const node = jsonData.nodes.find((n) => n.nodeId === nodeId);
-      if (node) {
-        node.nodeColor = color;
-        const selectedNode = d3.select(`#node-${nodeId}`);
-        selectedNode.attr("fill", color).style("fill", color);
-
-        updatePagJsonDisplay();
-      }
-    });
-
-    nodeColorPalette.appendChild(colorSwatch);
-  });
-}
 
 //----------END: NodeContextMenu === CONTEXTMENU NODES UNIQUE FUNCTIONS--------------//
 
@@ -577,90 +200,6 @@ function setupNodeColorPalette() {
     */
 
 //setup label komplett neu machen, wenn ich radius hinzugefügt hab?! sonst klappt alles mit global jetzt!!!
-function implementLabelsContextMenu() {
-  
-
-  document.getElementById("menu-center").addEventListener("click", () => {
-    const labelMenu = document.getElementById("label-context-menu");
-    const labelId = labelMenu.getAttribute("data-label-id");
-    if (labelId) {
-      //TODO: hier nodeMenu und link Menu = "none" machen, damit nur immer eins offen ist!
-      const node = jsonData.nodes.find((n) => n.nodeId === labelId);
-      node.labelOffsetX = 0; //später radius hier + iwas 
-      node.labelOffsetY = 0; //später radius hier + iwas 
-      const selectedLabel = d3.select(`#label-${node.nodeId}`);
-
-        selectedLabel.attr("x", (d) => d.x + node.labelOffsetX);
-        selectedLabel.attr("y", (d) => d.y + node.labelOffsetY);
-      if (labelMenu) {
-        //labelMenu.style.display = "none";
-      }
-    }
-    updatePagJsonDisplay();
-  });
-
-  document.getElementById("menu-above").addEventListener("click", () => {
-    const labelMenu = document.getElementById("label-context-menu");
-    const labelId = labelMenu.getAttribute("data-label-id");
-    if (labelId) {
-      //TODO: hier nodeMenu und link Menu = "none" machen, damit nur immer eins offen ist!
-      const node = jsonData.nodes.find((n) => n.nodeId === labelId);
-      node.labelOffsetX = 0; //später radius hier + iwas 
-      node.labelOffsetY = -25; //später radius hier + iwas 
-      const selectedLabel = d3.select(`#label-${node.nodeId}`);
-
-        selectedLabel.attr("y", (d) => d.y + node.labelOffsetY);
-    }
-    updatePagJsonDisplay();
-  });
-
-
-document.getElementById("menu-below").addEventListener("click", () => {
-  const labelMenu = document.getElementById("label-context-menu");
-  const labelId = labelMenu.getAttribute("data-label-id");
-  if (labelId) {
-    //TODO: hier nodeMenu und link Menu = "none" machen, damit nur immer eins offen ist!
-    const node = jsonData.nodes.find((n) => n.nodeId === labelId);
-    node.labelOffsetX = 0; //später radius hier + iwas 
-    node.labelOffsetY = 25; //später radius hier + iwas 
-    const selectedLabel = d3.select(`#label-${node.nodeId}`);
-
-      selectedLabel.attr("y", (d) => d.y + node.labelOffsetY);
-  }
-  updatePagJsonDisplay();
-});
-
-document.getElementById("menu-left").addEventListener("click", () => {
-  const labelMenu = document.getElementById("label-context-menu");
-  const labelId = labelMenu.getAttribute("data-label-id");
-  if (labelId) {
-    //TODO: hier nodeMenu und link Menu = "none" machen, damit nur immer eins offen ist!
-    const node = jsonData.nodes.find((n) => n.nodeId === labelId);
-    node.labelOffsetX = -25; //später radius hier + iwas 
-    node.labelOffsetY = 0; //später radius hier + iwas 
-    const selectedLabel = d3.select(`#label-${node.nodeId}`);
-
-      selectedLabel.attr("x", (d) => d.x + node.labelOffsetX);
-  }
-  updatePagJsonDisplay();
-});
-
-document.getElementById("menu-right").addEventListener("click", () => {
-  const labelMenu = document.getElementById("label-context-menu");
-  const labelId = labelMenu.getAttribute("data-label-id");
-  if (labelId) {
-    //TODO: hier nodeMenu und link Menu = "none" machen, damit nur immer eins offen ist!
-    const node = jsonData.nodes.find((n) => n.nodeId === labelId);
-    node.labelOffsetX = 25; //später radius hier + iwas 
-    node.labelOffsetY = 0; //später radius hier + iwas 
-    const selectedLabel = d3.select(`#label-${node.nodeId}`);
-
-      selectedLabel.attr("x", (d) => d.x + node.labelOffsetX);
-  }
-  updatePagJsonDisplay();
-});
-
-}
 //----------END: labelContextMenu === CONTEXTMENU LABEL UNIQUE FUNCTIONS--------------//
 
 //-------------------------------------------------------------------//
@@ -732,54 +271,7 @@ function calculateLinkPath(d) {
 
 //-----------------------------------------------------------------------------
 
-function handleCreateNewNode(svg, gridSpacing) {
-  svg.on("click", function (event) {
-    if (event.shiftKey && event.button === 0) {
-      console.log("Shift + Left click detected.");
 
-      const newNodeName = window.prompt(
-        "Bitte geben Sie den Namen für den neuen Knoten ein:"
-      );
-      if (newNodeName) {
-        console.log(`User entered node name: ${newNodeName}`);
-
-        const isDuplicate = jsonData.nodes.some(
-          (node) => node.name === newNodeName
-        );
-        if (isDuplicate) {
-          console.log("STOP! Wir haben den Namen schon.");
-        } else {
-          console.log("Wir haben den Namen noch nicht.");
-
-          const [x, y] = d3.pointer(event, this);
-
-          const newNode = {
-            nodeId: uuid.v4(),
-            name: newNodeName,
-            nodeColor: "whitesmoke",
-            x: x,
-            y: y,
-            labelOffsetX: 0,
-            labelOffsetY: 0,
-          };
-
-          jsonData.nodes.push(newNode);
-
-          drawNewNode(svg, newNode);
-
-          drawNewLabel(svg, newNode);
-
-          handleAllInteractiveDrags(svg, gridSpacing);
-
-          addNewLink(svg, gridSpacing);
-
-          updatePagJsonDisplay();
-          console.log("New node added:", newNode);
-        }
-      }
-    }
-  });
-}
 
 //-------------------------------------------------------------------//
 
