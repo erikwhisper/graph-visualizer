@@ -1,3 +1,4 @@
+//TODO: hab das grid jetzt genauso fein gemacht wie für links
 function nodeInteractiveDrag(svg, jsonData, gridSpacing) {
     console.log("nodeInteractiveDrag called");
     svg.selectAll(".node").call(
@@ -12,8 +13,9 @@ function nodeInteractiveDrag(svg, jsonData, gridSpacing) {
         .on("end", (event, d) => {
           if (!svg.selectAll(".grid-line").empty()) {
             //checks if grid is activated
-            d.x = Math.round(d.x / gridSpacing) * gridSpacing;
-            d.y = Math.round(d.y / gridSpacing) * gridSpacing;
+            const refinedSpacing = gridSpacing / 2;
+            d.x = Math.round(d.x / refinedSpacing) * refinedSpacing;
+            d.y = Math.round(d.y / refinedSpacing) * refinedSpacing;
           }
           updatePositions();
           updatePagJsonDisplay(jsonData);

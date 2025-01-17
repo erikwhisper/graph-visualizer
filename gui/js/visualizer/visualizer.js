@@ -20,7 +20,6 @@
 //knotengröße anpassen können, bedeutet label, arrowmarker
 //alles dynamisch daran anpassen müssen
 
-
 //----------START: BASIC VISUALIZATION + DRAG&DROP --------------//
 
 //Eventlistener for basic visualization
@@ -54,6 +53,9 @@ function resetCheckBoxes() {
 //danach halt nie wieder, oder ist das problematisch?
 
 function visualizeJsonWithD3(jsonData) {
+
+  //clear current jsonData if existing, then do this:...
+
   const svg = initializeSvgCanvas();
 
   const gridSpacing = 50; //ALERT: currently declared twice, once here in visualizer.js and once in grid.js to avoid a global variable
@@ -74,8 +76,6 @@ function visualizeJsonWithD3(jsonData) {
 }
 
 //----------START: NOCH KEINEN NAMEN HIERFUEHR --------------//
-
-
 
 //----------END: NOCH KEINEN NAMEN HIERFUEHR --------------//
 
@@ -191,7 +191,13 @@ function labelContextMenu(svg, jsonData) {
 //----------START: CONTEXTMENU GENERAL FUNCTIONS--------------//
 
 //TODO: Anzeige des Kontetxmenüs schöner machen
-function setupContextMenu(svg, objectType, contextMenuType, attributeID, calculation) {
+function setupContextMenu(
+  svg,
+  objectType,
+  contextMenuType,
+  attributeID,
+  calculation
+) {
   console.log(`Setting up context menu for ${objectType}...`);
 
   const selection = svg.selectAll(objectType);
@@ -202,7 +208,7 @@ function setupContextMenu(svg, objectType, contextMenuType, attributeID, calcula
   // Check if the contextmenu handler already exists // link context menu ist hier immer undefined
   selection.each(function () {
     const existingHandlers = d3.select(this).on("link-context-menu");
-    console.log("was ist überhaupt existingHandlers?: "+ existingHandlers)
+    console.log("was ist überhaupt existingHandlers?: " + existingHandlers);
     if (existingHandlers) {
       console.warn(`Context menu handler already exists for ${objectType}.`);
     }
@@ -213,7 +219,9 @@ function setupContextMenu(svg, objectType, contextMenuType, attributeID, calcula
 
   // Attach the new contextmenu handler
   selection.on("contextmenu", function (event, d) {
-    console.log(`Context menu triggered for ${objectType} with ID: ${calculation(d)}`);
+    console.log(
+      `Context menu triggered for ${objectType} with ID: ${calculation(d)}`
+    );
     event.preventDefault();
 
     const menu = document.getElementById(contextMenuType);
@@ -227,7 +235,9 @@ function setupContextMenu(svg, objectType, contextMenuType, attributeID, calcula
     menu.setAttribute(attributeID, calculation(d));
   });
 
-  console.log(`Context menu event handlers set for ${selection.size()} ${objectType}(s).`);
+  console.log(
+    `Context menu event handlers set for ${selection.size()} ${objectType}(s).`
+  );
 }
 
 //-------------------------------------//
@@ -470,9 +480,9 @@ function changeLinkColor(linkId, color, jsonData, svg) {
 //TODO: Adapt labelcolor, add labelcolor maybe, and change to black or white, according to the brightness of the color
 //automatically
 
-//die funktion abbrechen wenn ich einen leftclick auf den node mache um das kontextmenu zu öffnen, was wir 
-  //bei einem delete baren knoten vermeiden wollen
-  //TODO 6: Knoten löschen können, wenn daran links hängen diese mit löschen, daher delete link, nicht nur
+//die funktion abbrechen wenn ich einen leftclick auf den node mache um das kontextmenu zu öffnen, was wir
+//bei einem delete baren knoten vermeiden wollen
+//TODO 6: Knoten löschen können, wenn daran links hängen diese mit löschen, daher delete link, nicht nur
 //im kontextmenü unterbringen sondern den wichtigsten teil in aufrufbare funktion versetzen.
 //-> bei deletenode muss ich laufende processe wie "einen node ausgewählt" und dann lösche ich diesen knoten
 //und dann drücke ich auf den zweiten und will eine kante zeichnen, dann würde mir das um die ohren fliegen
@@ -548,7 +558,9 @@ function setupNodeColorPalette(svg, jsonData) {
 
 //----------START: labelContextMenu === CONTEXTMENU LABEL UNIQUE FUNCTIONS--------------//
 
+//try to change this maybe? so it works a bit differently
 function setupLabelsContextMenuFunctions(svg, jsonData) {
+  console.log("nodes known:" + jsonData.nodes);
   console.log("Label Contextmenu called");
   const menuActions = {
     center: (label, jsonData, nodeId) => {
@@ -602,8 +614,7 @@ function setupLabelsContextMenuFunctions(svg, jsonData) {
 
 //----------START: allInteractiveClicks === LEFTCLICK LINK UNIQUE FUNCTIONS--------------//
 
-
-//TODO: Falls zwischen den beiden Knoten schon eine Kante existiert, setze die neue auf isCurved und ihre 
+//TODO: Falls zwischen den beiden Knoten schon eine Kante existiert, setze die neue auf isCurved und ihre
 //d.X und d.Y auf (x1 + x2) / 2 + offsetWert; //das auch beim zeichnen neuer kanten machen.
 //Muss in utils funktion, wird für contextmenu und drag genutzt //ist eig nicht auf calculate Link Path bezogen  oder?
 //Was ist denn fürs zeichnen verantworklich? initial und bei handleAddNewLink
@@ -626,7 +637,6 @@ function calculateLinkPath(d) {
 //-------------------------------------------------------------------//
 
 //----------START: allInteractiveClicks === LEFTCLICK NODE UNIQUE FUNCTIONS--------------//
-
 
 //----------START: allInteractiveClicks === LEFTCLICK NODE UNIQUE FUNCTIONS--------------//
 
@@ -668,7 +678,6 @@ function calculateLinkPath(d) {
 //TODO 7: Pdf export an graphen größe anpassen
 
 //-----------------------------------------------------------------------------
-
 
 function handleCreateNewNode(svg, jsonData, gridSpacing) {
   svg.on("click", function (event) {
