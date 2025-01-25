@@ -47,7 +47,7 @@
             <textarea
                id="matrixDisplay"
                placeholder="Matrix wird hier angezeigt..."></textarea>
-            <button id="pagMatrixReadButton">Matrix Einlesen</button>
+            <button id="matrixFileInputButton">Matrix Einlesen</button>
          </section>
 
          <!-- PAG JSON Input Section -->
@@ -67,7 +67,7 @@
             <textarea
                id="dotDisplay"
                placeholder="DOT-Syntax wird hier angezeigt..."></textarea>
-            <button id="pagDotReadButton">DOT Einlesen</button>
+            <button id="dotFileInputButton">DOT Einlesen</button>
          </section>
     </div>
 
@@ -150,13 +150,16 @@
       <!------------->
       <!--parser-->
       <!--eventhandlers--> 
-      <script src="../js/parser/eventhandlers/handleMatrixInput.js"></script>
-      <script src="../js/parser/eventhandlers/handleManuelMatrixTextareaUpdate.js"></script>
+      <script src="../js/parser/eventhandlers/handleMatrixInput/utils.js"></script>
+      <script src="../js/parser/eventhandlers/handleMatrixInput/callConverterFromMatrixInput.js"></script>
+      <script src="../js/parser/eventhandlers/handleMatrixInput/handleMatrixFileInput.js"></script>
+      <script src="../js/parser/eventhandlers/handleMatrixInput/handleMatrixTextareaInput.js"></script>
 
       <script src="../js/parser/eventhandlers/handleJsonInput/callConverterFromJsonInput.js"></script>
       <script src="../js/parser/eventhandlers/handleJsonInput/handleJsonFileInput.js"></script>
       <script src="../js/parser/eventhandlers/handleJsonInput/handleJsonTextareaInput.js"></script>
 
+      <script src="../js/parser/eventhandlers/handleDotInput/callConverterFromDotInput.js"></script>
       <script src="../js/parser/eventhandlers/handleDotInput/handleDotFileInput.js"></script>
       <script src="../js/parser/eventhandlers/handleDotInput/handleDotTextareaInput.js"></script>
 

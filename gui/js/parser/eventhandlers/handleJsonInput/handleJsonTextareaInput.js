@@ -4,10 +4,10 @@
 document
   .getElementById("updateFromJsonButton")
   .addEventListener("click", () => {
-    handleTextareaInput();
+    handleJsonTextareaInput();
   });
 
-function handleTextareaInput() {
+function handleJsonTextareaInput() {
   const isAdmg = document.getElementById("matrixTypeToggle").checked;
   const jsonString = document.getElementById("jsonDisplay").value;
 

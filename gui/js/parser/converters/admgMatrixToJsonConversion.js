@@ -6,21 +6,21 @@
  * @param {string} parsedPagMatrix
  * @returns {JSON} jsonData
  */
-function admgMatrixToJsonConversion(parsedAdmgMatrix) {
+function admgMatrixToJsonConversion(admgMatrix) {
   const knotenMap = new Map();
   const links = [];
 
-  const knotenNamen = parsedAdmgMatrix[0].slice(1);
+  const knotenNamen = admgMatrix[0].slice(1);
 
   knotenNamen.forEach((name) => {
     knotenMap.set(name, uuid.v4());
   });
 
-  for (let i = 1; i < parsedAdmgMatrix.length; i++) {
-    const quellKnotenName = parsedAdmgMatrix[i][0];
-    for (let j = i + 1; j < parsedAdmgMatrix[i].length; j++) {
-      const kantenTypFromTo = parseInt(parsedAdmgMatrix[i][j]);
-      const kantenTypToFrom = parseInt(parsedAdmgMatrix[j][i]);
+  for (let i = 1; i < admgMatrix.length; i++) {
+    const quellKnotenName = admgMatrix[i][0];
+    for (let j = i + 1; j < admgMatrix[i].length; j++) {
+      const kantenTypFromTo = parseInt(admgMatrix[i][j]);
+      const kantenTypToFrom = parseInt(admgMatrix[j][i]);
       const zielKnotenName = knotenNamen[j - 1];
 
       const newLinks = admgCreateJsonLinks(

@@ -1,25 +1,25 @@
 /**
  * @description Turns the graph written as a Pag Matrix into a JSON Object
- * @param {string} parsedPagMatrix 
+ * @param {string} pagMatrix 
  * @returns {JSON} jsonData
  */
-function pagMatrixToJsonConversion(parsedPagMatrix) {
+function pagMatrixToJsonConversion(pagMatrix) {
   const knotenMap = new Map(); //alle knoten in menge
   const links = []; //alle edges
 
   //knoten auslesen und einmalig übernehmen
-  const knotenNamen = parsedPagMatrix[0].slice(1);
+  const knotenNamen = pagMatrix[0].slice(1);
 
   knotenNamen.forEach((name) => {
     console.log("Log: " + knotenNamen);
     knotenMap.set(name, uuid.v4());
   });
 
-  for (let i = 1; i < parsedPagMatrix.length; i++) {
-    const quellKnotenName = parsedPagMatrix[i][0];
-    for (let j = i + 1; j < parsedPagMatrix[i].length; j++) {
-      const kantenTypFromTo = parseInt(parsedPagMatrix[i][j]);
-      const kantenTypToFrom = parseInt(parsedPagMatrix[j][i]);
+  for (let i = 1; i < pagMatrix.length; i++) {
+    const quellKnotenName = pagMatrix[i][0];
+    for (let j = i + 1; j < pagMatrix[i].length; j++) {
+      const kantenTypFromTo = parseInt(pagMatrix[i][j]);
+      const kantenTypToFrom = parseInt(pagMatrix[j][i]);
       const zielKnotenName = knotenNamen[j - 1];
 
       const link = pagCreateJsonLinks(
