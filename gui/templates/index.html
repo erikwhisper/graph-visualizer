@@ -31,7 +31,7 @@
          <div class="right-slidemenu-major-content-headline">Öffnen</div>
 
          <!-- PAG Matrix Input Section -->
-         <section id="pag-matrix-input-section">
+         <section id="matrix-input-section">
 
          <div style="display: flex; align-items: center;">
           <span style="margin-right: 8px;">PAG</span>
@@ -51,17 +51,17 @@
          </section>
 
          <!-- PAG JSON Input Section -->
-         <section id="pag-json-input-section">
-            <input type="file" id="pagJsonFileInput" accept=".csv, .txt" />
+         <section id="json-input-section">
+            <input type="file" id="jsonFileInput" accept=".json, .txt" />
               <button class="toggle-textarea" data-target="jsonDisplay">JSON Anzeigen/Verbergen</button>
             <textarea
                id="jsonDisplay"
                placeholder="JSON-Daten werden hier angezeigt...">{"nodes": [],"links": []}</textarea>
-            <button id="pagJsonReadButton">JSON Einlesen</button>
+            <button id="jsonFileInputButton">JSON Einlesen</button>
          </section>
          
          <!-- PAG DOT Input Section -->
-         <section id="pag-dot-input-section">
+         <section id="dot-input-section">
             <input type="file" id="dotFileInput" accept=".csv, .txt" />
               <button class="toggle-textarea" data-target="dotDisplay">DOT Anzeigen/Verbergen</button>
             <textarea
@@ -151,11 +151,15 @@
       <!--parser-->
       <!--eventhandlers--> 
       <script src="../js/parser/eventhandlers/handleMatrixInput.js"></script>
-      <script src="../js/parser/eventhandlers/handleJsonInput.js"></script>
-      <script src="../js/parser/eventhandlers/handleDotInput.js"></script>
       <script src="../js/parser/eventhandlers/handleManuelMatrixTextareaUpdate.js"></script>
-      <script src="../js/parser/eventhandlers/handleManuelJsonTextareaUpdate.js"></script>
-      <script src="../js/parser/eventhandlers/handleManuelDotTextareaUpdate.js"></script>
+
+      <script src="../js/parser/eventhandlers/handleJsonInput/callConverterFromJsonInput.js"></script>
+      <script src="../js/parser/eventhandlers/handleJsonInput/handleJsonFileInput.js"></script>
+      <script src="../js/parser/eventhandlers/handleJsonInput/handleJsonTextareaInput.js"></script>
+
+      <script src="../js/parser/eventhandlers/handleDotInput/handleDotFileInput.js"></script>
+      <script src="../js/parser/eventhandlers/handleDotInput/handleDotTextareaInput.js"></script>
+
       <!--converters-->
       <script src="../js/parser/converters/jsonToDotConversion.js"></script>
       <script src="../js/parser/converters/dotToJsonConversion.js"></script>

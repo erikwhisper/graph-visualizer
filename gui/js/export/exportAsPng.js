@@ -15,6 +15,7 @@ document.getElementById("downloadPngButton").addEventListener("click", () => {
 //Matrix, Dot-Syntax und jsonData file runterzuladen, keine ahnung
 //was da due passende endung ist für jsonData, bei matrix und dot-syntax
 //ist ja einf .csv
+/*
 function downloadSvgAsPng() {
   //current svg
   const svgElement = document.querySelector("#graph-container svg");
@@ -60,3 +61,54 @@ function downloadSvgAsPng() {
 
   img.src = url;
 }
+*/
+
+//TODO: Only saves top left 200x200 pixels, delete and revert to old one later again!
+function downloadSvgAsPng() {
+  // Current SVG
+  const svgElement = document.querySelector("#graph-container svg");
+
+  if (!svgElement) {
+    alert("No SVG graph found!");
+    return;
+  }
+
+  const svgString = new XMLSerializer().serializeToString(svgElement);
+
+  const canvas = document.createElement("canvas");
+  const context = canvas.getContext("2d");
+  const scaleFactor = 10;
+
+  //200 works very well
+  const targetSize = 200; // Size of the region to capture (200x200 pixels)
+  canvas.width = targetSize * scaleFactor;
+  canvas.height = targetSize * scaleFactor;
+
+  context.scale(scaleFactor, scaleFactor); // Apply scaling to maintain resolution
+
+  const img = new Image();
+  const svgBlob = new Blob([svgString], {
+    type: "image/svg+xml;charset=utf-8",
+  });
+  const url = URL.createObjectURL(svgBlob);
+
+  img.onload = function () {
+    // Optional: Set a white background for the canvas
+    //context.fillStyle = "#ffffff"; // White background
+    //context.fillRect(0, 0, canvas.width, canvas.height); // Fill with background color
+
+    // Draw only the top-left 200x200 region of the SVG
+    context.drawImage(img, 0, 0, targetSize, targetSize, 0, 0, targetSize, targetSize);
+
+    // Trigger download
+    const link = document.createElement("a");
+    link.download = "graph_.png";
+    link.href = canvas.toDataURL("image/png");
+    link.click();
+
+    URL.revokeObjectURL(url);
+  };
+
+  img.src = url;
+}
+  

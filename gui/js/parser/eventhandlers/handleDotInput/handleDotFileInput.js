@@ -17,7 +17,7 @@ function handleDotInput() {
       //Dot -> Json -> Matrix
       //Unterscheiden zwischen ADMG Matrix und PAG Matrix wie?
 
-      const jsonData = dotToJsonConversion(displayArea.value);
+      const jsonData = dotToJsonConversion(displayArea.value); //hier event.target.result nutzen?
 
       document.getElementById("jsonDisplay").value = JSON.stringify(
         jsonData,

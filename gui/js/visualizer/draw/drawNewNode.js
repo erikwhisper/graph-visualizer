@@ -11,7 +11,7 @@ function drawNewNode(svg, node) {
     .attr("r", 15)
     .attr("fill", node.nodeColor)
     .attr("stroke", "black")
-    .attr("stroke-width", 1)
+    .attr("stroke-width", 1.5)
     .attr("cx", node.x)
     .attr("cy", node.y);
 

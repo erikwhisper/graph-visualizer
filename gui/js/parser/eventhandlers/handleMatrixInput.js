@@ -6,6 +6,7 @@ const pagMatrixReadButton = document.getElementById("pagMatrixReadButton");
 pagMatrixReadButton.addEventListener("click", handleMatrixInput);
 
 //Fuktion für PAG matrix
+//die drei const werte könnte man auch in den eventlistener lieber packen und als params übergeben
 function handleMatrixInput() {
   const fileInput = document.getElementById("matrixFileInput").files[0];
   const displayArea = document.getElementById("matrixDisplay");

@@ -37,7 +37,7 @@ function labelContextMenu(svg) {
       if (labelId) {
         //TODO: hier nodeMenu und link Menu = "none" machen, damit nur immer eins offen ist!
         const node = jsonData.nodes.find((n) => n.nodeId === labelId);
-        node.labelOffsetX = 0; //später radius hier + iwas
+        //node.labelOffsetX = 0; //später radius hier + iwas
         node.labelOffsetY = -25; //später radius hier + iwas
         const selectedLabel = d3.select(`#label-${node.nodeId}`);
   
@@ -52,7 +52,7 @@ function labelContextMenu(svg) {
       if (labelId) {
         //TODO: hier nodeMenu und link Menu = "none" machen, damit nur immer eins offen ist!
         const node = jsonData.nodes.find((n) => n.nodeId === labelId);
-        node.labelOffsetX = 0; //später radius hier + iwas
+        //node.labelOffsetX = 0; //später radius hier + iwas
         node.labelOffsetY = 25; //später radius hier + iwas
         const selectedLabel = d3.select(`#label-${node.nodeId}`);
   
@@ -68,7 +68,7 @@ function labelContextMenu(svg) {
         //TODO: hier nodeMenu und link Menu = "none" machen, damit nur immer eins offen ist!
         const node = jsonData.nodes.find((n) => n.nodeId === labelId);
         node.labelOffsetX = -25; //später radius hier + iwas
-        node.labelOffsetY = 0; //später radius hier + iwas
+       //node.labelOffsetY = 0; //später radius hier + iwas
         const selectedLabel = d3.select(`#label-${node.nodeId}`);
   
         selectedLabel.attr("x", (d) => d.x + node.labelOffsetX);
@@ -83,7 +83,7 @@ function labelContextMenu(svg) {
         //TODO: hier nodeMenu und link Menu = "none" machen, damit nur immer eins offen ist!
         const node = jsonData.nodes.find((n) => n.nodeId === labelId);
         node.labelOffsetX = 25; //später radius hier + iwas
-        node.labelOffsetY = 0; //später radius hier + iwas
+        //node.labelOffsetY = 0; //später radius hier + iwas
         const selectedLabel = d3.select(`#label-${node.nodeId}`);
   
         selectedLabel.attr("x", (d) => d.x + node.labelOffsetX);

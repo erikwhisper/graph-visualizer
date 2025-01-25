@@ -13,7 +13,7 @@ function drawNodes(svg) {
       .attr("r", 15)
       .attr("fill", (d) => d.nodeColor)
       .attr("stroke", "black")
-      .attr("stroke-width", 1)
+      .attr("stroke-width", 1.5)
       .attr("cx", (d) => d.x)
       .attr("cy", (d) => d.y);
 

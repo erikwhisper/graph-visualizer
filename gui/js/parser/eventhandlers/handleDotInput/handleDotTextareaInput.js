@@ -1,8 +1,11 @@
 /**
  * @description Updates the matrix and json textarea based on the dot textarea: DOT -> JSON -> Matrix
  */
+
+
 const updateFromDotButton = document.getElementById("updateFromDotButton");
 updateFromDotButton.addEventListener("click", () => {
+
   const isAdmg = document.getElementById("matrixTypeToggle").checked;
   const dotInput = document.getElementById("dotDisplay").value;
   const jsonData = dotToJsonConversion(dotInput);
