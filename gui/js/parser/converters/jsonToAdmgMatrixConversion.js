@@ -47,14 +47,14 @@ function jsonToAdmgMatrixConversion(jsonData) {
       !link.isDashed
     ) {
       //A->B
-      matrix[sourceIndex][targetIndex] = 1;
+      matrix[sourceIndex][targetIndex] = matrix[sourceIndex][targetIndex] === 2 ? 3 : 1;
     } else if (
       link.arrowhead === "tail" &&
       link.arrowtail === "normal" &&
       !link.isDashed
     ) {
       //B -> A
-      matrix[targetIndex][sourceIndex] = 1;
+      matrix[targetIndex][sourceIndex] = matrix[targetIndex][sourceIndex] === 2 ? 3 : 1;
     }
   });
 
