@@ -57,14 +57,14 @@ function admgCreateJsonLinks(
 ) {
   const admgEdgeMap = {
     "0_0": null,
-    "1_0": [{ arrowhead: "normal", arrowtail: "tail", isDashed: false }],
-    "0_1": [{ arrowhead: "tail", arrowtail: "normal", isDashed: false }],
+    "2_3": [{ arrowhead: "normal", arrowtail: "tail", isDashed: false }],
+    "3_2": [{ arrowhead: "tail", arrowtail: "normal", isDashed: false }],
     "2_2": [{ arrowhead: "normal", arrowtail: "normal", isDashed: true }],
-    "2_3": [
+    "5_4": [
       { arrowhead: "normal", arrowtail: "normal", isDashed: true },
       { arrowhead: "tail", arrowtail: "normal", isDashed: false },
     ],
-    "3_2": [
+    "4_5": [
       { arrowhead: "normal", arrowtail: "normal", isDashed: true },
       { arrowhead: "normal", arrowtail: "tail", isDashed: false },
     ],

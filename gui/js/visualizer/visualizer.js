@@ -97,9 +97,6 @@ function drawEverything(svg) {
   drawLabels(svg);
 }
 
-//Ich glaube "svg.selectAll(".link").on("contextmenu", null);" ist deadcode und kann weg
-//wenn das link dingen iwo gecleared wird dann in der addNewLink Function
-//die handleAllContextMenus wird doch eh nie wieder aufgerufen
 function handleAllContextMenus(svg) {
   linkContextMenu(svg);
   console.log("Link context menu initialized.");
@@ -118,57 +115,9 @@ function handleAllInteractiveDrags(svg, gridSpacing) {
   linkInteractiveDrag(svg, gridSpacing);
   nodeInteractiveDrag(svg, gridSpacing);
   //labelInteractiveClick(svg, jsonData, gridSpacing); //man könnte lowkey nen drag&drop für labelOffsexX/Y einfügen
-  //der wandert beim moven vom node dann ja immer einf mit dem nodePosition+offset mit, und wenn grid an wird clipping
-  //genommen, eig easy.
 }
 
-//----------END: SETUP DRAWING FUNCTION, CONTEXTMENUS, LEFT-CLICKS --------------//
 
-//-------------------------------------------------------------------//
-
-//----------START: drawEverything() === DRAW LINKS + DRAW NODES + DRAW LABELS --------------//
-
-//----------END: DRAW LINKS + DRAW NODES + DRAW LABELS --------------//
-
-//-------------------------------------------------------------------//
-
-//----------START: allContextMenus() === CONTEXTMENU ORGANIZATION--------------//
-
-//TODO: anderes wort für setup finden
-
-
-
-
-
-
-//TODO: anderes wort für setup finden
-
-//----------END: allContextMenus() === CONTEXTMENU ORGANIZATION--------------//
-
-//-------------------------------------------------------------------//
-
-//----------START: CONTEXTMENU GENERAL FUNCTIONS--------------//
-
-//TODO: Anzeige des Kontetxmenüs schöner machen
-
-//-------------------------------------//
-
-
-
-//----------END: CONTEXTMENU GENERAL FUNCTIONS--------------//
-
-//-------------------------------------------------------------------//
-
-//----------START: linkContextMenu === CONTEXTMENU LINKS UNIQUE FUNCTIONS--------------//
-
-//TODO: refactor redrawing of arrowhead/arrowtail...
-
-
-//----------END: linkContextMenu === CONTEXTMENU LINKS UNIQUE FUNCTIONS--------------//
-
-//-------------------------------------------------------------------//
-
-//----------START: nodeContextMenu === CONTEXTMENU NODES UNIQUE FUNCTIONS--------------//
 
 //TODO: Adapt labelcolor, add labelcolor maybe, and change to black or white, according to the brightness of the color
 //automatically
@@ -226,13 +175,6 @@ function calculateLinkPath(d) {
 
 //----------END: allInteractiveClicks === LEFTCLICK LINK UNIQUE FUNCTIONS--------------//
 
-//-------------------------------------------------------------------//
-
-//----------START: allInteractiveClicks === LEFTCLICK NODE UNIQUE FUNCTIONS--------------//
-
-//----------START: allInteractiveClicks === LEFTCLICK NODE UNIQUE FUNCTIONS--------------//
-
-//-------------------------------------------------------------------//
 
 //----------START: handleAllEditOperations === ALL ADD NEW LINK UNIQUE FUNCTION--------------//
 
@@ -255,14 +197,6 @@ function calculateLinkPath(d) {
 //TODO 4: Bei langen namen die direkt über oder unter dem kreis anzeigen
 
 //-----------------------------------------------------------------------------
-//TODO 1: Bei neuen Knoten hat er das Problem das er beim LabelContextMenu sagt das er den Knoten nicht kennt
-//woran kann das liegen? Es passiert auch erst nach dem zweiten "Visualisieren" drücken
-//mit console logs rausfinden was der grund sein kann.
-
-//TODO 1.2: ContextMenu implementation funktioniert jetzt für newNode+newLabel und für newlink
-//einziges problem ist jetzt weiterhin noch das verschieben von Labels über deren kontextmenu
-//bei neuen nodes, mal gucken ob die contextMenuLabel function nen problem hat oder was es sonst
-//sein könnte + LabelOffset dynamisch an radius anpassen.
 
 //TODO 3: Kantenlänge anpassen, damit neue kanten nicht immer so turbo lang drüber sind
 //TODO 4: Label/Node namen ändern können
@@ -272,14 +206,12 @@ function calculateLinkPath(d) {
 //-----------------------------------------------------------------------------
 
 
-
-//-------------------------------------------------------------------//
-
 //----------START: UPDATE JSONDATA TEXTAREA--------------//
 
 function updatePagJsonDisplay() {
   //maybe add instant conversion to dot and matrix!!
   const jsonDisplay = document.getElementById("jsonDisplay");
+
   jsonDisplay.value = JSON.stringify(jsonData, null, 2);
 }
 
