@@ -7,48 +7,57 @@ function nodeContextMenu(svg) {
     "data-node-id",
     (d) => d.nodeId // Unique nodeId
   );
-  implementNodesContextMenu();
+  setupContextMenuInteractions();
   closeContextMenu("node-context-menu");
 }
 
-function implementNodesContextMenu() {
-  console.log("Node Contextmenu called");
-
-  document.getElementById("delete-node").addEventListener("click", () => {
-    const nodeMenu = document.getElementById("node-context-menu");
-    const nodeId = nodeMenu.getAttribute("data-node-id");
-    if (nodeId) {
-      deleteNode(nodeId);
-      if (nodeMenu) {
-        nodeMenu.style.display = "none";
-      }
-    }
-  });
-
+function setupContextMenuInteractions() {
+  document.getElementById("delete-node").addEventListener("click", deleteNode);
   setupNodeColorPalette();
 }
 
-function deleteNode(nodeId) {
-  //Sammelt alle links die mit dem knoten in verbindung stehen
-  const linksToDelete = jsonData.links.filter(
-    (link) => link.source.nodeId === nodeId || link.target.nodeId === nodeId
-  );
+//wie behandle ich diese controller funktionen?
+//erwähne ich diese einfach nicht? lowkey nö oder?
+//FRONTEND und BACKEND
+function deleteNode() {
+  const nodeMenu = document.getElementById("node-context-menu");
+  const nodeId = nodeMenu.getAttribute("data-node-id");
 
-  //Entfernt zugehörige Links aus dem jsonData und von svg canvas
-  linksToDelete.forEach((link) => {
-    deleteLink(link.linkId);
-  });
-
-  d3.select(`#label-${nodeId}`).remove();
-
-  d3.select(`#node-${nodeId}`).remove();
-
-  //Entfernt den Node selbst aus dem jsonData
-  jsonData.nodes = jsonData.nodes.filter((node) => node.nodeId !== nodeId);
-
-  updatePagJsonDisplay();
+  if (nodeId) {
+    const linksToDelete = detectlinkToDelete(nodeId);
+    deleteNodeJson(nodeId, linksToDelete);
+    deleteNodeVisualization(nodeId, linksToDelete);
+    updatePagJsonDisplay();
+    nodeMenu.style.display = "none";
+  }
 }
 
+//BACKEND
+function detectlinkToDelete(nodeId) {
+  return jsonData.links.filter(
+    (link) => link.source.nodeId === nodeId || link.target.nodeId === nodeId
+  );
+}
+
+//BACKEND
+function deleteNodeJson(nodeId, linksToDelete) {
+  linksToDelete.forEach((link) => deleteLinkJson(link.linkId));
+
+  jsonData.nodes = jsonData.nodes.filter((node) => node.nodeId !== nodeId);
+}
+
+//FRONTEND
+function deleteNodeVisualization(nodeId, linksToDelete) {
+  linksToDelete.forEach((link) => deleteLinkVisualization(link.linkId));
+
+  d3.select(`#label-${nodeId}`).remove();
+  d3.select(`#node-${nodeId}`).remove();
+}
+
+//----------------------------------------------------------------------------------//
+
+
+//FRONTEND und BACKEND
 function setupNodeColorPalette() {
   const nodeColorPalette = document.getElementById("node-color-palette");
   nodeColorPalette.innerHTML = "";
@@ -62,9 +71,10 @@ function setupNodeColorPalette() {
       const nodeMenu = document.getElementById("node-context-menu");
       const nodeId = nodeMenu.getAttribute("data-node-id");
 
-      //const node = jsonData.nodes.find((n) => n.nodeId === nodeId);
       if (nodeId) {
-        changeNodeColor(color, nodeId);
+        changeNodeColorJson(color, nodeId);
+        changeNodeColorVisualization(color, nodeId);
+        updatePagJsonDisplay();
       }
     });
 
@@ -72,13 +82,19 @@ function setupNodeColorPalette() {
   });
 }
 
-function changeNodeColor(color, nodeId) {
+//BACKEND
+function changeNodeColorJson(color, nodeId) {
   const selectedNode = jsonData.nodes.find((node) => node.nodeId === nodeId);
   if (selectedNode) {
-  selectedNode.nodeColor = color;
-  const svgNode = d3.select(`#node-${nodeId}`);
-  svgNode.attr("fill", color).style("fill", color);
-
-  updatePagJsonDisplay();
+    selectedNode.nodeColor = color;
   }
 }
+
+//FRONTEND
+function changeNodeColorVisualization(color, nodeId) {
+  const svgNode = d3.select(`#node-${nodeId}`);
+  if (svgNode) {
+    svgNode.attr("fill", color).style("fill", color);
+  }
+}
+

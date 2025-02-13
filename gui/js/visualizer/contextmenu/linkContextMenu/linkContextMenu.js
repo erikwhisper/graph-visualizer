@@ -125,7 +125,9 @@ function implementLinksContextMenu() {
     const linkMenu = document.getElementById("link-context-menu");
     const linkId = linkMenu.getAttribute("data-link-id");
     if (linkId) {
-      deleteLink(linkId);
+      deleteLinkJson(linkId);
+      deleteLinkVisualization(linkId);
+      updatePagJsonDisplay();
       if (linkMenu) {
         linkMenu.style.display = "none";
       }
@@ -161,13 +163,13 @@ function unsetDashed(selectedLink) {
   d3.select(`#link-${selectedLink.linkId}`).attr("stroke-dasharray", null);
 }
 
-//Entfernt Links aus dem jsonData und von svg canvas
-function deleteLink(linkId) {
+function deleteLinkJson(linkId) {
   jsonData.links = jsonData.links.filter((link) => link.linkId !== linkId); //löscht link aus jsonData
+}
 
+//Entfernt Links aus dem jsonData und von svg canvas
+function deleteLinkVisualization(linkId) {
   d3.select(`#link-${linkId}`).remove(); //löscht link von svg canvas
-
-  updatePagJsonDisplay(); //passt displayed jsondata auf actual jsondata an
 }
 
 function setupLinkColorPalette() {
