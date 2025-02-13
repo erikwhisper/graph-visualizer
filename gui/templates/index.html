@@ -1,145 +1,138 @@
 <!DOCTYPE html>
-<html lang="en"> <!--end oder de?-->
-  <head>
+<html lang="en">
+   <!--end oder de?-->
+   <head>
       <meta charset="UTF-8" />
       <meta name="viewport" content="width=device-width, initial-scale=1.0" />
       <link rel="stylesheet" href="../styles/style.css" />
       <title>CausalGraph Visualiser</title>
-  </head>
-  <body>
-  
+   </head>
+   <body>
       <!-- Zentrale feste Navigationsbar ganz oben auf der Seite -->
-    <div id="navigation-header">
-      <h1>CausalGraph Visualiser</h1>
-      <button>Button 1</button>
-      <label><input type="checkbox" id="gridClippingToggle" unchecked />Grid</label>
-      <button id="pagVisualizeJsonWithD3">Visualiser</button>
-      <button id="right-slidemenu-toggle">Menu</button> <!-- aktuell nur platzhalter -->
-    </div>
+      <div id="navigation-header">
+         <h1>CausalGraph Visualiser</h1>
 
+         <label><input type="checkbox" id="gridClippingToggle" unchecked />Grid</label>
+         <button id="pagVisualizeJsonWithD3">Visualiser</button>
+         <button id="right-slidemenu-toggle">Menu</button> <!-- aktuell nur platzhalter -->
+         
+      </div>
       <!-- Das initiale kleine von links kommende slidemenu, welches auf right-slidemenu-toggle reagiert -->
-    <div id="right-slidemenu-minor">
+      <div id="right-slidemenu-minor">
          <div id="right-slidemenu-minor-buttons">
-            <button id="right-slidemenu-minor-button-fileInput">Öffnen</button>
+            <button id="right-slidemenu-minor-button-fileInput">Eingabe</button>
             <button id="right-slidemenu-minor-button-fileOutput">Speichern</button>
-            <button id="right-slidemenu-minor-button-fileExport">Exportieren</button>
+            <!--<button id="right-slidemenu-minor-button-fileExport">Exportieren</button>-->
          </div>
-    </div>
-
+      </div>
       <!-- Die groeßeren von links kommenden slidemenus, welche auf die verschiedenen right-slidemenu-minor-buttons reagieren -->
-    <div class="right-slidemenu-major" id="menu-content-1"> <!--right-slidemenu-major-content-fileInput-->
-         <div class="right-slidemenu-major-content-headline">Öffnen</div>
-
+      <div class="right-slidemenu-major" id="menu-content-1">
+         <!--right-slidemenu-major-content-fileInput-->
+         <div class="right-slidemenu-major-content-headline">Eingabe</div>
          <!-- PAG Matrix Input Section -->
          <section id="matrix-input-section">
-
-         <div style="display: flex; align-items: center;">
-          <span style="margin-right: 8px;">PAG</span>
-          <label class="switch">
-            <input type="checkbox" id="matrixTypeToggle">
-            <span class="slider round"></span>
-          </label>
-          <span style="margin-left: 8px;">ADMG</span>
-        </div>
-
+            <div style="display: flex; align-items: center;">
+               <span style="margin-right: 8px;">PAG</span>
+               <label class="switch">
+               <input type="checkbox" id="matrixTypeToggle">
+               <span class="slider round"></span>
+               </label>
+               <span style="margin-left: 8px;">ADMG</span>
+            </div>
             <input type="file" id="matrixFileInput" accept=".csv, .txt" />
-              <button class="toggle-textarea" data-target="matrixDisplay">Matrix Anzeigen/Verbergen</button>
+            <button class="toggle-textarea" data-target="matrixDisplay">Matrix Anzeigen/Verbergen</button>
+            <button class= "update-button" id="updateFromMatrixButton">DOT <- JSON <- Matrix</button>
             <textarea
                id="matrixDisplay"
                placeholder="Matrix wird hier angezeigt..."></textarea>
             <button id="matrixFileInputButton">Matrix Einlesen</button>
          </section>
-
          <!-- PAG JSON Input Section -->
          <section id="json-input-section">
             <input type="file" id="jsonFileInput" accept=".json, .txt" />
-              <button class="toggle-textarea" data-target="jsonDisplay">JSON Anzeigen/Verbergen</button>
+            <button class="toggle-textarea" data-target="jsonDisplay">JSON Anzeigen/Verbergen</button>
+            <button class= "update-button" id="updateFromJsonButton">DOT <- JSON -> Matrix</button>
             <textarea
                id="jsonDisplay"
                placeholder="JSON-Daten werden hier angezeigt...">{"nodes": [],"links": []}</textarea>
             <button id="jsonFileInputButton">JSON Einlesen</button>
          </section>
-         
          <!-- PAG DOT Input Section -->
          <section id="dot-input-section">
             <input type="file" id="dotFileInput" accept=".dot , .gv, .txt" />
-              <button class="toggle-textarea" data-target="dotDisplay">DOT Anzeigen/Verbergen</button>
+            <button class="toggle-textarea" data-target="dotDisplay">DOT Anzeigen/Verbergen</button>
+            <button class= "update-button" id="updateFromDotButton">DOT -> JSON -> Matrix</button>
             <textarea
                id="dotDisplay"
                placeholder="DOT-Syntax wird hier angezeigt..."></textarea>
             <button id="dotFileInputButton">DOT Einlesen</button>
          </section>
-    </div>
-
+      </div>
       <!-- Conversion Button Section + Button -->
-    <div class="right-slidemenu-major" id="menu-content-2"> <!--right-slidemenu-major-content-fileOutput-->
-        <div class="right-slidemenu-major-content-headline">Speichern</div>
-        <section id="pag-conversion-button-section">
-            
-            <button id="updateFromMatrixButton">DOT <- JSON <- Matrix</button>
-            <button id="updateFromJsonButton">DOT <- JSON -> Matrix</button>
-            <button id="updateFromDotButton">DOT -> JSON -> Matrix</button>
-            
-            <button id="todoButton1">(todo: download admg/pag matrix)</button>
-            <button id="todoButton2">(todo: download dot)</button>
-        </section>
-    </div>
-
-      <!-- Export Button Section + Button -->
-    <div class="right-slidemenu-major" id="menu-content-3"> <!--right-slidemenu-major-content-fileExport-->
-         <div class="right-slidemenu-major-content-headline">Exportieren</div>
+      <div class="right-slidemenu-major" id="menu-content-2">
+         <!--right-slidemenu-major-content-fileOutput-->
+         <div class="right-slidemenu-major-content-headline">Speichern</div>
+         <section id="pag-conversion-button-section">
+            <button id="downloadMatrixButton">Download Matrix</button>
+            <button id="downloadJsonButton">Download JSON</button>
+            <button id="downloadDotButton">Download DOT</button>
+         </section>
          <button id="downloadPngButton">Download PNG</button>
          <button id="downloadPdfButton">Download PDF</button>
-    </div>
-
+      </div>
       <!-- Graph Container -->
       <div id="graph-container"></div>
-
       <!-- Label & Link Contextmenus Section -->
-       <!--TODO: Bei allen contextmenu functions einen check einfügen, falls die node/link/label-id die man
-       initial angeklickt hat nicht mehr existiert, dann für auch nix aus, kann passieren wenn man context menu
-       öffnet, etwas löscht und dann etwas ausführt, oder knoten löscht wenn man ihr für kante ziehen aus
-       gewhält hat-->
+      <!--TODO: Bei allen contextmenu functions einen check einfügen, falls die node/link/label-id die man
+         initial angeklickt hat nicht mehr existiert, dann für auch nix aus, kann passieren wenn man context menu
+         öffnet, etwas löscht und dann etwas ausführt, oder knoten löscht wenn man ihr für kante ziehen aus
+         gewhält hat-->
       <div id="context-menus">
-        <!--Label Section-->
-        <div id="label-context-menu" class="context-menus">
-          <button id="menu-center">Center</button>
-          <button id="menu-above">Above</button>
-          <button id="menu-below">Below</button>
-          <button id="menu-left">Left</button>
-          <button id="menu-right">Right</button>
-        </div>
-
-        <!--Link Section-->
-        <div id="link-context-menu" class="context-menus">
-          <p><strong>Arrowhead:</strong></p>
-          <button id="arrowhead-normal">Normal</button>
-          <button id="arrowhead-odot">Odot</button>
-          <button id="arrowhead-tail">Tail</button>
-          <p><strong>Arrowtail:</strong></p>
-          <button id="arrowtail-normal">Normal</button>
-          <button id="arrowtail-odot">Odot</button>
-          <button id="arrowtail-tail">Tail</button>
+         <!--Label Section-->
+         <div id="label-context-menu" class="context-menus">
+            <button id="menu-center">Center</button>
+            <button id="menu-above">Above</button>
+            <button id="menu-below">Below</button>
+            <button id="menu-left">Left</button>
+            <button id="menu-right">Right</button>
+         </div>
+         <!--Link Section-->
+         <!--aufpassen das mir die änderung hier mein contextmenu nicht crasht-->
+         <div id="link-context-menu" class="context-menus">
+          <div id="arrow-selection-container">
+              <!-- Arrowhead Section -->
+              <div class="arrow-group">
+                  <p><strong>Arrowhead:</strong></p>
+                  <button id="arrowhead-normal">Normal</button>
+                  <button id="arrowhead-odot">Odot</button>
+                  <button id="arrowhead-tail">Tail</button>
+              </div>
+              <!-- Arrowtail Section -->
+              <div class="arrow-group">
+                  <p><strong>Arrowtail:</strong></p>
+                  <button id="arrowtail-normal">Normal</button>
+                  <button id="arrowtail-odot">Odot</button>
+                  <button id="arrowtail-tail">Tail</button>
+              </div>
+          </div>
           <p><strong>Other:</strong></p>
           <button id="straighten-link">Straighten</button>
           <button id="toggle-dashed-link">Toggle Dashed</button>
           <button id="delete-link">Delete Link</button>
+      
           <p><strong>Change Color:</strong></p>
           <div id="link-color-palette"></div>
-        </div>
-
-        <!--Node Section-->
-        <div id="node-context-menu" class="context-menus">
-          <button id="delete-node">Delete Node</button>
-          <p><strong>Change Color:</strong></p> 
-          <div id="node-color-palette"></div> <!--rename into node-color-pallate-->
-        </div>
-
-        <!--wie bei yED einen neuen knoten generieren nicht nur durch einfaches klicken auf canvas, sondern
-        durch kombination von z.B. bei yEd ist es hold alt + klick, ich könnte sowas wie hold k+click machen-->
       </div>
-
-    <!--alle zu beschreibenden und zu erklärenden imports und hilfsfunktionen-->
+      
+         <!--Node Section-->
+         <div id="node-context-menu" class="context-menus">
+            <button id="delete-node">Delete Node</button>
+            <p><strong>Change Color:</strong></p>
+            <div id="node-color-palette"></div>
+            <!--rename into node-color-pallate-->
+         </div>
+      </div>
+      <!--alle zu beschreibenden und zu erklärenden imports und hilfsfunktionen-->
       <script src = https://cdnjs.cloudflare.com/ajax/libs/d3/7.9.0/d3.min.js></script>
       <script src= https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.9.2/html2pdf.bundle.js></script>
       <script src= https://cdnjs.cloudflare.com/ajax/libs/uuid/8.3.2/uuid.min.js></script>
@@ -154,15 +147,12 @@
       <script src="../js/parser/eventhandlers/handleMatrixInput/callConverterFromMatrixInput.js"></script>
       <script src="../js/parser/eventhandlers/handleMatrixInput/handleMatrixFileInput.js"></script>
       <script src="../js/parser/eventhandlers/handleMatrixInput/handleMatrixTextareaInput.js"></script>
-
       <script src="../js/parser/eventhandlers/handleJsonInput/callConverterFromJsonInput.js"></script>
       <script src="../js/parser/eventhandlers/handleJsonInput/handleJsonFileInput.js"></script>
       <script src="../js/parser/eventhandlers/handleJsonInput/handleJsonTextareaInput.js"></script>
-
       <script src="../js/parser/eventhandlers/handleDotInput/callConverterFromDotInput.js"></script>
       <script src="../js/parser/eventhandlers/handleDotInput/handleDotFileInput.js"></script>
       <script src="../js/parser/eventhandlers/handleDotInput/handleDotTextareaInput.js"></script>
-
       <!--converters-->
       <script src="../js/parser/converters/jsonToDotConversion.js"></script>
       <script src="../js/parser/converters/dotToJsonConversion.js"></script>
@@ -188,7 +178,6 @@
       <!--drag-->
       <script src="../js/visualizer/drag/linkInteractiveDrag.js"></script>
       <script src="../js/visualizer/drag/nodeInteractiveDrag.js"></script>
-      
       <!--contextmenu-->
       <!--contextmenu-utils-->
       <script src="../js/visualizer/contextmenu/util.js/setupContextMenu.js"></script>
@@ -199,7 +188,6 @@
       <script src="../js/visualizer/contextmenu/nodeContextMenu/nodeContextMenu.js"></script>
       <!--contextmenu-label-->
       <script src="../js/visualizer/contextmenu/labelContextMenu/labelContextMenu.js"></script>
-
       <!--add-->
       <script src="../js/visualizer/add/addNewLink.js"></script>
       <script src="../js/visualizer/add/addNewNode.js"></script>
@@ -208,6 +196,7 @@
       <!--grid-->
       <script src="../js/grid/grid.js"></script>
       <!--export-->
+      <script src="../js/export/exportAsText.js"></script>
       <script src="../js/export/exportAsPng.js"></script>
       <script src="../js/export/exportAsPdf.js"></script>
    </body>

@@ -17,13 +17,7 @@ function labelContextMenu(svg) {
       const labelId = labelMenu.getAttribute("data-label-id");
       if (labelId) {
         //TODO: hier nodeMenu und link Menu = "none" machen, damit nur immer eins offen ist!
-        const node = jsonData.nodes.find((n) => n.nodeId === labelId);
-        node.labelOffsetX = 0; //später radius hier + iwas
-        node.labelOffsetY = 0; //später radius hier + iwas
-        const selectedLabel = d3.select(`#label-${node.nodeId}`);
-  
-        selectedLabel.attr("x", (d) => d.x + node.labelOffsetX);
-        selectedLabel.attr("y", (d) => d.y + node.labelOffsetY);
+        moveCenter(labelId);
         if (labelMenu) {
           //labelMenu.style.display = "none";
         }
@@ -36,12 +30,7 @@ function labelContextMenu(svg) {
       const labelId = labelMenu.getAttribute("data-label-id");
       if (labelId) {
         //TODO: hier nodeMenu und link Menu = "none" machen, damit nur immer eins offen ist!
-        const node = jsonData.nodes.find((n) => n.nodeId === labelId);
-        //node.labelOffsetX = 0; //später radius hier + iwas
-        node.labelOffsetY = -25; //später radius hier + iwas
-        const selectedLabel = d3.select(`#label-${node.nodeId}`);
-  
-        selectedLabel.attr("y", (d) => d.y + node.labelOffsetY);
+        moveAbove(labelId);
       }
       updatePagJsonDisplay();
     });
@@ -51,12 +40,7 @@ function labelContextMenu(svg) {
       const labelId = labelMenu.getAttribute("data-label-id");
       if (labelId) {
         //TODO: hier nodeMenu und link Menu = "none" machen, damit nur immer eins offen ist!
-        const node = jsonData.nodes.find((n) => n.nodeId === labelId);
-        //node.labelOffsetX = 0; //später radius hier + iwas
-        node.labelOffsetY = 25; //später radius hier + iwas
-        const selectedLabel = d3.select(`#label-${node.nodeId}`);
-  
-        selectedLabel.attr("y", (d) => d.y + node.labelOffsetY);
+        moveBelow(labelId);
       }
       updatePagJsonDisplay();
     });
@@ -66,12 +50,7 @@ function labelContextMenu(svg) {
       const labelId = labelMenu.getAttribute("data-label-id");
       if (labelId) {
         //TODO: hier nodeMenu und link Menu = "none" machen, damit nur immer eins offen ist!
-        const node = jsonData.nodes.find((n) => n.nodeId === labelId);
-        node.labelOffsetX = -25; //später radius hier + iwas
-       //node.labelOffsetY = 0; //später radius hier + iwas
-        const selectedLabel = d3.select(`#label-${node.nodeId}`);
-  
-        selectedLabel.attr("x", (d) => d.x + node.labelOffsetX);
+        moveLeft(labelId);
       }
       updatePagJsonDisplay();
     });
@@ -81,14 +60,57 @@ function labelContextMenu(svg) {
       const labelId = labelMenu.getAttribute("data-label-id");
       if (labelId) {
         //TODO: hier nodeMenu und link Menu = "none" machen, damit nur immer eins offen ist!
-        const node = jsonData.nodes.find((n) => n.nodeId === labelId);
-        node.labelOffsetX = 25; //später radius hier + iwas
-        //node.labelOffsetY = 0; //später radius hier + iwas
-        const selectedLabel = d3.select(`#label-${node.nodeId}`);
-  
-        selectedLabel.attr("x", (d) => d.x + node.labelOffsetX);
+        moveRight(labelId);
       }
       updatePagJsonDisplay();
     });
   }
+
+function moveCenter(labelId) {
+  const node = jsonData.nodes.find((n) => n.nodeId === labelId);
+  node.labelOffsetX = 0; //später radius hier + iwas
+  node.labelOffsetY = 0; //später radius hier + iwas
+  const selectedLabel = d3.select(`#label-${node.nodeId}`);
+
+  selectedLabel.attr("x", (d) => d.x + node.labelOffsetX);
+  selectedLabel.attr("y", (d) => d.y + node.labelOffsetY);
+}
+
+function moveRight(labelId) {
+  const node = jsonData.nodes.find((n) => n.nodeId === labelId);
+  node.labelOffsetX = 25; //später radius hier + iwas
+
+  //node.labelOffsetY = 0; //später radius hier + iwas
+  const selectedLabel = d3.select(`#label-${node.nodeId}`);
+
+  selectedLabel.attr("x", (d) => d.x + node.labelOffsetX);
+}
+
+function moveLeft(labelId) {
+  const node = jsonData.nodes.find((n) => n.nodeId === labelId);
+  node.labelOffsetX = -25; //später radius hier + iwas
+
+  //node.labelOffsetY = 0; //später radius hier + iwas
+  const selectedLabel = d3.select(`#label-${node.nodeId}`);
+
+  selectedLabel.attr("x", (d) => d.x + node.labelOffsetX);
+}
+
+function moveBelow(labelId) {
+  const node = jsonData.nodes.find((n) => n.nodeId === labelId);
+  //node.labelOffsetX = 0; //später radius hier + iwas
+  node.labelOffsetY = 25; //später radius hier + iwas
+  const selectedLabel = d3.select(`#label-${node.nodeId}`);
+
+  selectedLabel.attr("y", (d) => d.y + node.labelOffsetY);
+}
+
+function moveAbove(labelId) {
+  const node = jsonData.nodes.find((n) => n.nodeId === labelId);
+  //node.labelOffsetX = 0; //später radius hier + iwas
+  node.labelOffsetY = -25; //später radius hier + iwas
+  const selectedLabel = d3.select(`#label-${node.nodeId}`);
+
+  selectedLabel.attr("y", (d) => d.y + node.labelOffsetY);
+}
   

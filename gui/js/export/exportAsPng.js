@@ -102,7 +102,7 @@ function downloadSvgAsPng() {
 
     // Trigger download
     const link = document.createElement("a");
-    link.download = "graph_.png";
+    link.download = "graph_ergebnisse_neu_01.png";
     link.href = canvas.toDataURL("image/png");
     link.click();
 

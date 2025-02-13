@@ -33,11 +33,15 @@ document
     resetCheckBoxes();
 
     // Get the JSON input from the DOM
-    const jsonInput = document.getElementById("jsonDisplay").value;
-    jsonData = JSON.parse(jsonInput); // Assign to global variable
+    setGlobalJsonObject(); // Assign to global variable
 
     visualizeJsonWithD3(); // Pass the global variable
   });
+
+function setGlobalJsonObject() {
+  const jsonInput = document.getElementById("jsonDisplay").value;
+  jsonData = JSON.parse(jsonInput);
+}
 
 function resetCheckBoxes() {
   //reset grid clipping
@@ -64,7 +68,7 @@ function visualizeJsonWithD3() {
 
   const gridSpacing = 50; //ALERT: currently declared twice, once here in visualizer.js and once in grid.js to avoid a global variable
 
-  initializeNodeCoordinates(gridSpacing * 2); //initiales clipping nutz doppelt so breites gridSpacing
+  initializeNodeCoordinates(gridSpacing * 4); //initiales clipping nutz doppelt so breites gridSpacing
 
   drawEverything(svg);
 

@@ -21,7 +21,7 @@ function setupArrowMarker(svg, id, type, color, orient) {
         .attr("cx", 5)
         .attr("cy", 0)
         .attr("r", 4)
-        .attr("fill", "white")
+        .attr("fill", "white") //.attr("fill", "none")
         .attr("stroke", color)
         .attr("stroke-width", 2);
     } else if (type === "tail") {
