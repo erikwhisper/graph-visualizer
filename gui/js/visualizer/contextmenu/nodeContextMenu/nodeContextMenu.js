@@ -7,11 +7,11 @@ function nodeContextMenu(svg) {
     "data-node-id",
     (d) => d.nodeId // Unique nodeId
   );
-  setupContextMenuInteractions();
+  setupNodeContextMenuInteractions();
   closeContextMenu("node-context-menu");
 }
 
-function setupContextMenuInteractions() {
+function setupNodeContextMenuInteractions() {
   document.getElementById("delete-node").addEventListener("click", deleteNode);
   setupNodeColorPalette();
 }
