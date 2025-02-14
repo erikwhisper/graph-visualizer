@@ -1,48 +1,56 @@
 function addNewNode(svg, gridSpacing) {
     svg.on("click", function (event) {
       if (event.shiftKey && event.button === 0) {
-        console.log("Shift + Left click detected.");
-  
-        const newNodeName = window.prompt(
+      
+        const nodeName = window.prompt(
           "Bitte geben Sie den Namen für den neuen Knoten ein:"
         );
-        if (newNodeName) {
-          console.log(`User entered node name: ${newNodeName}`);
+
+        if (nodeName) { //not null check
   
-          const isDuplicate = jsonData.nodes.some(
-            (node) => node.name === newNodeName
-          );
-          if (isDuplicate) {
-            console.log("STOP! Wir haben den Namen schon.");
-          } else {
-            console.log("Wir haben den Namen noch nicht.");
-  
+          const isDuplicate = checkDuplicates(nodeName);
+
+          if (!isDuplicate) {
+
             const [x, y] = d3.pointer(event, this);
   
-            const newNode = {
-              nodeId: uuid.v4(),
-              name: newNodeName,
-              nodeColor: "whitesmoke",
-              x: x,
-              y: y,
-              labelOffsetX: 0,
-              labelOffsetY: 0,
-            };
+            const newNode = createNewNode(nodeName, x, y);
   
-            jsonData.nodes.push(newNode);
+            addNewNodeToJson(newNode);
   
+            //uhm... idk... refactor these some day, FRONTEND
             drawNewNode(svg, newNode);
-  
             drawNewLabel(svg, newNode);
-  
             handleAllInteractiveDrags(svg, gridSpacing);
-  
             addNewLink(svg, gridSpacing);
-  
-            updatePagJsonDisplay();
-            console.log("New node added:", newNode);
           }
         }
       }
     });
   }
+
+//BACKEND
+function checkDuplicates(newNodeName) {
+  return jsonData.nodes.some(
+    (node) => node.name === newNodeName
+  );
+}
+
+//BACKEND
+function createNewNode(nodeName, x, y) {
+  return {
+    nodeId: uuid.v4(),
+    name: nodeName,
+    nodeColor: "whitesmoke",
+    x: x,
+    y: y,
+    labelOffsetX: 0,
+    labelOffsetY: 0,
+  };
+}
+
+//BACKEND
+function addNewNodeToJson(newNode) {
+  jsonData.nodes.push(newNode);
+  updatePagJsonDisplay();
+}
