@@ -6,13 +6,13 @@ function linkInteractiveDrag(svg, gridSpacing) {
       .drag()
       .on("drag", function (event, selectedLink) {
         updateCurrentLinkPositionJson(selectedLink, event.x, event.y);
-        updatelinkPositionVisualization(this, selectedLink);
+        updateLinkPositionVisualization(this, selectedLink);
         updatePagJsonDisplay();
       })
       .on("end", function (event, selectedLink) {
         const isGridAvtive = !svg.selectAll(".grid-line").empty(); 
         updateFinalLinkPositionJson(isGridAvtive, gridSpacing, selectedLink);
-        updatelinkPositionVisualization(this, selectedLink);
+        updateLinkPositionVisualization(this, selectedLink);
         updatePagJsonDisplay();
       })
   );
@@ -47,6 +47,6 @@ function updateFinalLinkPositionJson(isGridAvtive, gridSpacing, selectedLink) {
 }
 
 //FRONTEND
-function updatelinkPositionVisualization(linkElement, selectedLink) {
+function updateLinkPositionVisualization(linkElement, selectedLink) {
   d3.select(linkElement).attr("d", calculateLinkPath(selectedLink));
 }
