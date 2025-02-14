@@ -166,17 +166,16 @@ function handleAllInteractiveDrags(svg, gridSpacing) {
 //Muss in utils funktion, wird für contextmenu und drag genutzt //ist eig nicht auf calculate Link Path bezogen  oder?
 //Was ist denn fürs zeichnen verantworklich? initial und bei handleAddNewLink
 
-function calculateLinkPath(d) {
-  const { x: x1, y: y1 } = d.source;
-  const { x: x2, y: y2 } = d.target;
+function calculateLinkPath(selectedLink) {
+  const { x: x1, y: y1 } = selectedLink.source;
+  const { x: x2, y: y2 } = selectedLink.target;
 
-  if (!d.isCurved) {
-    //alternativ kann man hier jetzt auch .isCurved=false nutzen
-    d.linkControlX = (x1 + x2) / 2;
-    d.linkControlY = (y1 + y2) / 2;
+  if (!selectedLink.isCurved) {
+    selectedLink.linkControlX = (x1 + x2) / 2;
+    selectedLink.linkControlY = (y1 + y2) / 2;
   }
 
-  return `M ${x1},${y1} Q ${d.linkControlX},${d.linkControlY} ${x2},${y2}`;
+  return `M ${x1},${y1} Q ${selectedLink.linkControlX},${selectedLink.linkControlY} ${x2},${y2}`;
 }
 
 //----------END: allInteractiveClicks === LEFTCLICK LINK UNIQUE FUNCTIONS--------------//
