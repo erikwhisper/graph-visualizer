@@ -5,50 +5,63 @@
 //-> Fehlt noch, stattdessen aber kanten einf initial kürzer machen, dann spar ich mir neuzeichenn
 
 function addNewLink(svg, gridSpacing) {
-  console.log("addNewLink called");
   let firstNode = null;
 
   svg.selectAll(".node").on("click", null);
 
-  svg.selectAll(".node").on("click", function (event, d) {
+  svg.selectAll(".node").on("click", function (event, selectedNode) {
     if (!firstNode) {
-      firstNode = d;
-      d3.select(`#node-${firstNode.nodeId}`).attr("fill", "green");
-      console.log(`First node selected: `, firstNode);
-    } else if (d.nodeId !== firstNode.nodeId) {
-      const secondNode = d;
-      console.log(`Second node selected: `, secondNode);
+      firstNode = selectedNode;
 
-      const newLink = {
-        linkId: uuid.v4(),
-        linkColor: "black",
-        source: firstNode,
-        target: secondNode,
-        arrowhead: "normal",
-        arrowtail: "tail",
-        linkControlX: (firstNode.x + secondNode.x) / 2,
-        linkControlY: (firstNode.y + secondNode.y) / 2,
-        isCurved: false,
-        isDashed: false,
-      };
-      console.log("Creating new link:", newLink);
+      highlightFirstNode(firstNode, "green");
+    } else if (selectedNode.nodeId !== firstNode.nodeId) {
+      const secondNode = selectedNode;
 
-      jsonData.links.push(newLink);
+      const newLink = createNewLink(firstNode, secondNode);
 
+      addNewLinkToJson(newLink);
+
+      //uhm.. yeah.. refactor this.. FRONTEND
       drawNewLink(svg, newLink);
-
       linkInteractiveDrag(svg, gridSpacing);
 
-      updatePagJsonDisplay();
-
-      //setze firstNode wieder auf standartfarbe zurück
-      d3.select(`#node-${firstNode.nodeId}`).attr("fill", firstNode.nodeColor);
+      resetFirstNodeColor(firstNode);
       firstNode = null;
     } else {
-      //setze firstNode wieder auf standartfarbe zurück
-      d3.select(`#node-${firstNode.nodeId}`).attr("fill", firstNode.nodeColor);
-      console.log("Click detected on the same node. Resetting firstNode.");
+      resetFirstNodeColor(firstNode);
       firstNode = null;
     }
   });
+}
+
+//BACKEND
+function createNewLink(firstNode, secondNode) {
+  return {
+    linkId: uuid.v4(),
+    linkColor: "black",
+    source: firstNode,
+    target: secondNode,
+    arrowhead: "normal",
+    arrowtail: "tail",
+    linkControlX: (firstNode.x + secondNode.x) / 2,
+    linkControlY: (firstNode.y + secondNode.y) / 2,
+    isCurved: false,
+    isDashed: false,
+  };
+}
+
+//BACKEND
+function addNewLinkToJson(newLink) {
+  jsonData.links.push(newLink);
+  updatePagJsonDisplay();
+}
+
+//FRONTEND
+function highlightFirstNode(firstNode, color) {
+  d3.select(`#node-${firstNode.nodeId}`).attr("fill", color);
+}
+
+//FRONTEND
+function resetFirstNodeColor(firstNode) {
+  d3.select(`#node-${firstNode.nodeId}`).attr("fill", firstNode.nodeColor);
 }
