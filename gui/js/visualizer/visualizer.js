@@ -77,6 +77,8 @@ function visualizeJsonWithD3() {
     contextMenusInitialized = true; // Setze das Flag auf true, um die Kontextmenü-Erstellung zu verhindern
   }
 
+  //ab hier muss noch zwischen front und backend unterschieden werden
+
   handleAllInteractiveDrags(svg, gridSpacing);
 
   addNewLink(svg, gridSpacing);

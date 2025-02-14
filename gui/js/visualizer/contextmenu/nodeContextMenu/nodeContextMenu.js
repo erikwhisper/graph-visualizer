@@ -16,9 +16,7 @@ function setupNodeContextMenuInteractions() {
   setupNodeColorPalette();
 }
 
-//wie behandle ich diese controller funktionen?
-//erwähne ich diese einfach nicht? lowkey nö oder?
-//FRONTEND und BACKEND
+//Controller: FRONTEND und BACKEND
 function deleteNode() {
   const nodeMenu = document.getElementById("node-context-menu");
   const nodeId = nodeMenu.getAttribute("data-node-id");
@@ -56,7 +54,6 @@ function deleteNodeVisualization(nodeId, linksToDelete) {
 
 //----------------------------------------------------------------------------------//
 
-
 //FRONTEND und BACKEND
 function setupNodeColorPalette() {
   const nodeColorPalette = document.getElementById("node-color-palette");
@@ -85,16 +82,11 @@ function setupNodeColorPalette() {
 //BACKEND
 function changeNodeColorJson(color, nodeId) {
   const selectedNode = jsonData.nodes.find((node) => node.nodeId === nodeId);
-  if (selectedNode) {
-    selectedNode.nodeColor = color;
-  }
+  selectedNode.nodeColor = color;
 }
 
 //FRONTEND
 function changeNodeColorVisualization(color, nodeId) {
   const svgNode = d3.select(`#node-${nodeId}`);
-  if (svgNode) {
-    svgNode.attr("fill", color).style("fill", color);
-  }
+  svgNode.attr("fill", color).style("fill", color);
 }
-
