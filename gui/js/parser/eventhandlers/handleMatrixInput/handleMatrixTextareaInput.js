@@ -5,14 +5,23 @@
 document
   .getElementById("updateFromMatrixButton")
   .addEventListener("click", () => {
-    handleMatrixTextareaInput();
+    handleMatrixStringInputController();
   });
 
-function handleMatrixTextareaInput() {
+function handleMatrixStringInputController() {
   const isAdmg = document.getElementById("matrixTypeToggle").checked;
   const matrixString = document.getElementById("matrixDisplay").value;
+  handleMatrixTextareaInput(matrixString, isAdmg);
+}
 
+function handleMatrixTextareaInput(matrixString, isAdmg) {
   const result = callConverterFromMatrixInput(matrixString, isAdmg);
+  jsonData = result.jsonData;
+
+  handleMatrixInputVisualization(result, matrixString);
+}
+
+function handleMatrixInputVisualization(result, matrixString) {
   const jsonString = JSON.stringify(result.jsonData, null, 2);
   document.getElementById("jsonDisplay").value = jsonString;
   document.getElementById("matrixDisplay").value = matrixString;

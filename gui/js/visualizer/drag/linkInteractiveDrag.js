@@ -5,14 +5,14 @@ function linkInteractiveDrag(svg, gridSpacing) {
     d3
       .drag()
       .on("drag", function (event, selectedLink) {
-        updateCurrentLinkPositionJson(selectedLink, event.x, event.y);
-        updateLinkPositionVisualization(this, selectedLink);
+        updateCurrentLinkPositionJson(selectedLink.linkId, event.x, event.y);
+        updateLinkPositionVisualization(this, selectedLink.linkId);
         updatePagJsonDisplay();
       })
       .on("end", function (event, selectedLink) {
         const isGridAvtive = !svg.selectAll(".grid-line").empty(); 
-        updateFinalLinkPositionJson(isGridAvtive, gridSpacing, selectedLink);
-        updateLinkPositionVisualization(this, selectedLink);
+        updateFinalLinkPositionJson(isGridAvtive, gridSpacing, selectedLink.linkId);
+        updateLinkPositionVisualization(this, selectedLink.linkId);
         updatePagJsonDisplay();
       })
   );
@@ -20,17 +20,19 @@ function linkInteractiveDrag(svg, gridSpacing) {
 
 //BACKEND
 function updateCurrentLinkPositionJson(
-  selectedLink,
+  linkId,
   newLinkControlX,
   newLinkControlY
 ) {
+  const selectedLink = jsonData.links.find((link) => link.linkId === linkId);
   selectedLink.isCurved = true;
   selectedLink.linkControlX = newLinkControlX;
   selectedLink.linkControlY = newLinkControlY;
 }
 
 //BACKEND
-function updateFinalLinkPositionJson(isGridAvtive, gridSpacing, selectedLink) {
+function updateFinalLinkPositionJson(isGridAvtive, gridSpacing, linkId) {
+  const selectedLink = jsonData.links.find((link) => link.linkId === linkId);
   if (isGridAvtive) {
     const refinedSpacing = gridSpacing / 2;
     selectedLink.linkControlX =
@@ -47,6 +49,7 @@ function updateFinalLinkPositionJson(isGridAvtive, gridSpacing, selectedLink) {
 }
 
 //FRONTEND
-function updateLinkPositionVisualization(linkElement, selectedLink) {
+function updateLinkPositionVisualization(linkElement, linkId) {
+  const selectedLink = jsonData.links.find((link) => link.linkId === linkId);
   d3.select(linkElement).attr("d", calculateLinkPath(selectedLink));
 }

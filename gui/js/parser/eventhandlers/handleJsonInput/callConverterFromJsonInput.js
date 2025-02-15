@@ -1,11 +1,11 @@
 function callConverterFromJsonInput(jsonString, isAdmg) {
-  const jsonData = JSON.parse(jsonString);
+  const jsonConverterData = JSON.parse(jsonString);
 
   const matrix = isAdmg
-    ? jsonToAdmgMatrixConversion(jsonData)
-    : jsonToPagMatrixConversion(jsonData);
+    ? jsonToAdmgMatrixConversion(jsonConverterData)
+    : jsonToPagMatrixConversion(jsonConverterData);
 
-  const dot = jsonToDotConversion(jsonData);
+  const dot = jsonToDotConversion(jsonConverterData);
 
   return { matrix, dot };
 }

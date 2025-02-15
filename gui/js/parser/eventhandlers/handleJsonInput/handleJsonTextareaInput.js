@@ -4,14 +4,25 @@
 document
   .getElementById("updateFromJsonButton")
   .addEventListener("click", () => {
-    handleJsonTextareaInput();
+    handleJsonStringInputController();
   });
 
-function handleJsonTextareaInput() {
-  const isAdmg = document.getElementById("matrixTypeToggle").checked;
-  const jsonString = document.getElementById("jsonDisplay").value;
+  function handleJsonStringInputController(){
+    const jsonString = document.getElementById("jsonDisplay").value;
+    const isAdmg = document.getElementById("matrixTypeToggle").checked;
+    handleJsonStringInput(jsonString, isAdmg);
+  }
+
+function handleJsonStringInput(jsonString, isAdmg) {
 
   const result = callConverterFromJsonInput(jsonString, isAdmg);
+  jsonData = JSON.parse(jsonString);
+
+  handleJsonInputVisualization(jsonString, result);
+}
+
+
+function handleJsonInputVisualization(jsonString, result) {
   document.getElementById("jsonDisplay").value = jsonString;
   document.getElementById("matrixDisplay").value = result.matrix;
   document.getElementById("dotDisplay").value = result.dot;

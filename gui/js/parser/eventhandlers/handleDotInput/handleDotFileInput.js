@@ -4,26 +4,32 @@
  */
 
 document.getElementById("dotFileInputButton").addEventListener("click", () => {
-  handleDotInput();
+  handleDotFileInputController();
 });
 
-function handleDotInput() {
-  const fileInput = document.getElementById("dotFileInput").files[0];
+
+function handleDotFileInputController(){
   const isAdmg = document.getElementById("matrixTypeToggle").checked;
-
-  if (fileInput) {
-    const reader = new FileReader();
-    reader.onload = function (event) {
-      const dotString = event.target.result;
-      const result = callConverterFromDotInput(dotString, isAdmg);
-
-      const jsonString = JSON.stringify(result.jsonData, null, 2);
-      document.getElementById("jsonDisplay").value = jsonString;
-      document.getElementById("matrixDisplay").value = result.matrix;
-      document.getElementById("dotDisplay").value = dotString;
-    };
-    reader.readAsText(fileInput);
-  } else {
+  const fileInput = document.getElementById("dotFileInput").files[0];
+  if (!fileInput) {
     alert("Bitte wählen Sie eine Datei aus.");
+    return;
   }
+  dotFileReader(isAdmg, fileInput);
 }
+
+function dotFileReader(isAdmg, fileInput) {
+  
+  const reader = new FileReader();
+
+  reader.onload = function (event) {
+    const dotString = event.target.result;
+    handleDotStringInput(isAdmg, dotString);
+  };
+  reader.readAsText(fileInput);
+}
+
+
+
+
+

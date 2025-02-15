@@ -3,24 +3,25 @@
  * calls the conversion functions, do display the graph as Matrix, JSON and DOT
  */
 document.getElementById("jsonFileInputButton").addEventListener("click", () => {
-  handleFileInput();
+  handleJsonFileInputController();
 });
 
-function handleFileInput() {
+function handleJsonFileInputController() {
   const fileInput = document.getElementById("jsonFileInput").files[0];
   const isAdmg = document.getElementById("matrixTypeToggle").checked;
 
-  if (fileInput) {
-    const reader = new FileReader();
-    reader.onload = (event) => {
-      const jsonString = event.target.result;
-      const result = callConverterFromJsonInput(jsonString, isAdmg);
-      document.getElementById("jsonDisplay").value = jsonString;
-      document.getElementById("matrixDisplay").value = result.matrix;
-      document.getElementById("dotDisplay").value = result.dot;
-    };
-    reader.readAsText(fileInput);
-  } else {
+  if (!fileInput) {
     alert("Bitte wählen Sie eine Datei aus.");
+    return;
   }
+  jsonFileReader(fileInput, isAdmg);
+}
+
+function jsonFileReader(fileInput, isAdmg) {
+  const reader = new FileReader();
+  reader.onload = (event) => {
+    const jsonString = event.target.result;
+    handleJsonStringInput(jsonString, isAdmg)
+  };
+  reader.readAsText(fileInput);
 }

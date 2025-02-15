@@ -5,28 +5,25 @@
 document
   .getElementById("matrixFileInputButton")
   .addEventListener("click", () => {
-    handleMatrixInput();
+    handleMatrixFileInputController();
   });
 
-//Fuktion für PAG matrix
-//die drei const werte könnte man auch in den eventlistener lieber packen und als params übergeben
-function handleMatrixInput() {
+function handleMatrixFileInputController() {
   const fileInput = document.getElementById("matrixFileInput").files[0];
   const isAdmg = document.getElementById("matrixTypeToggle").checked;
 
-  if (fileInput) {
-    const reader = new FileReader();
-    reader.onload = function (event) {
-      const matrixString = event.target.result;
-      const result = callConverterFromMatrixInput(matrixString, isAdmg);
-
-      const jsonString = JSON.stringify(result.jsonData, null, 2);
-      document.getElementById("jsonDisplay").value = jsonString;
-      document.getElementById("matrixDisplay").value = matrixString;
-      document.getElementById("dotDisplay").value = result.dot;
-    };
-    reader.readAsText(fileInput);
-  } else {
+  if (!fileInput) {
     alert("Bitte wählen Sie eine Datei aus.");
+    return;
   }
+  matrixFileReader(fileInput, isAdmg);
+}
+
+function matrixFileReader(fileInput, isAdmg) {
+  const reader = new FileReader();
+  reader.onload = function (event) {
+    const matrixString = event.target.result;
+    handleMatrixTextareaInput(matrixString, isAdmg);
+  };
+  reader.readAsText(fileInput);
 }

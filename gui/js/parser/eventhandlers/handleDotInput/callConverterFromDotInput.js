@@ -1,9 +1,9 @@
 function callConverterFromDotInput(dotString, isAdmg) {
-  const jsonData = dotToJsonConversion(dotString);
+  const jsonConverterData = dotToJsonConversion(dotString);
 
   const matrix = isAdmg
-    ? jsonToAdmgMatrixConversion(jsonData)
-    : jsonToPagMatrixConversion(jsonData);
+    ? jsonToAdmgMatrixConversion(jsonConverterData)
+    : jsonToPagMatrixConversion(jsonConverterData);
 
-  return { jsonData, matrix };
+  return { jsonData: jsonConverterData, matrix };
 }

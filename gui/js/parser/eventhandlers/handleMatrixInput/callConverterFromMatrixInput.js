@@ -1,13 +1,13 @@
 function callConverterFromMatrixInput(matrixString, isAdmg) {
-  let jsonData;
+  let jsonConverterData;
 
   if (isAdmg) {
-    jsonData = admgMatrixToJsonConversion(parsePagContent(matrixString));
+    jsonConverterData = admgMatrixToJsonConversion(parsePagContent(matrixString));
   } else {
-    jsonData = pagMatrixToJsonConversion(parsePagContent(matrixString));
+    jsonConverterData = pagMatrixToJsonConversion(parsePagContent(matrixString));
   }
 
-  const dot = jsonToDotConversion(jsonData);
+  const dot = jsonToDotConversion(jsonConverterData);
 
-  return { jsonData, dot };
+  return { jsonData: jsonConverterData, dot };
 }

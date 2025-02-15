@@ -23,8 +23,7 @@
 //----------START: BASIC VISUALIZATION + DRAG&DROP --------------//
 
 //Eventlistener for basic visualization
-
-let jsonData = null;
+let jsonData = JSON.parse('{"nodes": [],"links": []}');;
 let contextMenusInitialized = false;
 
 document
@@ -33,7 +32,7 @@ document
     resetCheckBoxes();
 
     // Get the JSON input from the DOM
-    setGlobalJsonObject(); // Assign to global variable
+    //setGlobalJsonObject(); // Assign to global variable
 
     visualizeJsonWithD3(); // Pass the global variable
   });

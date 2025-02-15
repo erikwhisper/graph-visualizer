@@ -13,7 +13,7 @@ document.getElementById("downloadDotButton").addEventListener("click", () => {
 });
 
 function downloadFile(type) {
-  const jsonString = document.getElementById("jsonDisplay").value;
+  const jsonString = JSON.stringify(jsonData, null, 2);
   const isAdmg = document.getElementById("matrixTypeToggle").checked;
 
   if (!jsonString.trim()) {
