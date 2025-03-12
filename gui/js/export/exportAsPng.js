@@ -15,7 +15,7 @@ document.getElementById("downloadPngButton").addEventListener("click", () => {
 //Matrix, Dot-Syntax und jsonData file runterzuladen, keine ahnung
 //was da due passende endung ist für jsonData, bei matrix und dot-syntax
 //ist ja einf .csv
-/*
+
 function downloadSvgAsPng() {
   //current svg
   const svgElement = document.querySelector("#graph-container svg");
@@ -61,8 +61,8 @@ function downloadSvgAsPng() {
 
   img.src = url;
 }
-*/
 
+/*
 //TODO: Only saves top left 200x200 pixels, delete and revert to old one later again!
 function downloadSvgAsPng() {
   // Current SVG
@@ -80,7 +80,7 @@ function downloadSvgAsPng() {
   const scaleFactor = 10;
 
   //200 works very well
-  const targetSize = 200; // Size of the region to capture (200x200 pixels)
+  const targetSize = 600; // Size of the region to capture (200x200 pixels)
   canvas.width = targetSize * scaleFactor;
   canvas.height = targetSize * scaleFactor;
 
@@ -112,3 +112,4 @@ function downloadSvgAsPng() {
   img.src = url;
 }
   
+*/

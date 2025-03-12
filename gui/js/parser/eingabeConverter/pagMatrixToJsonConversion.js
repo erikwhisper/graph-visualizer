@@ -26,7 +26,9 @@ function pagMatrixToJsonConversion(pagMatrix) {
         knotenMap.get(quellKnotenName),
         knotenMap.get(zielKnotenName),
         kantenTypFromTo,
-        kantenTypToFrom
+        kantenTypToFrom,
+        quellKnotenName,
+        zielKnotenName
         //,knotenFarbe
       );
       if (link) {
@@ -49,7 +51,7 @@ function pagMatrixToJsonConversion(pagMatrix) {
   return { nodes, links };
 }
 
-function pagCreateJsonLinks(quellId, zielId, kantenTypFromTo, kantenTypToFrom) {
+function pagCreateJsonLinks(quellId, zielId, kantenTypFromTo, kantenTypToFrom, quellKnotenName, zielKnotenName) {
   const edgeMap = {
     0: "none",
     1: "odot",
@@ -67,6 +69,7 @@ function pagCreateJsonLinks(quellId, zielId, kantenTypFromTo, kantenTypToFrom) {
     linkColor: "black",
     source: {
       nodeId: quellId,
+      name: quellKnotenName, // Name aus der Map
       nodeColor: "whitesmoke",
       x: null,
       y: null,
@@ -75,6 +78,7 @@ function pagCreateJsonLinks(quellId, zielId, kantenTypFromTo, kantenTypToFrom) {
     },
     target: {
       nodeId: zielId,
+      name: zielKnotenName, // Name aus der Map
       nodeColor: "whitesmoke",
       x: null,
       y: null,

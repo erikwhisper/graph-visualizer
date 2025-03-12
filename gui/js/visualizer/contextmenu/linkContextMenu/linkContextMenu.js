@@ -189,6 +189,7 @@ function resetLinkCurveVisualization(linkId) {
 }
 
 // Frontend: Setzt die Farbpalette für Links
+//refactor mit setupNodeColorPallate, zu setupColorPallate
 function setupLinkColorPalette() {
   const palette = document.getElementById("link-color-palette");
   palette.innerHTML = "";
@@ -206,7 +207,7 @@ function setupLinkColorPalette() {
 // Controller: Backend & Frontend
 function changeLinkColor(linkId, color) {
   changeLinkColorJson(linkId, color);
-  changeLinkColorVisualization(linkId, color);
+  changeLinkColorVisualization(linkId);
   updatePagJsonDisplay();
 }
 
@@ -217,8 +218,9 @@ function changeLinkColorJson(linkId, color) {
 }
 
 // Frontend: Ändert die Farbe eines Links
-function changeLinkColorVisualization(linkId, color) {
-  d3.select(`#link-${linkId}`).attr("stroke", color);
+function changeLinkColorVisualization(linkId) {
+  const selectedLink = jsonData.links.find((link) => link.linkId === linkId);
+  d3.select(`#link-${selectedLink.linkId}`).attr("stroke", selectedLink.linkColor);
   updateArrowheadVisualization(linkId);
   updateArrowtailVisualization(linkId);
 }

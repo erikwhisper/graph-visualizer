@@ -27,7 +27,9 @@ function admgMatrixToJsonConversion(admgMatrix) {
         knotenMap.get(quellKnotenName),
         knotenMap.get(zielKnotenName),
         kantenTypFromTo,
-        kantenTypToFrom
+        kantenTypToFrom,
+        quellKnotenName,
+        zielKnotenName
       );
 
       if (newLinks) {
@@ -53,7 +55,9 @@ function admgCreateJsonLinks(
   quellId,
   zielId,
   kantenTypFromTo,
-  kantenTypToFrom
+  kantenTypToFrom,
+  quellKnotenName,
+  zielKnotenName
 ) {
   const admgEdgeMap = {
     "0_0": null,
@@ -79,6 +83,7 @@ function admgCreateJsonLinks(
     linkColor: "black",
     source: {
       nodeId: quellId,
+      name: quellKnotenName,
       nodeColor: "whitesmoke",
       x: null,
       y: null,
@@ -87,6 +92,7 @@ function admgCreateJsonLinks(
     },
     target: {
       nodeId: zielId,
+      name: zielKnotenName,
       nodeColor: "whitesmoke",
       x: null,
       y: null,

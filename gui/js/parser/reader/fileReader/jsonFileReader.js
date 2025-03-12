@@ -6,6 +6,7 @@ document.getElementById("jsonFileInputButton").addEventListener("click", () => {
   handleJsonFileInputController();
 });
 
+//Schnittstelle mit dem Frontend
 function handleJsonFileInputController() {
   const fileInput = document.getElementById("jsonFileInput").files[0];
   const isAdmg = document.getElementById("matrixTypeToggle").checked;
@@ -17,11 +18,12 @@ function handleJsonFileInputController() {
   jsonFileReader(fileInput, isAdmg);
 }
 
-function jsonFileReader(fileInput, isAdmg) {
+//Backendfunktion die eine Datei verarbeitet
+function jsonFileReader(jsonFileInput, isAdmg) {
   const reader = new FileReader();
   reader.onload = (event) => {
     const jsonString = event.target.result;
-    handleJsonStringInput(jsonString, isAdmg)
+    handleJsonStringInput(jsonString, isAdmg);
   };
-  reader.readAsText(fileInput);
+  reader.readAsText(jsonFileInput);
 }

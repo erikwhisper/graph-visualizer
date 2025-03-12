@@ -17,16 +17,16 @@ function setupLabelContextMenuInteractions() {
     .addEventListener("click", () => moveLabel(0, 0));
   document
     .getElementById("menu-above")
-    .addEventListener("click", () => moveLabel(0, -25));
+    .addEventListener("click", () => moveLabel(null, -25));
   document
     .getElementById("menu-below")
-    .addEventListener("click", () => moveLabel(0, 25));
+    .addEventListener("click", () => moveLabel(null, 25));
   document
     .getElementById("menu-left")
-    .addEventListener("click", () => moveLabel(-25, 0));
+    .addEventListener("click", () => moveLabel(-25, null));
   document
     .getElementById("menu-right")
-    .addEventListener("click", () => moveLabel(25, 0));
+    .addEventListener("click", () => moveLabel(25, null));
 }
 
 // FRONTEND & BACKEND
@@ -44,9 +44,20 @@ function moveLabel(offsetX, offsetY) {
 // BACKEND (setzt die offset-Werte eines Knotens auf zwei neue Werte)
 function moveLabelJson(labelId, offsetX, offsetY) {
   const node = jsonData.nodes.find((n) => n.nodeId === labelId);
+  const nodeNameLength = node.name.length * 3;
   if (node) {
-    node.labelOffsetX = offsetX;
-    node.labelOffsetY = offsetY;
+    if( offsetX == -25 ){
+      node.labelOffsetX = offsetX !== null ? offsetX - nodeNameLength : node.labelOffsetX;
+      node.labelOffsetY = offsetY !== null ? offsetY - nodeNameLength : node.labelOffsetY;
+    }
+    else if( offsetX == 25 ){
+      node.labelOffsetX = offsetX !== null ? offsetX + nodeNameLength : node.labelOffsetX;
+      node.labelOffsetY = offsetY !== null ? offsetY + nodeNameLength : node.labelOffsetY;
+    }
+    else{
+    node.labelOffsetX = offsetX !== null ? offsetX : node.labelOffsetX;
+    node.labelOffsetY = offsetY !== null ? offsetY : node.labelOffsetY;
+    }
   }
 }
 

@@ -23,7 +23,7 @@
 //----------START: BASIC VISUALIZATION + DRAG&DROP --------------//
 
 //Eventlistener for basic visualization
-let jsonData = JSON.parse('{"nodes": [],"links": []}');;
+let jsonData = JSON.parse('{"nodes": [],"links": []}');
 let contextMenusInitialized = false;
 
 document
@@ -37,10 +37,12 @@ document
     visualizeJsonWithD3(); // Pass the global variable
   });
 
+  /*
 function setGlobalJsonObject() {
   const jsonInput = document.getElementById("jsonDisplay").value;
   jsonData = JSON.parse(jsonInput);
 }
+*/
 
 function resetCheckBoxes() {
   //reset grid clipping

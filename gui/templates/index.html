@@ -145,24 +145,34 @@
       <script src="../js/visualizer/visualizer.js"></script>
       <!------------->
       <!--parser-->
-      <!--eventhandlers--> 
-      <script src="../js/parser/eventhandlers/handleMatrixInput/utils.js"></script>
-      <script src="../js/parser/eventhandlers/handleMatrixInput/callConverterFromMatrixInput.js"></script>
-      <script src="../js/parser/eventhandlers/handleMatrixInput/handleMatrixFileInput.js"></script>
-      <script src="../js/parser/eventhandlers/handleMatrixInput/handleMatrixTextareaInput.js"></script>
-      <script src="../js/parser/eventhandlers/handleJsonInput/callConverterFromJsonInput.js"></script>
-      <script src="../js/parser/eventhandlers/handleJsonInput/handleJsonFileInput.js"></script>
-      <script src="../js/parser/eventhandlers/handleJsonInput/handleJsonTextareaInput.js"></script>
-      <script src="../js/parser/eventhandlers/handleDotInput/callConverterFromDotInput.js"></script>
-      <script src="../js/parser/eventhandlers/handleDotInput/handleDotFileInput.js"></script>
-      <script src="../js/parser/eventhandlers/handleDotInput/handleDotTextareaInput.js"></script>
-      <!--converters-->
-      <script src="../js/parser/converters/jsonToDotConversion.js"></script>
-      <script src="../js/parser/converters/dotToJsonConversion.js"></script>
-      <script src="../js/parser/converters/jsonToPagMatrixConversion.js"></script>
-      <script src="../js/parser/converters/jsonToAdmgMatrixConversion.js"></script>
-      <script src="../js/parser/converters/admgMatrixToJsonConversion.js"></script>
-      <script src="../js/parser/converters/pagMatrixToJsonConversion.js"></script>
+
+      <!--parserUtils--> 
+      <script src="../js/parser/parserUtils/utils.js"></script>   
+      <script src="../js/parser/parserUtils/callConverterFromMatrixInput.js"></script>
+      <script src="../js/parser/parserUtils/callConverterFromJsonInput.js"></script>
+      <script src="../js/parser/parserUtils/callConverterFromDotInput.js"></script>
+      
+      <!--ausgabeConverter-->
+      <script src="../js/parser/ausgabeConverter/jsonToDotConversion.js"></script>
+      <script src="../js/parser/ausgabeConverter/jsonToPagMatrixConversion.js"></script>
+      <script src="../js/parser/ausgabeConverter/jsonToAdmgMatrixConversion.js"></script>
+      
+      <!--eingabeConverter-->
+      <script src="../js/parser/eingabeConverter/dotToJsonConversion.js"></script>
+      <script src="../js/parser/eingabeConverter/admgMatrixToJsonConversion.js"></script>
+      <script src="../js/parser/eingabeConverter/pagMatrixToJsonConversion.js"></script>
+
+
+      <!--stringInput-->
+      <script src="../js/parser/reader/stringInput/handleMatrixStringInput.js"></script>
+      <script src="../js/parser/reader/stringInput/handleJsonStringInput.js"></script>
+      <script src="../js/parser/reader/stringInput/handleDotStringInput.js"></script>
+
+      <!--fileReader-->
+      <script src="../js/parser/reader/fileReader/matrixFileReader.js"></script>
+      <script src="../js/parser/reader/fileReader/jsonFileReader.js"></script>
+      <script src="../js/parser/reader/fileReader/dotFileReader.js"></script>
+
       <!------------->
       
       <!--initialize-->

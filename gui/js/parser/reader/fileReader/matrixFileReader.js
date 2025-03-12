@@ -8,6 +8,7 @@ document
     handleMatrixFileInputController();
   });
 
+//Schnittstelle mit dem Frontend
 function handleMatrixFileInputController() {
   const fileInput = document.getElementById("matrixFileInput").files[0];
   const isAdmg = document.getElementById("matrixTypeToggle").checked;
@@ -19,11 +20,12 @@ function handleMatrixFileInputController() {
   matrixFileReader(fileInput, isAdmg);
 }
 
-function matrixFileReader(fileInput, isAdmg) {
+//Backendfunktion die eine Datei verarbeitet
+function matrixFileReader(matrixFileInput, isAdmg) {
   const reader = new FileReader();
   reader.onload = function (event) {
     const matrixString = event.target.result;
-    handleMatrixTextareaInput(matrixString, isAdmg);
+    handleMatrixStringInput(matrixString, isAdmg);
   };
-  reader.readAsText(fileInput);
+  reader.readAsText(matrixFileInput);
 }

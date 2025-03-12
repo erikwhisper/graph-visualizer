@@ -7,8 +7,8 @@ document.getElementById("dotFileInputButton").addEventListener("click", () => {
   handleDotFileInputController();
 });
 
-
-function handleDotFileInputController(){
+//Schnittstelle mit dem Frontend
+function handleDotFileInputController() {
   const isAdmg = document.getElementById("matrixTypeToggle").checked;
   const fileInput = document.getElementById("dotFileInput").files[0];
   if (!fileInput) {
@@ -18,18 +18,12 @@ function handleDotFileInputController(){
   dotFileReader(isAdmg, fileInput);
 }
 
-function dotFileReader(isAdmg, fileInput) {
-  
+//Backendfunktion die eine Datei verarbeitet
+function dotFileReader(isAdmg, dotFileInput) {
   const reader = new FileReader();
-
   reader.onload = function (event) {
     const dotString = event.target.result;
     handleDotStringInput(isAdmg, dotString);
   };
-  reader.readAsText(fileInput);
+  reader.readAsText(dotFileInput);
 }
-
-
-
-
-

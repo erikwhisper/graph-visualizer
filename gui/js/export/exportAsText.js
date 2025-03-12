@@ -1,28 +1,35 @@
+
+//FRONTEND
 document
   .getElementById("downloadMatrixButton")
   .addEventListener("click", () => {
-    downloadFile("matrix");
+    startDownload("matrix");
   });
 
 document.getElementById("downloadJsonButton").addEventListener("click", () => {
-  downloadFile("json");
+  startDownload("json");
 });
 
 document.getElementById("downloadDotButton").addEventListener("click", () => {
-  downloadFile("dot");
+  startDownload("dot");
 });
 
-function downloadFile(type) {
-  const jsonString = JSON.stringify(jsonData, null, 2);
+function startDownload(type){
   const isAdmg = document.getElementById("matrixTypeToggle").checked;
+  handleOutput(type, isAdmg);
+}
 
-  if (!jsonString.trim()) {
-    alert("JSON-Daten fehlen!");
-    return;
-  }
 
-  const { matrix, dot } = callConverterFromJsonInput(jsonString, isAdmg);
+function handleOutput(type, isAdmg) {
 
+  const jsonString = JSON.stringify(jsonData, null, 2);
+
+  const result = callConverterFromJsonInput(jsonString, isAdmg);
+
+  fileWriter(type, jsonString, result.matrix, result.dot);
+}
+
+function fileWriter(type, jsonString, matrixString, dotString) {
   let content = "";
   let filename = "";
   let fileType = "";
@@ -32,11 +39,11 @@ function downloadFile(type) {
     filename = "jsonGraph.json";
     fileType = "application/json";
   } else if (type === "matrix") {
-    content = matrix;
+    content = matrixString;
     filename = "matrixGraph.csv";
     fileType = "text/csv";
   } else if (type === "dot") {
-    content = dot;
+    content = dotString;
     filename = "dotGraph.gv";
     fileType = "text/plain";
   }
@@ -47,3 +54,4 @@ function downloadFile(type) {
   link.download = filename;
   link.click();
 }
+

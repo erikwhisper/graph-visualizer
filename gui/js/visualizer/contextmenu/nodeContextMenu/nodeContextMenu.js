@@ -55,6 +55,7 @@ function deleteNodeVisualization(nodeId, linksToDelete) {
 //----------------------------------------------------------------------------------//
 
 //FRONTEND und BACKEND
+//refactor mit setupLinkColorPallate, zu setupColorPallate
 function setupNodeColorPalette() {
   const nodeColorPalette = document.getElementById("node-color-palette");
   nodeColorPalette.innerHTML = "";
@@ -70,7 +71,7 @@ function setupNodeColorPalette() {
 
       if (nodeId) {
         changeNodeColorJson(color, nodeId);
-        changeNodeColorVisualization(color, nodeId);
+        changeNodeColorVisualization(nodeId);
         updatePagJsonDisplay();
       }
     });
@@ -86,7 +87,8 @@ function changeNodeColorJson(color, nodeId) {
 }
 
 //FRONTEND
-function changeNodeColorVisualization(color, nodeId) {
-  const svgNode = d3.select(`#node-${nodeId}`);
-  svgNode.attr("fill", color).style("fill", color);
+function changeNodeColorVisualization(nodeId) {
+  const selectedNode = jsonData.nodes.find((node) => node.nodeId === nodeId);
+  const svgNode = d3.select(`#node-${selectedNode.nodeId}`);
+  svgNode.attr("fill", selectedNode.nodeColor).style("fill", selectedNode.nodeColor);
 }

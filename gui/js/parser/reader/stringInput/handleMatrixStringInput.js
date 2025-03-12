@@ -8,20 +8,23 @@ document
     handleMatrixStringInputController();
   });
 
+//Schnittstelle mit dem Frontend
 function handleMatrixStringInputController() {
   const isAdmg = document.getElementById("matrixTypeToggle").checked;
   const matrixString = document.getElementById("matrixDisplay").value;
-  handleMatrixTextareaInput(matrixString, isAdmg);
+  handleMatrixStringInput(matrixString, isAdmg);
 }
 
-function handleMatrixTextareaInput(matrixString, isAdmg) {
+//Backend
+function handleMatrixStringInput(matrixString, isAdmg) {
   const result = callConverterFromMatrixInput(matrixString, isAdmg);
   jsonData = result.jsonData;
-
   handleMatrixInputVisualization(result, matrixString);
 }
 
+//Schnittstelle mit dem Frontend
 function handleMatrixInputVisualization(result, matrixString) {
+  initializeSvgCanvas();
   const jsonString = JSON.stringify(result.jsonData, null, 2);
   document.getElementById("jsonDisplay").value = jsonString;
   document.getElementById("matrixDisplay").value = matrixString;
