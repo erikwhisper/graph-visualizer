@@ -17,8 +17,7 @@
 //button ist und danach downloaded der mir das einf zu ner .csv
 //fertig
 
-//knotengröße anpassen können, bedeutet label, arrowmarker
-//alles dynamisch daran anpassen müssen
+
 
 //----------START: BASIC VISUALIZATION + DRAG&DROP --------------//
 

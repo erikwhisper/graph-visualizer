@@ -1,3 +1,4 @@
+//Controller
 function addNewNode(svg, gridSpacing) {
     svg.on("click", function (event) {
       if (event.shiftKey && event.button === 0) {

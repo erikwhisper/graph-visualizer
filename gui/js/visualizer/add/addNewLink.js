@@ -4,6 +4,7 @@
 //irgendwie basierend auf den mittelpunkten der referenzierten knoten zeichnen kann?
 //-> Fehlt noch, stattdessen aber kanten einf initial kürzer machen, dann spar ich mir neuzeichenn
 
+//Controller
 function addNewLink(svg, gridSpacing) {
   let firstNode = null;
 
